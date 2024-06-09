@@ -1,0 +1,6 @@
+library(coursework)
+library(shiny)
+library(pdftools)
+library(bslib)
+library(magick)
+library(shinyjs)
