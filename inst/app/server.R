@@ -65,8 +65,9 @@ server <- function(input, output, session) {
           paste("Grade:", sample(c("5", "6", "4"), 1)), br(),
           paste("Price:", sample(c("Ksh.200", "Ksh.300", "Ksh.500"), 1)),
           div(
+            class = "d-flex justify-content-center",
             onclick = sprintf("Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());", file_info$pdf),
-            argonImage(
+            argonR::argonImage(
               src = sub("^www/", "", file_info$cover),
               floating = TRUE
             )

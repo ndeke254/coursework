@@ -10,7 +10,7 @@ ui <- argonDash::argonDashPage(
     )
   ),
   body = argonDash::argonDashBody(
-    argonCard(
+    argonR::argonCard(
       title = "Upload PDF",
       shadow = TRUE,
       border_level = 5,
@@ -46,12 +46,14 @@ ui <- argonDash::argonDashPage(
         gradient = TRUE,
         div(
           id = "modal-content",
+          class = "hover-content", # Apply the hover class to the modal content
+          style = "position: relative;", # Ensure the modal content is relatively positioned
           div(
             id = "hover-div",
-            class = "bg-translucent-default rounded pt-3 pb-3",
-            actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> remove_btn_default(),
-            actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> remove_btn_default(),
-            actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> remove_btn_default(),
+            class = "hover-div bg-translucent-default rounded pt-3 pb-3",
+            actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray"),
+            actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray"),
+            actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray"),
             uiOutput("progress_bar")
           ),
           imageOutput("pdf_images", height = "auto", width = "100%")
