@@ -106,6 +106,7 @@ server <- function(input, output, session) {
     rv$current_page <- 1
     rv$total_pages <- length(image_files)
     rv$selected_pdf <- input$selected_pdf
+    
     # Render progress bar and text
     output$progress_bar <- renderUI({
       page_text <- paste("Page", rv$current_page, "of", rv$total_pages)
