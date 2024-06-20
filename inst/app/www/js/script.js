@@ -5,17 +5,29 @@ $(document).ready(function () {
     show: false,
   });
 
-  if (!screenfull.isEnabled) {
-    return false;
-  }
-
-  $("#full_screen_btn").click(function () {
-    if (screenfull.isFullscreen) {
-      screenfull.exit();
-      $("#full_screen_btn i").removeClass("fa-compress").addClass("fa-expand");
+  // clicking the document takes it to full screen mode
+  $(document).on("dblclick", "#modal-content", function () {
+    if (!document.fullscreenElement) {
+      document.getElementById("modal").requestFullscreen();
     } else {
-      screenfull.request(this);
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // observe the full screen button
+  $(document).on("click", "#full_screen_btn", function () {
+    if (!document.fullscreenElement) {
+      document.getElementById("modal").requestFullscreen();
       $("#full_screen_btn i").removeClass("fa-expand").addClass("fa-compress");
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        $("#full_screen_btn i")
+          .removeClass("fa-compress")
+          .addClass("fa-expand");
+      }
     }
   });
 });

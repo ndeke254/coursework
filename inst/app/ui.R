@@ -7,9 +7,14 @@ ui <- argonDash::argonDashPage(
     argonR::argonImage(
       src = "logo/imac.svg",
       width = "50px"
-    )
+    ),
+    actionButton(
+      inputId = "admin",
+      label = "Administrator",
+      icon = icon("user-tie")
+    ) 
   ),
-  body = argonDash::argonDashBody(
+  argonDash::argonDashBody(
     argonR::argonCard(
       title = "Upload PDF",
       shadow = TRUE,
@@ -50,18 +55,15 @@ ui <- argonDash::argonDashPage(
           style = "position: relative;", # Ensure the modal content is relatively positioned
           div(
             id = "hover-div",
-            class = "hover-div bg-translucent-default rounded pt-3 pb-3",
-            actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray"),
-            actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray"),
-            actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray"),
+            class = "bg-translucent-default rounded pt-3 pb-3",
+            actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> remove_btn_default(),
+            actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> remove_btn_default(),
+            actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> remove_btn_default(),
             uiOutput("progress_bar")
           ),
           imageOutput("pdf_images", height = "auto", width = "100%")
         )
-      ) |>
-        shinyfullscreen::fullscreen_this(
-          click_id = "full_screen_btn"
-        ),
+      ),
       # Hidden button to trigger modal display
       shinyjs::hidden(
         argonR::argonButton(
