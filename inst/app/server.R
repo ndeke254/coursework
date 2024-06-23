@@ -1,4 +1,5 @@
 server <- function(input, output, session) {
+
   # Initialize reactive values
   rv <- reactiveValues(
     image_paths = NULL,
@@ -29,13 +30,12 @@ server <- function(input, output, session) {
     file.copy(input$pdfFile$datapath, pdf_path)
 
     # Convert PDF to images
-    pdf <- image_read_pdf(pdf_path)
-    image_paths <- vector("list", length(pdf))
-    for (i in seq_along(pdf)) {
-      image_path <- file.path("www/images", paste0(tools::file_path_sans_ext(input$pdfFile$name), "_page_", i, ".png"))
-      image_write(pdf[i], image_path)
-      image_paths[[i]] <- image_path
-    }
+    pdf_to_image(
+      pdf_path = pdf_path,
+      file_name = input$pdfFile$name,
+      output_dir = "www/images"
+    ) 
+    
     # Update reactive pdf paths
     rv$pdf_paths <- c(list(list(pdf = pdf_path, cover = image_paths[[1]])), rv$pdf_paths)
   })
@@ -106,7 +106,7 @@ server <- function(input, output, session) {
     rv$current_page <- 1
     rv$total_pages <- length(image_files)
     rv$selected_pdf <- input$selected_pdf
-    
+
     # Render progress bar and text
     output$progress_bar <- renderUI({
       page_text <- paste("Page", rv$current_page, "of", rv$total_pages)
@@ -169,4 +169,164 @@ server <- function(input, output, session) {
       shinyjs::hide("next_btn")
     }
   })
+
+  ## ---- ADMIN REGISTRATION TAB ----
+     # observe conditional events
+  observe({
+    
+    fields <- list(
+      school_name = input$school_name,
+      school_type = input$school_type,
+      school_level = input$school_level,
+      county = input$county
+    )
+    
+    error_fields <- validate_inputs(fields) 
+    non_error_fields <- setdiff(names(fields), error_fields)
+    
+    # check for atleast one entered field
+    if(length(error_fields) != length(fields)) {
+      shinyjs::addCssClass(
+        id = "step_1",
+        class = "bg-red"
+      )
+      for (name in non_error_fields) {
+        shinyjs::removeCssClass(
+          id = name ,
+          class = "border-danger"
+        ) 
+      }
+    } else {
+      shinyjs::removeCssClass(
+        id = "step_1",
+        class = "bg-red"
+      ) 
+    }
+
+    # check if all fields are filled up
+    if(length(error_fields) == 0) {
+     shinyjs::addCssClass(
+       id = "step_1",
+       class = "bg-green"
+     )
+     shinyjs::addCssClass(
+       id = "line",
+       class = "bg-green"
+     )
+     for (name in names(fields)) {
+       shinyjs::removeCssClass(
+         id = name ,
+         class = "border-danger"
+       ) 
+     }
+    } else {
+      shinyjs::removeCssClass(
+        id = "step_1",
+        class = "bg-green"
+      )
+      shinyjs::removeCssClass(
+        id = "line",
+        class = "bg-green"
+      )
+   }
+   
+  })
+  
+  # observe events on the back button
+  observeEvent(input$prevBtn, {
+  shinyjs::hide("prevBtn")
+  shinyjs::addCssClass(
+    id = "tab_buttons",
+    class = "justify-content-end")
+  shinyjs::removeCssClass(
+    id = "tab_buttons",
+    class = "justify-content-between")
+  shinyjs::hide("tab_2")
+  shinyjs::show("tab_1")
+  shinyjs::hide(
+    id = "confirmBtn"
+  )
+  shinyjs::show(
+    id = "nextBtn"
+  )
+  })
+
+  # observe events on the forward button
+  observeEvent(input$nextBtn, {
+    
+    fields <- list(
+      school_name = input$school_name,
+      school_type = input$school_type,
+      school_level = input$school_level,
+      county = input$county
+    )
+    
+    if(length(validate_inputs(fields)) == 0) {
+      shinyjs::show("prevBtn")
+    shinyjs::show("tab_2")
+    shinyjs::hide("tab_1")
+    
+    shinyjs::removeCssClass(
+      id = "tab_buttons",
+      class = "justify-content-end")
+    
+    shinyjs::addCssClass(
+      id = "tab_buttons",
+      class = "justify-content-between")
+    shinyjs::show(
+      id = "confirmBtn"
+    )
+    shinyjs::hide(
+      id = "nextBtn"
+    )
+    shinyjs::addCssClass(
+      id = "step_2",
+      class = "bg-red"
+    )
+
+    
+    # output table for entered data
+  output$school_data <- renderUI({
+      argonTable(
+        title = input$school_name,
+        headTitles = c(
+          "NAME",
+          "LEVEL",
+          "TYPE",
+          "COUNTY",
+          "STATUS"
+        ),
+        argonTableItems(
+          argonTableItem(input$school_name),
+          argonTableItem(input$school_level),
+          argonTableItem(input$school_type),
+          argonTableItem(input$county),
+          argonTableItem(
+            dataCell = TRUE, 
+            argonBadge(
+              text = "Pending",
+              status = "danger"
+            )
+          )
+      )
+      )
+  })
+ } else {
+   ids <- validate_inputs(fields) 
+   
+   for (id in ids) {
+ shinyjs::addClass(
+  id = id,
+  class = "border-danger"
+  )
+ }
+   
+ }
+  })
+  
+  # observe confirm button
+  observeEvent(input$confirmBtn, {
+    
+  })
+
 }
