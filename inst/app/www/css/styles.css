@@ -1,3 +1,4 @@
+
 .modal-secondary .close > span:not(.sr-only) {
   color: var(--bslib-page-sidebar-title-bg);
 }
@@ -62,7 +63,7 @@
 
 .img-fluid.floating {
   filter: blur(2px);
-  max-height: 220px;
+  height: 220px;
 }
 
 .description {
@@ -84,4 +85,21 @@
   z-index: 1000;
   display: none;
   width: auto;
+}
+
+.row {
+  flex-wrap: nowrap;
+}
+
+.main-content .container-fluid {
+  padding-right: 15px !important;
+  padding-left: 15px!important;
+}
+.form-control:focus {
+  border-color: #5e72e4;
+  box-shadow: 0 3px 9px rgba(50,50,9,0),3px 4px 8px rgba(94,114,228,.1);
+}
+
+.bootstrap-select .dropdown-toggle:focus, .bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
+  outline: 0px auto -webkit-focus-ring-color!important;
 }

@@ -11,7 +11,8 @@
 #' class = "btn-outline-dark"
 #' )
 #' remove_btn_default(btn)
-#'
+#'@export 
+#' 
 make_btn_tab <- \(btn) {
   html_tag_q <- htmltools::tagQuery(btn)
   html_tag_q$removeClass("btn-default")
