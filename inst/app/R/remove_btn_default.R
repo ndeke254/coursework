@@ -12,6 +12,8 @@
 #' )
 #' remove_btn_default(btn)
 #'
+#' @export 
+#' 
 remove_btn_default <- \(btn) {
   html_tag_q <- htmltools::tagQuery(btn)
   html_tag_q$removeClass("btn-default")$

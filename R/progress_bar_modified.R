@@ -1,5 +1,7 @@
-# include 100% in the progessBar
-# origin function from ArgonR has excluded 0% and 100%
+#' include 100% in the progessBar
+#' origin function from ArgonR has excluded 0% and 100%
+#' I want a full bar on last page
+#' @export
 
 progress_bar_modified <- function(value, text = NULL, status = "primary") {
     stopifnot(value <= 100)
