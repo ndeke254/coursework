@@ -1,0 +1,87 @@
+.modal-secondary .close > span:not(.sr-only) {
+  color: var(--bslib-page-sidebar-title-bg);
+}
+
+.modal-open .modal {
+  backdrop-filter: blur(5px) !important;
+}
+
+.modal-dialog-centered {
+  align-items: normal;
+}
+.modal-dialog {
+  max-width: 1056px;
+}
+#modal-content {
+  position: relative;
+}
+
+#hover-div {
+  display: none;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  bottom: 10px;
+  z-index: 10;
+}
+
+#modal-content:hover #hover-div {
+  display: block;
+}
+
+#prev_btn,
+#next_btn {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+#modal-content:hover #prev_btn {
+  display: block;
+  left: 10px;
+}
+
+#modal-content:hover #next_btn {
+  display: block;
+  right: 10px;
+}
+
+.progress-percentage {
+  display: none;
+}
+
+.header {
+  padding-top: 20px !important;
+}
+
+.input-group .form-control:not(:first-child) {
+  padding-left: 10px;
+}
+
+.img-fluid.floating {
+  filter: blur(2px);
+  max-height: 220px;
+}
+
+.description {
+  text-align: center;
+}
+.hover-content {
+  position: relative;
+}
+
+.hover-content:hover .hover-div {
+  display: block;
+}
+
+.hover-div {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: none;
+  width: auto;
+}
