@@ -1,7 +1,6 @@
 library(coursework)
 library(shiny)
 library(pdftools)
-library(bslib)
 library(magick)
 library(shinyjs)
 library(argonDash)
@@ -9,8 +8,10 @@ library(argonR)
 library(bs4Dash)
 library(shinyjs)
 library(shinyWidgets)
+library(RSQLite)
+library(shinyvalidate)
 
-# counties in Keya
+# counties in Kenya
 # used as a choices input in school registration tab
 kenyan_counties <- c(
   "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", 

@@ -1,4 +1,9 @@
 server <- function(input, output, session) {
+  # make sqlite connection:
+  conn <- DBI::dbConnect(
+    drv = RSQLite::SQLite(),
+    Sys.getenv("DATABASE_NAME")
+  )
 
   # Initialize reactive values
   rv <- reactiveValues(
@@ -34,8 +39,8 @@ server <- function(input, output, session) {
       pdf_path = pdf_path,
       file_name = input$pdfFile$name,
       output_dir = "www/images"
-    ) 
-    
+    )
+
     # Update reactive pdf paths
     rv$pdf_paths <- c(list(list(pdf = pdf_path, cover = image_paths[[1]])), rv$pdf_paths)
   })
@@ -171,54 +176,54 @@ server <- function(input, output, session) {
   })
 
   ## ---- ADMIN REGISTRATION TAB ----
-     # observe conditional events
+  # observe conditional events
   observe({
-    
     fields <- list(
       school_name = input$school_name,
       school_type = input$school_type,
       school_level = input$school_level,
-      county = input$county
+      county = input$county,
+      school_email = input$school_email
     )
-    
-    error_fields <- validate_inputs(fields) 
+
+    error_fields <- validate_inputs(fields)
     non_error_fields <- setdiff(names(fields), error_fields)
-    
+
     # check for atleast one entered field
-    if(length(error_fields) != length(fields)) {
+    if (length(error_fields) != length(fields)) {
       shinyjs::addCssClass(
         id = "step_1",
         class = "bg-red"
       )
       for (name in non_error_fields) {
         shinyjs::removeCssClass(
-          id = name ,
+          id = name,
           class = "border-danger"
-        ) 
+        )
       }
     } else {
       shinyjs::removeCssClass(
         id = "step_1",
         class = "bg-red"
-      ) 
+      )
     }
 
     # check if all fields are filled up
-    if(length(error_fields) == 0) {
-     shinyjs::addCssClass(
-       id = "step_1",
-       class = "bg-green"
-     )
-     shinyjs::addCssClass(
-       id = "line",
-       class = "bg-green"
-     )
-     for (name in names(fields)) {
-       shinyjs::removeCssClass(
-         id = name ,
-         class = "border-danger"
-       ) 
-     }
+    if (length(error_fields) == 0 & validate_email(input$school_email)) {
+      shinyjs::addCssClass(
+        id = "step_1",
+        class = "bg-green"
+      )
+      shinyjs::addCssClass(
+        id = "line",
+        class = "bg-green"
+      )
+      for (name in names(fields)) {
+        shinyjs::removeCssClass(
+          id = name,
+          class = "border-danger"
+        )
+      }
     } else {
       shinyjs::removeCssClass(
         id = "step_1",
@@ -228,105 +233,249 @@ server <- function(input, output, session) {
         id = "line",
         class = "bg-green"
       )
-   }
-   
+    }
   })
-  
+
   # observe events on the back button
   observeEvent(input$prevBtn, {
-  shinyjs::hide("prevBtn")
-  shinyjs::addCssClass(
-    id = "tab_buttons",
-    class = "justify-content-end")
-  shinyjs::removeCssClass(
-    id = "tab_buttons",
-    class = "justify-content-between")
-  shinyjs::hide("tab_2")
-  shinyjs::show("tab_1")
-  shinyjs::hide(
-    id = "confirmBtn"
-  )
-  shinyjs::show(
-    id = "nextBtn"
-  )
+    shinyjs::hide("prevBtn")
+    shinyjs::addCssClass(
+      id = "tab_buttons",
+      class = "justify-content-end"
+    )
+    shinyjs::removeCssClass(
+      id = "tab_buttons",
+      class = "justify-content-between"
+    )
+    shinyjs::hide("tab_2")
+    shinyjs::show("tab_1")
+    shinyjs::hide(
+      id = "confirmBtn"
+    )
+    shinyjs::show(
+      id = "nextBtn"
+    )
   })
 
   # observe events on the forward button
   observeEvent(input$nextBtn, {
-    
     fields <- list(
       school_name = input$school_name,
       school_type = input$school_type,
       school_level = input$school_level,
-      county = input$county
-    )
-    
-    if(length(validate_inputs(fields)) == 0) {
-      shinyjs::show("prevBtn")
-    shinyjs::show("tab_2")
-    shinyjs::hide("tab_1")
-    
-    shinyjs::removeCssClass(
-      id = "tab_buttons",
-      class = "justify-content-end")
-    
-    shinyjs::addCssClass(
-      id = "tab_buttons",
-      class = "justify-content-between")
-    shinyjs::show(
-      id = "confirmBtn"
-    )
-    shinyjs::hide(
-      id = "nextBtn"
-    )
-    shinyjs::addCssClass(
-      id = "step_2",
-      class = "bg-red"
+      county = input$county,
+      school_email = input$school_email
     )
 
-    
-    # output table for entered data
-  output$school_data <- renderUI({
-      argonTable(
-        title = input$school_name,
-        headTitles = c(
-          "NAME",
-          "LEVEL",
-          "TYPE",
-          "COUNTY",
-          "STATUS"
-        ),
-        argonTableItems(
-          argonTableItem(input$school_name),
-          argonTableItem(input$school_level),
-          argonTableItem(input$school_type),
-          argonTableItem(input$county),
-          argonTableItem(
-            dataCell = TRUE, 
-            argonBadge(
-              text = "Pending",
-              status = "danger"
+    if (length(validate_inputs(fields)) == 0 & validate_email(input$school_email)) {
+      shinyjs::show("prevBtn")
+      shinyjs::show("tab_2")
+      shinyjs::hide("tab_1")
+
+      shinyjs::removeCssClass(
+        id = "tab_buttons",
+        class = "justify-content-end"
+      )
+
+      shinyjs::addCssClass(
+        id = "tab_buttons",
+        class = "justify-content-between"
+      )
+      shinyjs::show(
+        id = "confirmBtn"
+      )
+      shinyjs::hide(
+        id = "nextBtn"
+      )
+      shinyjs::addCssClass(
+        id = "step_2",
+        class = "bg-red"
+      )
+
+      # output table for entered data confirmation
+      output$confirm_school_data <- renderUI({
+        argonTable(
+          title = input$school_name,
+          headTitles = c(
+            "NAME",
+            "LEVEL",
+            "TYPE",
+            "COUNTY",
+            "EMAIL",
+            "STATUS"
+          ),
+          argonTableItems(
+            argonTableItem(stringr::str_to_sentence(input$school_name)),
+            argonTableItem(input$school_level),
+            argonTableItem(input$school_type),
+            argonTableItem(input$county),
+            argonTableItem(tolower(input$school_email)),
+            argonTableItem(
+              dataCell = TRUE,
+              argonBadge(
+                text = "Pending",
+                status = "danger"
+              )
             )
           )
-      )
-      )
-  })
- } else {
-   ids <- validate_inputs(fields) 
-   
-   for (id in ids) {
- shinyjs::addClass(
-  id = id,
-  class = "border-danger"
-  )
- }
-   
- }
-  })
-  
-  # observe confirm button
-  observeEvent(input$confirmBtn, {
-    
+        )
+      })
+    } else {
+      ids <- validate_inputs(fields)
+
+      for (id in ids) {
+        shinyjs::addClass(
+          id = id,
+          class = "border-danger"
+        )
+      }
+    }
   })
 
+  # Observe confirm button
+  observeEvent(input$confirmBtn, {
+    # Create data to append
+    school_data <- data.frame(
+      id = next_school_id("schools"),
+      name = stringr::str_to_sentence(input$school_name),
+      level = input$school_level,
+      type = input$school_type,
+      county = input$county,
+      email = tolower(input$school_email),
+      status = "Enabled"
+    )
+
+    # Call the register_new_school function
+    success <- register_new_school(
+      table_name = "schools",
+      data = school_data
+    )
+    if (success == 1) {
+      alert_success_ui(info = "New school created successfully!", session = session)
+    } else {
+      alert_fail_ui(info = "Name or email already exists!", session = session)
+    }
+  })
+
+  # output table for already exisiting school data
+  output$school_data <- renderUI({
+    # get the school data
+    table_data <- rvs$school_data
+
+    argonTable(
+      headTitles = c("ID", "Name", "Type", "County", "Status", ""),
+      lapply(1:nrow(table_data), function(i) {
+        argonTableItems(
+          argonTableItem(
+            div(
+              class = "d-flex flex-column justify-content-center",
+              h6(class = "mb-0 text-xs", table_data$id[i]),
+              p(class = "text-truncate w-50 text-xs text-default mb-0", table_data$email[i])
+            )
+          ),
+          argonTableItem(
+            div(
+              p(class = "text-xs font-weight-bold mb-0", table_data$name[i]),
+              p(class = "text-xs text-default mb-0", table_data$level[i])
+            )
+          ),
+          argonTableItem(table_data$type[i]),
+          argonTableItem(table_data$county[i]),
+          argonTableItem(
+            dataCell = TRUE,
+            argonBadge(
+              text = table_data$status[i],
+              status = ifelse(table_data$status[i] == "Enabled", "success", "default")
+            )
+          ),
+          argonTableItem(
+            dropMenu(
+              class = "well",
+              actionButton(
+                inputId = paste0("btn_", i),
+                label = "",
+                icon = icon("ellipsis-v"),
+                size = "sm",
+                status = "secondary",
+                outline = TRUE,
+                flat = TRUE,
+                class = "btn-link bg-transparent border-0"
+              ),
+              div(
+                class = "pt-2 mb--4",
+                h6(table_data$name[i]),
+                materialSwitch(
+                  inputId = paste0("status_", i),
+                  label = table_data$status[i],
+                  value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                  right = TRUE,
+                  status = "success"
+                )
+              )
+            )
+          )
+        )
+      })
+    )
+  })
+  # create reactive values for school table
+  rvs <- reactiveValues(
+    message = NULL,
+    school_data = dbReadTable(conn, "schools")
+  )
+  on.exit(DBI::dbDisconnect(conn), add = TRUE)
+
+  observe({
+    table_data <- rvs$school_data
+    for (i in 1:nrow(table_data)) {
+      local({
+        idx <- i
+        observeEvent(input[[paste0("btn_", idx)]], {
+          # Delay confirmation until the switch is toggled
+          observeEvent(input[[paste0("status_", idx)]],
+            {
+              status <- input[[paste0("status_", idx)]]
+              rvs$message <- if (status) "enabled..." else "disabled..."
+              confirm_text <- if (status) "enable" else "disable"
+
+              ask_confirmation(
+                session = session,
+                inputId = paste0("confirm_status_", idx),
+                title = "Confirmation",
+                text = paste("Are you sure you want to", confirm_text, table_data$name[idx], "?"),
+                btn_labels = c("Cancel", "Yes")
+              )
+            },
+            ignoreInit = TRUE,
+            once = TRUE
+          )
+        })
+      })
+    }
+
+    for (i in 1:nrow(table_data)) {
+      local({
+        idx <- i
+        observeEvent(input[[paste0("confirm_status_", idx)]], {
+          action <- input[[paste0("confirm_status_", idx)]]
+
+          req(!is.null(action))
+
+          if (action) {
+            alert_success_ui(
+              position = "top-end",
+              info = paste(table_data$name[idx], "has been", rvs$message),
+              session = session
+            )
+          } else {
+            alert_warn_ui(
+              position = "top-end",
+              info = "Action has been cancelled!",
+              session = session
+            )
+          }
+        })
+      })
+    }
+  })
 }

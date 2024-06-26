@@ -7,11 +7,11 @@
 #' label = label_mandatory("Confirm"),
 #' icon = icon("check")
 #' )
-#' @export
+#' @export 
 
 label_mandatory <- \(label) {
   tagList(
     label,
-    span("*", class = "mandatory_star")
+    span("*", class = "text-danger")
   )
 }
