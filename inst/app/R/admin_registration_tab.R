@@ -1,9 +1,3 @@
-label_mandatory <- \(label) {
-  tagList(
-    label,
-    span("*", class = "text-danger")
-  )
-}
 admin_registration_tab <- div(
   argonTabSet(
     id = "registration_tabset",
@@ -18,7 +12,6 @@ admin_registration_tab <- div(
     argonTab(
       tabName = "School",
       active = TRUE,
-      h2("Register new school"),
       argonRow(
         center = TRUE,
         argonCard(
@@ -132,12 +125,15 @@ admin_registration_tab <- div(
                 id = "tab_buttons",
                 class = "d-flex mt-3 justify-content-end",
                 shinyjs::hidden(
-                  shiny::actionButton("prevBtn", "", icon = icon("arrow-left"), class = "px-5")
+                  shiny::actionButton("prevBtn", "", icon = icon("arrow-left"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
                 ),
                 shinyjs::hidden(
-                  shiny::actionButton("confirmBtn", "", icon = icon("check"), class = "px-5")
+                  shiny::actionButton("confirmBtn", "", icon = icon("check"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
                 ),
-                shiny::actionButton("nextBtn", "", icon = icon("arrow-right"), class = "px-5")
+                shiny::actionButton("nextBtn", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
               )
             )
           )
@@ -255,12 +251,15 @@ admin_registration_tab <- div(
                 id = "tab_buttons",
                 class = "d-flex mt-3 justify-content-end",
                 shinyjs::hidden(
-                  shiny::actionButton("prevBtn_1", "", icon = icon("arrow-left"), class = "px-5")
+                  shiny::actionButton("prevBtn_1", "", icon = icon("arrow-left"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
                 ),
                 shinyjs::hidden(
-                  shiny::actionButton("confirmBtn_1", "", icon = icon("check"), class = "px-5")
+                  shiny::actionButton("confirmBtn_1", "", icon = icon("check"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
                 ),
-                shiny::actionButton("nextBtn_1", "", icon = icon("arrow-right"), class = "px-5")
+                shiny::actionButton("nextBtn_1", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
               )
             )
           )

@@ -25,7 +25,7 @@ admin_upload_page <- div(
           p("All fields are required", class = "mt--2"),
           div(
             class = "d-flex justify-content-center",
-            fileInput("pdfFile", "Select a PDF", width = 500, accept = c(".pdf")),
+            fileInput("pdfFile", "Select a PDF", width = 500, accept = c(".pdf"))
           ),
           argonRow(
             argonColumn(
@@ -106,7 +106,8 @@ admin_upload_page <- div(
               shiny::textInput("doc_price", label_mandatory("Price(Ksh):"), "", placeholder = "Eg. 300")
             )
           ),
-          actionButton("upload_btn", "Publish PDF", class = "mt-2 mb-2 float-right")
+          actionButton("upload_btn", "Publish PDF", class = "btn-primary mt-2 mb-2 float-right") |>
+                    basic_primary_btn()
         )
       )
     ),

@@ -14,6 +14,13 @@ server <- function(input, output, session) {
     pdf_paths = list()
   )
 
+  # output selected tab
+  output$selected_tab <- renderText({
+    item <- ifelse(is.null(input$active_sidebar_tab), "DASHBOARD", input$active_sidebar_tab)
+    return(stringr::str_to_upper(item))
+  })
+
+
   # Load existing PDFs and their cover images from the "pdf" folder on app initialization
   observe({
     pdf_files <- list.files("www/pdf", pattern = "\\.pdf$", full.names = TRUE)
@@ -176,65 +183,20 @@ server <- function(input, output, session) {
   })
 
   ## ---- ADMIN REGISTRATION TAB ----
-  # observe conditional events
-  observe({
-    fields <- list(
-      school_name = input$school_name,
-      school_type = input$school_type,
-      school_level = input$school_level,
-      county = input$county,
-      school_email = input$school_email
-    )
+  # initialize field validation
+  iv <- InputValidator$new()
 
-    error_fields <- validate_inputs(fields)
-    non_error_fields <- setdiff(names(fields), error_fields)
+  # add validation rules
+  iv$add_rule("school_name", sv_required())
+  iv$add_rule("school_email", sv_email())
+  iv$add_rule("school_type", sv_required())
+  iv$add_rule("school_level", sv_required())
+  iv$add_rule("county", sv_required())
 
-    # check for atleast one entered field
-    if (length(error_fields) != length(fields)) {
-      shinyjs::addCssClass(
-        id = "step_1",
-        class = "bg-red"
-      )
-      for (name in non_error_fields) {
-        shinyjs::removeCssClass(
-          id = name,
-          class = "border-danger"
-        )
-      }
-    } else {
-      shinyjs::removeCssClass(
-        id = "step_1",
-        class = "bg-red"
-      )
-    }
-
-    # check if all fields are filled up
-    if (length(error_fields) == 0 & validate_email(input$school_email)) {
-      shinyjs::addCssClass(
-        id = "step_1",
-        class = "bg-green"
-      )
-      shinyjs::addCssClass(
-        id = "line",
-        class = "bg-green"
-      )
-      for (name in names(fields)) {
-        shinyjs::removeCssClass(
-          id = name,
-          class = "border-danger"
-        )
-      }
-    } else {
-      shinyjs::removeCssClass(
-        id = "step_1",
-        class = "bg-green"
-      )
-      shinyjs::removeCssClass(
-        id = "line",
-        class = "bg-green"
-      )
-    }
-  })
+  shinyjs::addCssClass(
+    id = "step_1",
+    class = "bg-red"
+  )
 
   # observe events on the back button
   observeEvent(input$prevBtn, {
@@ -259,77 +221,71 @@ server <- function(input, output, session) {
 
   # observe events on the forward button
   observeEvent(input$nextBtn, {
-    fields <- list(
-      school_name = input$school_name,
-      school_type = input$school_type,
-      school_level = input$school_level,
-      county = input$county,
-      school_email = input$school_email
+    # enabled error UI show
+    iv$enable()
+    req(iv$is_valid())
+
+    # mark step 1 complete
+    shinyjs::addCssClass(
+      id = "step_1",
+      class = "bg-green"
+    )
+    shinyjs::addCssClass(
+      id = "line",
+      class = "bg-green"
+    )
+    shinyjs::show("prevBtn")
+    shinyjs::show("tab_2")
+    shinyjs::hide("tab_1")
+
+    shinyjs::removeCssClass(
+      id = "tab_buttons",
+      class = "justify-content-end"
     )
 
-    if (length(validate_inputs(fields)) == 0 & validate_email(input$school_email)) {
-      shinyjs::show("prevBtn")
-      shinyjs::show("tab_2")
-      shinyjs::hide("tab_1")
+    shinyjs::addCssClass(
+      id = "tab_buttons",
+      class = "justify-content-between"
+    )
+    shinyjs::show(
+      id = "confirmBtn"
+    )
+    shinyjs::hide(
+      id = "nextBtn"
+    )
+    shinyjs::addCssClass(
+      id = "step_2",
+      class = "bg-red"
+    )
 
-      shinyjs::removeCssClass(
-        id = "tab_buttons",
-        class = "justify-content-end"
-      )
-
-      shinyjs::addCssClass(
-        id = "tab_buttons",
-        class = "justify-content-between"
-      )
-      shinyjs::show(
-        id = "confirmBtn"
-      )
-      shinyjs::hide(
-        id = "nextBtn"
-      )
-      shinyjs::addCssClass(
-        id = "step_2",
-        class = "bg-red"
-      )
-
-      # output table for entered data confirmation
-      output$confirm_school_data <- renderUI({
-        argonTable(
-          title = input$school_name,
-          headTitles = c(
-            "NAME",
-            "LEVEL",
-            "TYPE",
-            "COUNTY",
-            "EMAIL",
-            "STATUS"
-          ),
-          argonTableItems(
-            argonTableItem(stringr::str_to_sentence(input$school_name)),
-            argonTableItem(input$school_level),
-            argonTableItem(input$school_type),
-            argonTableItem(input$county),
-            argonTableItem(tolower(input$school_email)),
-            argonTableItem(
-              dataCell = TRUE,
-              argonBadge(
-                text = "Pending",
-                status = "danger"
-              )
+    # output table for entered data confirmation
+    output$confirm_school_data <- renderUI({
+      argonTable(
+        title = input$school_name,
+        headTitles = c(
+          "NAME",
+          "LEVEL",
+          "TYPE",
+          "COUNTY",
+          "EMAIL",
+          "STATUS"
+        ),
+        argonTableItems(
+          argonTableItem(stringr::str_to_sentence(input$school_name)),
+          argonTableItem(input$school_level),
+          argonTableItem(input$school_type),
+          argonTableItem(input$county),
+          argonTableItem(tolower(input$school_email)),
+          argonTableItem(
+            dataCell = TRUE,
+            argonBadge(
+              text = "Pending",
+              status = "danger"
             )
           )
         )
-      })
-    } else {
-      ids <- validate_inputs(fields)
-
-      for (id in ids) {
-        shinyjs::addClass(
-          id = id,
-          class = "border-danger"
-        )
-      }
-    }
+      )
+    })
   })
 
   # Observe confirm button
@@ -350,8 +306,12 @@ server <- function(input, output, session) {
       table_name = "schools",
       data = school_data
     )
+
     if (success == 1) {
       alert_success_ui(info = "New school created successfully!", session = session)
+      # return to tab 1 and reset all fields
+      rvs$school_data <- refresh_table_data(reactive_data = rvs$school_data, table_name = "schools")
+      reset("")
     } else {
       alert_fail_ui(info = "Name or email already exists!", session = session)
     }
@@ -399,17 +359,29 @@ server <- function(input, output, session) {
                 status = "secondary",
                 outline = TRUE,
                 flat = TRUE,
-                class = "btn-link bg-transparent border-0"
+                class = "btn-link bg-transparent border-0",
+                onclick = sprintf("Shiny.setInputValue('action_button', '%s');", i)
               ),
               div(
-                class = "pt-2 mb--4",
-                h6(table_data$name[i]),
-                materialSwitch(
-                  inputId = paste0("status_", i),
-                  label = table_data$status[i],
-                  value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
-                  right = TRUE,
-                  status = "success"
+                class = "pt-2",
+                h5(table_data$name[i]),
+                div(
+                  class = "mb--4",
+                  onclick = sprintf("Shiny.setInputValue('status_button', '%s');", i),
+                  materialSwitch(
+                    inputId = paste0("status_", i),
+                    label = table_data$status[i],
+                    value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                    status = "success"
+                  )
+                ),
+                actionButton(
+                  inputId = paste0("del_btn_", i),
+                  label = "Delete",
+                  icon = icon("trash"),
+                  status = "secondary",
+                  class = "btn-link bg-transparent mx--3 border-0",
+                  onclick = sprintf("Shiny.setInputValue('del_button', '%s');", i)
                 )
               )
             )
@@ -418,64 +390,86 @@ server <- function(input, output, session) {
       })
     )
   })
-  # create reactive values for school table
+  # Create reactive values for school table
   rvs <- reactiveValues(
     message = NULL,
-    school_data = dbReadTable(conn, "schools")
+    school_data = dbReadTable(conn, "schools"),
+    idx = NULL,
+    status = NULL
   )
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
-  observe({
+
+  # change the school status - Enabled/Disabled
+  observeEvent(input$action_button, {
+    rvs$idx <- input$action_button
+  })
+
+  observeEvent(input$status_button, {
+    req(!is.null(rvs$idx))
+
     table_data <- rvs$school_data
-    for (i in 1:nrow(table_data)) {
-      local({
-        idx <- i
-        observeEvent(input[[paste0("btn_", idx)]], {
-          # Delay confirmation until the switch is toggled
-          observeEvent(input[[paste0("status_", idx)]],
-            {
-              status <- input[[paste0("status_", idx)]]
-              rvs$message <- if (status) "enabled..." else "disabled..."
-              confirm_text <- if (status) "enable" else "disable"
+    rvs$status <- input[[paste0("status_", rvs$idx)]]
+    rvs$message <- if (rvs$status) "disabled..." else "enabled..."
+    confirm_text <- if (rvs$status) "disable" else "enable"
+    id <- as.numeric(rvs$idx)
 
-              ask_confirmation(
-                session = session,
-                inputId = paste0("confirm_status_", idx),
-                title = "Confirmation",
-                text = paste("Are you sure you want to", confirm_text, table_data$name[idx], "?"),
-                btn_labels = c("Cancel", "Yes")
-              )
-            },
-            ignoreInit = TRUE,
-            once = TRUE
-          )
-        })
-      })
+    ask_confirmation(
+      session = session,
+      inputId = "confirm_status",
+      title = "Confirmation",
+      text = paste("Are you sure you want to", confirm_text, table_data$name[id], "?"),
+      btn_labels = c("Cancel", "Yes")
+    )
+  })
+
+  observeEvent(input$confirm_status, {
+    action <- input$confirm_status
+
+    req(!is.null(action))
+    idx <- as.numeric(rvs$idx)
+    table_data <- rvs$school_data
+
+    if (action) {
+      # Update status
+      update_school_status(
+        user_id = table_data$id[idx],
+        new_status = rvs$message |>
+          stringr::str_to_sentence() |>
+          stringr::str_replace("\\.\\.\\.", "")
+      )
+      # Refresh data
+      rvs$school_data <- refresh_table_data(table_name = "schools")
+
+      alert_success_ui(
+        position = "top-end",
+        info = paste(table_data$name[idx], "has been", rvs$message),
+        session = session
+      )
+    } else {
+      alert_warn_ui(
+        position = "top-end",
+        info = "Action has been cancelled!",
+        session = session
+      )
     }
+  })
 
-    for (i in 1:nrow(table_data)) {
-      local({
-        idx <- i
-        observeEvent(input[[paste0("confirm_status_", idx)]], {
-          action <- input[[paste0("confirm_status_", idx)]]
+  # Delete a school record
+  observeEvent(input$del_button, {
+    rvs$idx <- input$del_button
+    table_data <- rvs$school_data
+    idx <- as.numeric(rvs$idx)
+    user_id <- table_data$id[idx]
 
-          req(!is.null(action))
+    delete_school_records(user_id = user_id)
+    # Refresh data
+    rvs$school_data <- refresh_table_data(table_name = "schools")
 
-          if (action) {
-            alert_success_ui(
-              position = "top-end",
-              info = paste(table_data$name[idx], "has been", rvs$message),
-              session = session
-            )
-          } else {
-            alert_warn_ui(
-              position = "top-end",
-              info = "Action has been cancelled!",
-              session = session
-            )
-          }
-        })
-      })
-    }
+    alert_success_ui(
+      position = "top-end",
+      info = paste(table_data$name[idx], "has been deleted..."),
+      session = session
+    )
   })
 }

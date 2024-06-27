@@ -1,30 +1,44 @@
 # ---- page ----
 ui <- argonDash::argonDashPage(
-  title = "CHEATSHEETS",
+  title = tags$head(
+    tags$link(
+      rel = "icon",
+      type = "image/png",
+      href = "logo/imac.svg",
+    ),
+    tags$title("KEYTABU")
+  ),
   description = "Course Description/Cheatsheet/Outline",
   author = "Jefferson Ndeke",
   # --- header ----
-  # header = argonDashHeader(
-  # color = "primary",
-  # class =
-  # argonDropNav(
-  #  orientation = "right",
-  #  title = "Profile",
-  #  argonDropNavTitle(
-  #     title = "Status"
-  #   ),
-  #  argonDropNavItem(
-  #    title = "Edit Profile",
-  #    src = " ",
-  #     icon = argonIcon("user-pen", color = "body")
-  #  ),
-  #    argonDropNavItem(
-  #   title = "Log Out",
-  #    src = " ",
-  #    icon = argonIcon("power-off", color = "body")
-  #    )
-  # )
-  # ),
+  header = argonDashHeader( 
+    gradient = FALSE,
+    background_img = "logo/header.png",
+    height = 400,
+    color = "translucent-info",
+    div(
+      class = "position-absolute font-weight-900",
+      textOutput("selected_tab")
+    ), 
+    argonDropNav(
+      title = "Profile",
+      orientation = "right",
+      src = "logo/imac.svg",
+      argonDropNavTitle(
+        title = "Welcome"
+      ),
+      argonDropNavItem(
+        title = "Edit Profile",
+        src = "#",
+        icon = argonIcon("ui-04")
+      ),
+      argonDropNavItem(
+        title = "Log Out",
+        src = "#",
+        icon = argonIcon("user-run")
+      )
+    )
+  ),
 
   #---- sidebar ----
   sidebar = argonDash::argonDashSidebar(
@@ -102,6 +116,18 @@ ui <- argonDash::argonDashPage(
         tabName = "earnings",
         icon = argonIcon("money-coins", color = "body")
       )
+    ),
+    # ----Developer ----
+    argonSidebarDivider(),
+    argonSidebarHeader(
+      title = "DEVELOPER"
+    ),
+    argonSidebarMenu(
+      argonSidebarItem(
+        "Administrators",
+        tabName = "administrators",
+        icon = icon("shield", class = "text-body")
+      )
     )
   ),
   # ---- body ----
@@ -123,6 +149,14 @@ ui <- argonDash::argonDashPage(
     ),
     includeScript(
       path = "www/js/script.js"
+    ),
+    tags$head(
+      tags$script(HTML("
+    $(document).on('click', '.nav-link', function() {
+      var activeTab =  $('.nav-link.active').attr('data-value');
+      Shiny.setInputValue('active_sidebar_tab', activeTab);
+    });
+  "))
     ),
     # ---- admin ----
     argonTabItems(
@@ -155,9 +189,9 @@ ui <- argonDash::argonDashPage(
             div(
               id = "hover-div",
               class = "bg-translucent-default rounded pt-3 pb-3",
-              actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> remove_btn_default(),
-              actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> remove_btn_default(),
-              actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> remove_btn_default(),
+              actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> basic_primary_btn(),
+              actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> basic_primary_btn(),
+              actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> basic_primary_btn(),
               uiOutput("progress_bar")
             ),
             imageOutput("pdf_images", height = "auto", width = "100%")
