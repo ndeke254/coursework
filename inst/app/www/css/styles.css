@@ -99,13 +99,15 @@
   outline: 0px auto -webkit-focus-ring-color !important;
 }
 .btn-file {
-    margin-bottom: -.5rem!important;
+  margin-bottom: -0.5rem !important;
+  background-color: #5e72e4;
+  border: #5e72e4;
 }
 .progress.shiny-file-input-progress {
   height: 15px;
 }
 .input-group {
- padding-bottom: .25rem !important;
+  padding-bottom: 0.25rem !important;
 }
 .swal2-popup.swal2-toast {
   padding: 1em;
@@ -113,4 +115,13 @@
 }
 .swal2-popup {
   font-size: 1rem !important;
+}
+.mt--1, .my--1 {
+  margin-top: -22.25rem!important;
+}
+.dropdown, .dropleft, .dropright, .dropup {
+  float: right;
+}
+.header {
+  background-size: inherit !important;
 }

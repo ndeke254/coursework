@@ -1,11 +1,8 @@
-#' Create a unique id for new school record
-#' Records follow in an increasing order
-#' @param table_name The name of the table to read the `id` column from
-#' @return Character. A character id for the next record
-#'
-#' @example
-#' next_school_id("schools")
-#' SCH-058
+#' Get the next school ID
+#' @param table_name A character string representing the table name
+#' @examples
+#' # Example of getting next school ID (commented out due to missing file)
+#' # next_school_id("schools")
 #' @export
 
 next_school_id <- function(table_name) {
