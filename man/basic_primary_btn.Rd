@@ -16,5 +16,5 @@ Add the \code{btn-primary} class
 }
 \examples{
  btn <- shiny::actionButton(inputId = "theid", label = "The Label", class = "btn-outline-dark")
-remove_btn_default(btn)
+basic_primary_btn(btn)
 }

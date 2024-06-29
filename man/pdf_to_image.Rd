@@ -18,5 +18,5 @@ Convert PDF to image
 }
 \examples{
 # Example of converting PDF to image (commented out due to missing file)
-# pdf_to_image(pdf_path = "www/pdf/English_Grade6.pdf", file_name = "English_Grade6.pdf", output_dir = "www/images")
+# pdf_to_image(pdf_path = "English_Grade6.pdf", file_name = "English.pdf", output_dir = "images")
 }

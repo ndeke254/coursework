@@ -125,3 +125,7 @@
 .header {
   background-size: inherit !important;
 }
+.dropdown-header {
+  font-size: 0.9rem;
+  color: #6f6f6f;
+}

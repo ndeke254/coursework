@@ -8,8 +8,6 @@ refresh_table_data(table_name)
 }
 \arguments{
 \item{table_name}{A character string representing the table name}
-
-\item{reactive_data}{A reactive data frame}
 }
 \description{
 Refresh table data

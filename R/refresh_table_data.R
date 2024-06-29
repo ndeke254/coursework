@@ -1,5 +1,4 @@
 #' Refresh table data
-#' @param reactive_data A reactive data frame
 #' @param table_name A character string representing the table name
 #' @examples
 #' # Example of refreshing table data (commented out due to missing file)
