@@ -1,5 +1,5 @@
 #' add a red star after an input label
-#' @param label. A string
+#' @param label A string
 #' @return A label with a red asterick
 #'  @examples
 #' shiny::actionButton(inputId = "confirm_btn", label = label_mandatory("Confirm"), icon = icon("check"))

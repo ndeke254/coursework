@@ -17,11 +17,15 @@ register_new_school <- function(table_name, data) {
   
   # Read the DB table
   table_data <- DBI::dbReadTable(conn, table_name)
-  # Check if the school name and email already exists
-  if (data$email %in% table_data$email || data$name %in% table_data$name) {
-    return(0)  # School already exists
-  } else {
+  
+  # Check if the school name or email already exists
+  name_exists <- data$school_name %in% table_data$school_name
+  email_exists <- data$email %in% table_data$email
+
+  if (!name_exists && !email_exists) {
     DBI::dbAppendTable(conn = conn, name = table_name, value = data)
     return(1)  # School successfully added
+  } else {
+    return(0)  # School already exists
   }
 }

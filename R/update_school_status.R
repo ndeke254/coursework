@@ -1,11 +1,12 @@
 #' Update school status
-#' @param reactive_data A reactive data frame
-#' @param table_name A character string representing the table name
+#' @param user_id A character string representing the user ID
+#' @param new_status A character string to asign status
 #' @examples
-#' # Example of updating school status (commented out due to missing file)
-#' # update_school_status(reactive_data = rv$school_data, table_name = "schools")
+#' # update_school_status(user_id = "SCH-001", new_status = "Disabled")
+#'
+#' @import DBI
 #' @export
-#' 
+#'
 update_school_status <- \(user_id, new_status) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
@@ -18,4 +19,3 @@ update_school_status <- \(user_id, new_status) {
   query <- "UPDATE schools SET status = :status WHERE id = :id"
   dbExecute(conn, query, params = list(id = user_id, status = new_status))
 }
-

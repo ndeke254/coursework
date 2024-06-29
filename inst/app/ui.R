@@ -11,7 +11,7 @@ ui <- argonDash::argonDashPage(
   description = "Course Description/Cheatsheet/Outline",
   author = "Jefferson Ndeke",
   # --- header ----
-  header = argonDashHeader( 
+  header = argonDashHeader(
     gradient = FALSE,
     background_img = "logo/header.png",
     height = 400,
@@ -19,7 +19,7 @@ ui <- argonDash::argonDashPage(
     div(
       class = "position-absolute font-weight-900",
       textOutput("selected_tab")
-    ), 
+    ),
     argonDropNav(
       title = "Profile",
       orientation = "right",

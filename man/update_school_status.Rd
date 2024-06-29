@@ -7,14 +7,14 @@
 update_school_status(user_id, new_status)
 }
 \arguments{
-\item{reactive_data}{A reactive data frame}
+\item{user_id}{A character string representing the user ID}
 
-\item{table_name}{A character string representing the table name}
+\item{new_status}{A character string to asign status}
 }
 \description{
 Update school status
 }
 \examples{
-# Example of updating school status (commented out due to missing file)
-# update_school_status(reactive_data = rv$school_data, table_name = "schools")
+# update_school_status(user_id = "SCH-001", new_status = "Disabled")
+
 }

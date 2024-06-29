@@ -7,7 +7,7 @@
 label_mandatory(label)
 }
 \arguments{
-\item{label.}{A string}
+\item{label}{A string}
 }
 \value{
 A label with a red asterick

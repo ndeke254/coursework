@@ -40,7 +40,7 @@ admin_upload_page <- div(
                   `live-search` = TRUE,
                   `live-search-placeholder` = "Search school"
                 ),
-                choices = kenyan_counties,
+                choices = NULL,
                 autocomplete = TRUE
               )
             ),
@@ -64,9 +64,10 @@ admin_upload_page <- div(
                 label = label_mandatory("Grade/Year:"),
                 options = list(
                   style = "btn-outline-light",
-                  title = "Eg. Grade 6"
+                  title = "Eg. Grade 6",
+                  size = 5
                 ),
-                choices = c("Grade 4", "Grade 5", "Grade 6", "Grade 7")
+                choices = paste(c("Grade"), 1:12)
               )
             ),
             argonColumn(
@@ -77,68 +78,74 @@ admin_upload_page <- div(
                 options = list(
                   title = "Eg. Math",
                   style = "btn-outline-light",
-                  size = 5
+                  size = 10,
+                  `live-search` = TRUE,
+                  `live-search-placeholder` = "Search learning area"
                 ),
-                choices = kenyan_counties
+                choices = NULL
               )
             )
           ),
           argonRow(
             argonColumn(
               width = 3,
-              shinyWidgets::pickerInput(
+              shiny::textInput(
                 inputId = "doc_topic",
                 label = label_mandatory("Topic:"),
-                options = list(
-                  title = "Eg. Addition",
-                  style = "btn-outline-light",
-                  size = 5
-                ),
-                choices = kenyan_counties
+                placeholder = "Eg. Addition"
               )
             ),
             argonColumn(
               width = 3,
-              shiny::textInput("doc_sub-topic", label_mandatory("Sub-topic:"), "", placeholder = "Eg. Long division method")
+              shiny::textInput("doc_sub_topic", label_mandatory("Sub-topic:"), "", placeholder = "Eg. Long division method")
             ),
             argonColumn(
               width = 3,
-              shiny::textInput("doc_price", label_mandatory("Price(Ksh):"), "", placeholder = "Eg. 300")
+              autonumericInput(
+                inputId = "doc_price",
+                label_mandatory("Price:"),
+                value = 1000,
+                currencySymbol = "Ksh ",
+                decimalPlaces = 0,
+                minimumValue = 100
+              )
             )
           ),
           actionButton("upload_btn", "Publish PDF", class = "btn-primary mt-2 mb-2 float-right") |>
-                    basic_primary_btn()
+            basic_primary_btn()
         )
       )
     ),
-    argonTab(
-      tabName = "Update",
-      argonRow(
-        center = TRUE,
-      argonR::argonCard(
-        title = "Update fields",
-        shadow = TRUE,
-        border_level = 5,
-        icon = argonIcon("ui-04", color = "default"),
-        status = "default",
-        width = 12,
-        p("Update PDF upload fields", class = "mt--2")
-      )
-      )
-    ),
+    # argonTab(
+    #   tabName = "Update",
+    #    argonRow(
+    #      center = TRUE,
+    #       argonR::argonCard(
+    #      title = "Update fields",
+    #        shadow = TRUE,
+    #       border_level = 5,
+    #       icon = argonIcon("ui-04", color = "default"),
+    #        status = "default",
+    #        width = 12,
+    #        p("Update PDF upload fields", class = "mt--2")
+    #     )
+    #    )
+    #  ),
     argonTab(
       tabName = "Content",
-      argonRow(
-        center = TRUE,
-      argonR::argonCard(
-        title = "Available content",
-        shadow = TRUE,
-        border_level = 5,
-        icon = icon("atom", class = "default"),
-        status = "default",
-        width = 12,
-        p("Already uploaded PDFs", class = "mt--2")
-      )
+      h2("PDF Documents Available"),
+      bslib::card(
+        id = "pdf_card",
+        p("Already uploaded PDFs", class = "mt--2"),
+        bslib::layout_sidebar(
+          sidebar = bslib::sidebar(
+            id = "card_sidebar",
+            position = "right",
+            open = FALSE,
+            uiOutput("sidebar_content")
+          ),
+          uiOutput("pdf_data")
+        )
       )
     )
   )

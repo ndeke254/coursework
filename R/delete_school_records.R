@@ -3,6 +3,7 @@
 #' @examples
 #' # Example of deleting school records (commented out due to missing file)
 #' # delete_school_records(user_id = "schools")
+#' @import DBI
 #' @export
 
 delete_school_records <- \(user_id) {
