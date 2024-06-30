@@ -5,14 +5,14 @@ admin_upload_page <- div(
     size = "lg",
     width = 12,
     iconList = list(
-      argonIcon("cloud-upload-96", color = "body"),
-      argonIcon("curved-next", color = "body"),
+      argonIcon("paper-diploma", color = "body"),
+      argonIcon("ungroup", color = "body"),
       argonIcon("collection", color = "body")
     ),
     argonTab(
-      tabName = "Upload",
+      tabName = "School content",
       active = TRUE,
-      h2("Upload Cheatsheets"),
+      h2("Upload school content"),
       argonRow(
         center = TRUE,
         argonR::argonCard(
@@ -98,17 +98,6 @@ admin_upload_page <- div(
             argonColumn(
               width = 3,
               shiny::textInput("doc_sub_topic", label_mandatory("Sub-topic:"), "", placeholder = "Eg. Long division method")
-            ),
-            argonColumn(
-              width = 3,
-              autonumericInput(
-                inputId = "doc_price",
-                label_mandatory("Price:"),
-                value = 1000,
-                currencySymbol = "Ksh ",
-                decimalPlaces = 0,
-                minimumValue = 100
-              )
             )
           ),
           actionButton("upload_btn", "Publish PDF", class = "btn-primary mt-2 mb-2 float-right") |>
@@ -116,23 +105,24 @@ admin_upload_page <- div(
         )
       )
     ),
-    # argonTab(
-    #   tabName = "Update",
-    #    argonRow(
-    #      center = TRUE,
-    #       argonR::argonCard(
-    #      title = "Update fields",
-    #        shadow = TRUE,
-    #       border_level = 5,
-    #       icon = argonIcon("ui-04", color = "default"),
-    #        status = "default",
-    #        width = 12,
-    #        p("Update PDF upload fields", class = "mt--2")
-    #     )
-    #    )
-    #  ),
     argonTab(
-      tabName = "Content",
+      tabName = "General cheatcheats",
+      h2("Upload cheatsheets"),
+      argonRow(
+        center = TRUE,
+        argonR::argonCard(
+          title = "University/General users",
+          shadow = TRUE,
+          border_level = 5,
+          icon = argonIcon("folder-17", color = "default"),
+          status = "default",
+          width = 12,
+          p("All fields are required", class = "mt--2")
+        )
+      )
+    ),
+    argonTab(
+      tabName = "Manage content",
       h2("PDF Documents Available"),
       bslib::card(
         id = "pdf_card",

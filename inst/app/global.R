@@ -14,19 +14,22 @@ library(dplyr)
 library(reactable)
 library(prodlim)
 library(bslib)
+library(polished)
+
+
 
 # counties in Kenya
 # used as a choices input in school registration tab
 kenyan_counties <- c(
-  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", 
-  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado", 
-  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga", 
-  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia", 
-  "Lamu", "Machakos", "Makueni", "Mandera", "Meru", 
-  "Migori", "Marsabit", "Mombasa", "Murang'a", "Nairobi", 
-  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua", 
-  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River", 
-  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu", 
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet",
+  "Embu", "Garissa", "Homa Bay", "Isiolo", "Kajiado",
+  "Kakamega", "Kericho", "Kiambu", "Kilifi", "Kirinyaga",
+  "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia",
+  "Lamu", "Machakos", "Makueni", "Mandera", "Meru",
+  "Migori", "Marsabit", "Mombasa", "Murang'a", "Nairobi",
+  "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
+  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River",
+  "Tharaka-Nithi", "Trans Nzoia", "Turkana", "Uasin Gishu",
   "Vihiga", "Wajir", "West Pokot"
 )
 
@@ -69,4 +72,20 @@ junior_secondary <- c(
   "Kiswahili",
   "Religious Education"
 )
+
+
+# Retrieve polished credentials
+app_name <- Sys.getenv("POLISHED_APP_NAME")
+api_key <- Sys.getenv("POLISHED_API_KEY")
+ 
+# configure polished auth when the app initially starts up.
+polished_config(
+  app_name = app_name,
+  api_key = api_key,
+  is_invite_required = FALSE,
+  cookie_expires = NULL
+)
+
+# Set App api_key
+set_api_key(api_key = api_key)
 
