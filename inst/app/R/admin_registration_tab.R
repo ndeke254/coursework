@@ -23,12 +23,12 @@ admin_registration_tab <- div(
           width = 12,
           tags$head(
             tags$style(HTML(
-              " #step_1, #step_2, #step_3 {
+              " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
               height: 15px; width: 15px; margin: 0 10px;
                background-color: #bbbbbb; border: 0.5px solid; border-radius: 50%;
                 display: inline-block; opacity: 0.5; box-shadow: 0px 0px 10px 0px #0000003b;
                   }
-                   #line {
+                   #line, #lineu, #lineu1 {
                      box-shadow: 0px 0px 10px 0px #0000003b;
                       height: 2px; background-color: #bbbbbb; margin: 0 5px; flex-grow: 1;
                        }
@@ -103,8 +103,19 @@ admin_registration_tab <- div(
               ),
               argonRow(
                 argonColumn(
-                  width = 6,
+                  width = 3,
                   shiny::textInput("school_email", label_mandatory("Email:"), "", placeholder = "Eg. johnwekesa@gmail.com")
+                ),
+                argonColumn(
+                  width = 3,
+                  autonumericInput(
+                    inputId = "doc_price",
+                    label_mandatory("Price:"),
+                    value = 1000,
+                    currencySymbol = "Ksh ",
+                    decimalPlaces = 0,
+                    minimumValue = 500
+                  )
                 )
               )
             ),
@@ -133,7 +144,7 @@ admin_registration_tab <- div(
                     basic_primary_btn()
                 ),
                 shiny::actionButton("nextBtn", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
-                    basic_primary_btn()
+                  basic_primary_btn()
               )
             )
           )
@@ -157,11 +168,11 @@ admin_registration_tab <- div(
             p("All fields are required", class = "mt--2"),
             div(
               class = "align-items-center d-flex m-auto mt-2 w-75",
-              span(id = "step_1"),
-              span(id = "line"),
-              span(id = "step_2"),
-              span(id = "line"),
-              span(id = "step_3")
+              span(id = "step_u1"),
+              span(id = "lineu"),
+              span(id = "step_u2"),
+              span(id = "lineu1"),
+              span(id = "step_u3")
             ),
             div(
               class = "m-auto pb-3 w-75",
@@ -173,7 +184,7 @@ admin_registration_tab <- div(
               )
             ),
             div(
-              id = "tab_1",
+              id = "tab_u1",
               h3("Account type", class = "mt--3 mb-3"),
               div(
                 id = "user_type_div",
@@ -187,7 +198,7 @@ admin_registration_tab <- div(
             ),
             shinyjs::hidden(
               div(
-                id = "tab_2",
+                id = "tab_u2",
                 h3("Details", class = "mt--3 mb-3"),
                 argonRow(
                   argonColumn(
@@ -205,8 +216,8 @@ admin_registration_tab <- div(
                         size = 5,
                         `live-search` = TRUE,
                         `live-search-placeholder` = "Search school"
-                      ), ,
-                      choices = c("Preparatory", "Primary", "Junior Secondary", "Senior Secondary", "University/College", "Other")
+                      ),
+                      choices = NULL
                     )
                   ),
                   argonColumn(
@@ -216,14 +227,22 @@ admin_registration_tab <- div(
                       label = label_mandatory("Grade:"),
                       options = list(
                         style = "btn-outline-light",
-                        title = "Eg. Grade 6"
+                        title = "Eg. Grade 6",
+                        size = 5
                       ),
-                      choices = c("Public", "Private", "Other")
+                      choices = paste(c("Grade"), 1:12)
                     )
                   ),
                   argonColumn(
                     width = 3,
-                    shiny::textInput("user_tel_number", label_mandatory("Phone:"), "", placeholder = "Eg. +254712345678")
+                    autonumericInput(
+                      inputId = "user_tel_number",
+                      label = "Phone:",
+                      value = 123456789,
+                      currencySymbol = "254 ",
+                      decimalPlaces = 0,
+                      digitGroupSeparator = ""
+                    )
                   )
                 ),
                 argonRow(
@@ -236,22 +255,26 @@ admin_registration_tab <- div(
             ),
             shinyjs::hidden(
               div(
-                id = "tab_3",
+                id = "tab_u3",
                 argonColumn(
                   width = 12,
                   h3("Confirm", class = "mt--3 mb-3"),
                   p("New user details", class = "mt-3"),
-                  uiOutput("user_data")
+                  uiOutput("confirm_user_data")
                 )
               )
             ),
             div(
               style = "overflow: auto; margin-top: 20px;",
               div(
-                id = "tab_buttons",
+                id = "tabu_buttons",
                 class = "d-flex mt-3 justify-content-end",
                 shinyjs::hidden(
                   shiny::actionButton("prevBtn_1", "", icon = icon("arrow-left"), class = "btn-primary px-5") |>
+                    basic_primary_btn()
+                ),
+                shinyjs::hidden(
+                  shiny::actionButton("nextBtn_2", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
                     basic_primary_btn()
                 ),
                 shinyjs::hidden(
@@ -259,7 +282,7 @@ admin_registration_tab <- div(
                     basic_primary_btn()
                 ),
                 shiny::actionButton("nextBtn_1", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
-                    basic_primary_btn()
+                  basic_primary_btn()
               )
             )
           )
@@ -272,16 +295,27 @@ admin_registration_tab <- div(
       argonRow(
         center = TRUE,
         argonCard(
-          title = "Shools Records",
+          title = "Shools/Users Records",
           status = "default",
           border_level = 5,
           shadow = TRUE,
           icon = argonIcon("key-25"),
           width = 12,
-          argonColumn(
+          argonTabSet(
+            id = "users",
+            circle = TRUE,
             width = 12,
-            p("Existing schools data", class = "mt-3"),
-            uiOutput("school_data")
+            argonTab(
+              tabName = "school",
+              active = TRUE,
+              p("Existing schools data", class = "mt-3"),
+              uiOutput("school_data")
+            ),
+            argonTab(
+              tabName = "users",
+              p("Existing users data", class = "mt-3"),
+              uiOutput("user_data")
+            )
           )
         )
       )

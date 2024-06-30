@@ -33,7 +33,7 @@ ui <- argonDash::argonDashPage(
         icon = argonIcon("ui-04")
       ),
       argonDropNavItem(
-        title = "Log Out",
+        title = "Log out",
         src = "#",
         icon = argonIcon("user-run")
       )
@@ -162,7 +162,7 @@ ui <- argonDash::argonDashPage(
     argonTabItems(
       argonTabItem(
         tabName = "dashboard",
-        "here dashboard"
+        "Dashboard Here"
       ),
       argonTabItem(
         tabName = "registration",
@@ -170,7 +170,9 @@ ui <- argonDash::argonDashPage(
       ),
       argonTabItem(
         tabName = "upload",
-        admin_upload_page
+        div(
+          admin_upload_page
+        )
       ),
       # ---- student ----
       argonTabItem(
@@ -201,3 +203,5 @@ ui <- argonDash::argonDashPage(
     )
   )
 )
+
+secure_ui(ui)
