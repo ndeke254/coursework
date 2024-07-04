@@ -1,30 +1,45 @@
 # ---- page ----
 ui <- argonDash::argonDashPage(
-  title = "CHEATSHEETS",
+  title = tags$head(
+    tags$link(
+      rel = "icon",
+      type = "image/png",
+      href = "logo/imac.svg",
+    ),
+    tags$title("KEYTABU")
+  ),
   description = "Course Description/Cheatsheet/Outline",
   author = "Jefferson Ndeke",
-  #--- header ----
-  # header = argonDashHeader(
-  #  color = "default",
-  #  class = "pb-3 pt-3",
-  #   argonDropNav(
-  #    orientation = "right",
-  #   title = "Profile",
-  #  argonDropNavTitle(
-  #   title = "Status"
-  # ),
-  # argonDropNavItem(
-  #  title = "Edit Profile",
-  # src = "#",
-  # icon = argonIcon("user-pen", color = "success")
-  # ),
-  # argonDropNavItem(
-  # title = "Log Out",
-  # src = "#",
-  #   icon = argonIcon("power-off", color = "success")
-  # )
-  # )
-  #  ),
+  # --- header ----
+  header = argonDashHeader(
+    gradient = FALSE,
+    background_img = "logo/header.png",
+    height = 400,
+    color = "translucent-info",
+    div(
+      class = "position-absolute font-weight-900",
+      textOutput("selected_tab")
+    ),
+    argonDropNav(
+      title = "Profile",
+      orientation = "right",
+      src = "logo/imac.svg",
+      argonDropNavTitle(
+        title = "Welcome"
+      ),
+      argonDropNavItem(
+        title = "Edit Profile",
+        src = "#",
+        icon = argonIcon("ui-04")
+      ),
+      argonDropNavItem(
+        title = "Log out",
+        src = "#",
+        icon = argonIcon("user-run")
+      )
+    )
+  ),
+
   #---- sidebar ----
   sidebar = argonDash::argonDashSidebar(
     id = "sidebar",
@@ -40,17 +55,17 @@ ui <- argonDash::argonDashPage(
       argonSidebarItem(
         "Dashboard",
         tabName = "dashboard",
-        icon = argonIcon("align-left-2", color = "success")
+        icon = icon("home", class = "text-body")
       ),
       argonSidebarItem(
         "Registration",
         tabName = "registration",
-        icon = argonIcon("single-copy-04", color = "success")
+        icon = argonIcon("single-copy-04", color = "body")
       ),
       argonSidebarItem(
         "Upload",
         tabName = "upload",
-        icon = argonIcon("cloud-upload-96", color = "success")
+        icon = argonIcon("cloud-upload-96", color = "body")
       )
     ),
     #---- Student ----
@@ -62,22 +77,22 @@ ui <- argonDash::argonDashPage(
       argonSidebarItem(
         "Subscriptions",
         tabName = "subscriptions",
-        icon = argonIcon("books", color = "success")
+        icon = argonIcon("books", color = "body")
       ),
       argonSidebarItem(
         "Cart",
         tabName = "cart",
-        icon = argonIcon("cart", color = "success")
+        icon = argonIcon("cart", color = "body")
       ),
       argonSidebarItem(
         "Content",
         tabName = "student_content",
-        icon = argonIcon("bullet-list-67", color = "success")
+        icon = argonIcon("bullet-list-67", color = "body")
       ),
       argonSidebarItem(
         "Payments",
         tabName = "payments",
-        icon = argonIcon("money-coins", color = "success")
+        icon = argonIcon("money-coins", color = "body")
       )
     ),
     # ----Teacher ----
@@ -89,22 +104,38 @@ ui <- argonDash::argonDashPage(
       argonSidebarItem(
         "Students",
         tabName = "students",
-        icon = icon("chalkboard-user", class = "text-success")
+        icon = icon("chalkboard-user", class = "text-body")
       ),
       argonSidebarItem(
         "Content",
         tabName = "teacher_content",
-        icon = argonIcon("books", color = "success")
+        icon = argonIcon("books", color = "body")
       ),
       argonSidebarItem(
         "Earnings",
         tabName = "earnings",
-        icon = argonIcon("money-coins", color = "success")
+        icon = argonIcon("money-coins", color = "body")
+      )
+    ),
+    # ----Developer ----
+    argonSidebarDivider(),
+    argonSidebarHeader(
+      title = "DEVELOPER"
+    ),
+    argonSidebarMenu(
+      argonSidebarItem(
+        "Administrators",
+        tabName = "administrators",
+        icon = icon("shield", class = "text-body")
       )
     )
   ),
   # ---- body ----
   body = argonDash::argonDashBody(
+    useSweetAlert(),
+    div(
+      class = "min-height-300 bg-primary position-absolute w-100"
+    ),
     div(
       shinybusy::add_busy_spinner(
         spin = "fading-circle",
@@ -119,11 +150,19 @@ ui <- argonDash::argonDashPage(
     includeScript(
       path = "www/js/script.js"
     ),
+    tags$head(
+      tags$script(HTML("
+    $(document).on('click', '.nav-link', function() {
+      var activeTab =  $('.nav-link.active').attr('data-value');
+      Shiny.setInputValue('active_sidebar_tab', activeTab);
+    });
+  "))
+    ),
     # ---- admin ----
     argonTabItems(
       argonTabItem(
         tabName = "dashboard",
-        "here dashboard"
+        "Dashboard Here"
       ),
       argonTabItem(
         tabName = "registration",
@@ -131,11 +170,13 @@ ui <- argonDash::argonDashPage(
       ),
       argonTabItem(
         tabName = "upload",
-      admin_upload_page
+        div(
+          admin_upload_page
+        )
       ),
       # ---- student ----
       argonTabItem(
-        tabName = "content",
+        tabName = "student_content",
         uiOutput("published_pdfs", class = "d-flex flex-wrap"),
         argonR::argonModal(
           width = 12,
@@ -150,9 +191,9 @@ ui <- argonDash::argonDashPage(
             div(
               id = "hover-div",
               class = "bg-translucent-default rounded pt-3 pb-3",
-              actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> remove_btn_default(),
-              actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> remove_btn_default(),
-              actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> remove_btn_default(),
+              actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> basic_primary_btn(),
+              actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> basic_primary_btn(),
+              actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> basic_primary_btn(),
               uiOutput("progress_bar")
             ),
             imageOutput("pdf_images", height = "auto", width = "100%")
@@ -162,3 +203,5 @@ ui <- argonDash::argonDashPage(
     )
   )
 )
+
+secure_ui(ui)

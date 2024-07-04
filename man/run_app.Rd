@@ -7,5 +7,5 @@
 run_app()
 }
 \description{
-Launch the Shiny Application
+This function launches the Shiny application located in the \code{inst/app} directory.
 }
