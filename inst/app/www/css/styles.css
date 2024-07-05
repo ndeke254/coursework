@@ -1,3 +1,9 @@
+:root {
+  --primary: #1D2856;
+  --default: #E76A35;
+}
+
+
 .modal-secondary .close > span:not(.sr-only) {
   color: var(--bslib-page-sidebar-title-bg);
 }
@@ -128,4 +134,10 @@
 .dropdown-header {
   font-size: 0.9rem;
   color: #6f6f6f;
+}
+.navbar-vertical.navbar-expand-lg .navbar-brand-img {
+  max-height: 7.5rem;
+}
+.my-0 {
+  margin-bottom: -1.5rem!important;
 }

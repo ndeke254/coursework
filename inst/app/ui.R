@@ -4,7 +4,7 @@ ui <- argonDash::argonDashPage(
     tags$link(
       rel = "icon",
       type = "image/png",
-      href = "logo/imac.svg",
+      href = "logo/logo_header.png",
     ),
     tags$title("KEYTABU")
   ),
@@ -23,7 +23,7 @@ ui <- argonDash::argonDashPage(
     argonDropNav(
       title = "Profile",
       orientation = "right",
-      src = "logo/imac.svg",
+      src = "logo/user_image.jpg",
       argonDropNavTitle(
         title = "Welcome"
       ),
@@ -43,7 +43,7 @@ ui <- argonDash::argonDashPage(
   #---- sidebar ----
   sidebar = argonDash::argonDashSidebar(
     id = "sidebar",
-    brand_logo = "logo/imac.svg",
+    brand_logo = "logo/logo.png",
     size = "lg",
     background = "secondary",
     # ---- admin ----
@@ -203,5 +203,4 @@ ui <- argonDash::argonDashPage(
     )
   )
 )
-
-secure_ui(ui)
+# secure_ui(ui)
