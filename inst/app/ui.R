@@ -6,7 +6,7 @@ ui <- argonDash::argonDashPage(
       type = "image/png",
       href = "logo/logo_header.png",
     ),
-    tags$title("KEYTABU")
+    tags$title("Keytabu")
   ),
   description = "Course Description/Cheatsheet/Outline",
   author = "Jefferson Ndeke",
