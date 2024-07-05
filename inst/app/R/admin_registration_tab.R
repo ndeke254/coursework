@@ -304,17 +304,23 @@ admin_registration_tab <- div(
           argonTabSet(
             id = "users",
             circle = TRUE,
+            size = "lg",
             width = 12,
             argonTab(
-              tabName = "school",
+              tabName = "School",
               active = TRUE,
               p("Existing schools data", class = "mt-3"),
               uiOutput("school_data")
             ),
             argonTab(
-              tabName = "users",
-              p("Existing users data", class = "mt-3"),
-              uiOutput("user_data")
+              tabName = "Teachers",
+              p("Existing teachers data", class = "mt-3"),
+              uiOutput("teachers_data")
+            ),
+            argonTab(
+              tabName = "Students",
+              p("Existing students data", class = "mt-3"),
+              uiOutput("students_data")
             )
           )
         )
