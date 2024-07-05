@@ -17,6 +17,16 @@ server <- function(input, output, session) {
     selected_pdf = NULL,
     pdf_paths = list()
   )
+  # Create reactive values for school table
+  rvs <- reactiveValues(
+    message = NULL,
+    school_data = dbReadTable(conn, "schools"),
+    pdf_data = dbReadTable(conn, "content"),
+    user_data = dbReadTable(conn, "users"),
+    idx = NULL,
+    status = NULL
+  )
+  on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # output selected tab
   output$selected_tab <- renderText({
@@ -679,16 +689,6 @@ server <- function(input, output, session) {
       show_empty_state_ui
     }
   })
-  # Create reactive values for school table
-  rvs <- reactiveValues(
-    message = NULL,
-    school_data = dbReadTable(conn, "schools"),
-    pdf_data = dbReadTable(conn, "content"),
-    user_data = dbReadTable(conn, "users"),
-    idx = NULL,
-    status = NULL
-  )
-  on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
 
   # change the school status - Enabled/Disabled
@@ -1063,10 +1063,12 @@ server <- function(input, output, session) {
     }
   })
 
-  # output table for already exisiting school data
-  output$user_data <- renderUI({
+  # output table for already exisiting teacher data
+  output$teachers_data <- renderUI({
     # get the school data
-    table_data <- rvs$user_data
+    table_data <- rvs$user_data 
+    teachers_data <- table_data |> 
+    filter(type == "Teacher")
     if (nrow(table_data) > 0) {
       argonTable(
         headTitles = c("ID", "School", "Grade", "Phone", "Email", "Status", ""),
@@ -1136,9 +1138,92 @@ server <- function(input, output, session) {
           )
         })
       )
+    } else {
+      # show empty status div
+      show_empty_state_ui
     }
   })
 
+  # output table for already exisiting students data
+  output$students_data <- renderUI({
+    # get the school data
+    table_data <- rvs$user_data 
+    teachers_data <- table_data |> 
+    filter(type == "Student")
+    if (nrow(table_data) > 0) {
+      argonTable(
+        headTitles = c("ID", "School", "Grade", "Phone", "Email", "Status", ""),
+        lapply(1:nrow(table_data), function(i) {
+          argonTableItems(
+            argonTableItem(
+              div(
+                class = "d-flex flex-column justify-content-center",
+                h6(class = "mb-0 text-xs", table_data$user_name[i]),
+                p(class = "text-xs text-default mb-0", table_data$id[i])
+              )
+            ),
+            argonTableItem(
+              div(
+                p(class = "text-xs font-weight-bold mb-0", table_data$school_name[i]),
+                p(class = "text-truncate w-50 text-xs text-default mb-0", table_data$email[i])
+              )
+            ),
+            argonTableItem(table_data$grade[i]),
+            argonTableItem(table_data$type[i]),
+            argonTableItem(paste("+254", table_data$phone[i])),
+            argonTableItem(
+              dataCell = TRUE,
+              argonBadge(
+                text = table_data$status[i],
+                status = ifelse(table_data$status[i] == "Enabled", "success", "primary")
+              )
+            ),
+            argonTableItem(
+              dropMenu(
+                class = "well",
+                actionButton(
+                  inputId = paste0("btn_", i),
+                  label = "",
+                  icon = icon("ellipsis-v"),
+                  size = "sm",
+                  status = "secondary",
+                  outline = TRUE,
+                  flat = TRUE,
+                  class = "btn-link bg-transparent border-0",
+                  onclick = sprintf("Shiny.setInputValue('action_button', '%s');", i)
+                ),
+                div(
+                  class = "pt-2",
+                  h5(table_data$school_name[i]),
+                  div(
+                    class = "mb--4",
+                    onclick = sprintf("Shiny.setInputValue('status_button', '%s');", i),
+                    materialSwitch(
+                      inputId = paste0("status_", i),
+                      label = table_data$status[i],
+                      value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                      status = "success"
+                    )
+                  ),
+                  actionButton(
+                    inputId = paste0("del_btn_", i),
+                    label = "Delete",
+                    icon = icon("trash"),
+                    status = "default",
+                    class = "btn-link bg-transparent mx--3 border-0",
+                    onclick = sprintf("Shiny.setInputValue('del_button', '%s');", i)
+                  )
+                )
+              )
+            )
+          )
+        })
+      )
+    } else {
+      # show empty status div
+      show_empty_state_ui
+    }
+  })
 
   # Actions for logout button
   observeEvent(input$sign_out, {
