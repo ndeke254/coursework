@@ -9,4 +9,4 @@
 .lintr
 *.png
 *.pdf
-
+.test.R

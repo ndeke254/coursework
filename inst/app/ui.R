@@ -237,5 +237,4 @@ ui <- argonDash::argonDashPage(
     )
   )
 )
-
-secure_ui(ui)
+# secure_ui(ui)
