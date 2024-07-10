@@ -4,6 +4,11 @@
 }
 
 .modal-secondary .close>span:not(.sr-only) {
+  --default: #E76A35;
+}
+
+
+.modal-secondary .close > span:not(.sr-only) {
   color: var(--bslib-page-sidebar-title-bg);
 }
 
