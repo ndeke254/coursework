@@ -20,22 +20,38 @@ ui <- argonDash::argonDashPage(
       class = "position-absolute font-weight-900",
       textOutput("selected_tab")
     ),
-    argonDropNav(
-      title = "Profile",
-      orientation = "right",
-      src = "logo/user_image.jpg",
-      argonDropNavTitle(
-        title = "Welcome"
-      ),
-      argonDropNavItem(
-        title = "Edit Profile",
-        src = "#",
-        icon = argonIcon("ui-04")
-      ),
-      argonDropNavItem(
-        title = "Log out",
-        src = "#",
-        icon = argonIcon("user-run")
+    shiny::tagList(
+      tags$div(
+        class = "d-flex float-right align-items-center p-2",
+        tags$span(
+          class = "mx-2 text-uppercase text-truncate w-75",
+          textOutput("signed_user")
+        ),
+        shinyWidgets::dropdown(
+          style = "unite",
+          icon = argonIcon("single-02"),
+          right = TRUE,
+          size = "sm",
+          animate = shinyWidgets::animateOptions(
+            enter = shinyWidgets::animations$sliding_entrances$slideInDown,
+            exit = shinyWidgets::animations$fading_exits$fadeOut,
+            duration = 0.5
+          ),
+          shiny::actionButton(
+            inputId = "user_profile_edit",
+            label = "Edit Profile",
+            icon = icon("user-pen"),
+            width = "100%",
+            class = "px-0 dropdown-item border-0 icon-link shadow"
+          ),
+          shiny::actionButton(
+            inputId = "log_out_session",
+            label = "Log Out",
+            icon = icon("power-off"),
+            width = "100%",
+            class = "px-0 dropdown-item border-0 icon-link shadow"
+          ),
+        )
       )
     )
   ),
@@ -177,7 +193,7 @@ ui <- argonDash::argonDashPage(
       # ---- student ----
       argonTabItem(
         tabName = "student_content",
-        uiOutput("published_pdfs", class = "d-flex flex-wrap"),
+        uiOutput("published_pdfs"), # class = "d-flex flex-wrap"),
         argonR::argonModal(
           width = 12,
           id = "modal",
@@ -186,14 +202,32 @@ ui <- argonDash::argonDashPage(
           gradient = TRUE,
           div(
             id = "modal-content",
-            class = "hover-content", # Apply the hover class to the modal content
-            style = "position: relative;", # Ensure the modal content is relatively positioned
+            class = "hover-content",
+            style = "position: relative;",
             div(
               id = "hover-div",
               class = "bg-translucent-default rounded pt-3 pb-3",
-              actionButton("prev_btn", "", icon = icon("arrow-left"), class = "bg-gradient-gray") |> basic_primary_btn(),
-              actionButton("full_screen_btn", "", icon = icon("expand"), class = "bg-gradient-gray") |> basic_primary_btn(),
-              actionButton("next_btn", "", icon = icon("arrow-right"), class = "bg-gradient-gray") |> basic_primary_btn(),
+              actionButton(
+                inputId = "prev_btn",
+                label = "",
+                icon = icon("arrow-left"),
+                class = "bg-gradient-gray"
+              ) |>
+                basic_primary_btn(),
+              actionButton(
+                inputId = "full_screen_btn",
+                label = "",
+                icon = icon("expand"),
+                class = "bg-gradient-gray"
+              ) |>
+                basic_primary_btn(),
+              actionButton(
+                inputId = "next_btn",
+                label = "",
+                icon = icon("arrow-right"),
+                class = "bg-gradient-gray"
+              ) |>
+                basic_primary_btn(),
               uiOutput("progress_bar")
             ),
             imageOutput("pdf_images", height = "auto", width = "100%")

@@ -1,9 +1,41 @@
 server <- function(input, output, session) {
+  # get the sign-in user
+  user <- session$userData$user()
+  email <- user$email
+  email_verified <- user$email_verified
+  user_role <- user$roles
+  is_admin <- user$is_admin
+
+  # output the signed in user
+  signed_user <- get_signed_user(email)
+  user_status <- signed_user$status
+
+  # show thw user on profile
+  output$signed_user <- renderText(
+    stringr::word(signed_user$user_name, 1)
+  )
+
+  # control access according to status
+  if (is.null(user_status) || 
+  user_status %in% "Disabled" ||
+  length(user_status) == 0) {
+    showModal(
+    modalDialog(
+      id = "access_denied_modal",
+      title = "Access Denied",
+      "Access denied. Contact the administrator.",
+      easyClose = TRUE,
+      footer = NULL
+    )
+    )
+  }
+
   # make sqlite connection:
   conn <- DBI::dbConnect(
     drv = RSQLite::SQLite(),
     Sys.getenv("DATABASE_NAME")
   )
+
   # initialize fields validation
   iv <- InputValidator$new()
   ivs <- InputValidator$new()
@@ -17,6 +49,7 @@ server <- function(input, output, session) {
     selected_pdf = NULL,
     pdf_paths = list()
   )
+
   # Create reactive values for school table
   rvs <- reactiveValues(
     message = NULL,
@@ -30,16 +63,21 @@ server <- function(input, output, session) {
 
   # output selected tab
   output$selected_tab <- renderText({
-    item <- ifelse(is.null(input$active_sidebar_tab), "DASHBOARD", input$active_sidebar_tab)
+    item <- ifelse(
+      is.null(input$active_sidebar_tab), "DASHBOARD", input$active_sidebar_tab
+    )
     return(stringr::str_to_upper(item))
   })
 
 
-  # Load existing PDFs and their cover images from the "pdf" folder on app initialization
+  # Load existing PDFs and their cover images from the "pdf"
+  # folder on app initialization
   observe({
     pdf_files <- list.files("www/pdf", pattern = "\\.pdf$", full.names = TRUE)
     rv$pdf_paths <- lapply(pdf_files, function(pdf) {
-      cover_image <- file.path("www/images", paste0(fs::path_ext_remove(basename(pdf)), "_page_1.png"))
+      cover_image <- file.path(
+        "www/images", paste0(fs::path_ext_remove(basename(pdf)), "_page_1.png")
+      )
       list(pdf = pdf, cover = cover_image)
     })
   })
@@ -56,6 +94,7 @@ server <- function(input, output, session) {
     }
     return(NULL) # Return NULL if validation passes
   })
+
   ivs$add_rule("doc_school", sv_required())
   ivs$add_rule("doc_teacher", sv_required())
   ivs$add_rule("doc_grade", sv_required())
@@ -109,10 +148,13 @@ server <- function(input, output, session) {
     # Create a reactable table with the input values
     table_html <- reactable(
       data.frame(
-        Input = c("PDF File", "School", "Teacher", "Grade", "Learning Area", "Topic", "Sub Topic"),
+        Input = c(
+          "PDF File", "School", "Teacher", "Grade",
+          "Learning Area", "Topic", "Sub Topic"
+        ),
         Value = stringr::str_trunc(
           c(
-            input$pdfFile$name,
+            stringr::str_to_title(input$pdfFile$name),
             input$doc_school,
             input$doc_teacher,
             input$doc_grade,
@@ -154,7 +196,6 @@ server <- function(input, output, session) {
       if (!dir.exists("www/images")) dir.create("www/images", recursive = TRUE)
       pdf_path <- file.path("www/pdf", input$pdfFile$name)
 
-      # add a new record for it
       data <- data.frame(
         id = next_pdf_id("content"),
         school_name = input$doc_school,
@@ -164,7 +205,7 @@ server <- function(input, output, session) {
         learning_area = input$doc_learning_area,
         topic = input$doc_topic,
         sub_topic = input$doc_sub_topic,
-        time = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+        time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S")
       )
 
       success <- add_new_pdf(table_name = "content", data = data)
@@ -182,9 +223,20 @@ server <- function(input, output, session) {
         )
 
         # Update reactive pdf paths
-        rv$pdf_paths <- c(list(list(pdf = pdf_path, cover = image_paths[[1]])), rv$pdf_paths)
+        rv$pdf_paths <- c(
+          list(
+            list(
+              pdf = pdf_path,
+              cover = image_paths[[1]]
+            )
+          ),
+          rv$pdf_paths
+        )
 
-        alert_success_ui(info = "New PDF uploaded successfully!", session = session)
+        alert_success_ui(
+          info = "New PDF uploaded successfully!", session = session
+        )
+
         # refresh added data
         rvs$pdf_data <- refresh_table_data(table_name = "content")
       } else {
@@ -203,18 +255,28 @@ server <- function(input, output, session) {
     pdf_data <- rvs$pdf_data
     if (nrow(pdf_data) > 0) {
       argonTable(
-        headTitles = c("ID", "Teacher", "Grade", "Learning Area", "Sub Topic", "Time", ""),
+        headTitles = c(
+          "ID", "Teacher", "Grade", "Learning Area", "Sub Topic",
+          "Time", ""
+        ),
         lapply(1:nrow(pdf_data), function(i) {
           file_info <- rv$pdf_paths[[i]]
           argonTableItems(
             argonTableItem(
               div(
                 class = "d-flex",
-                argonAvatar(size = "sm", src = sub("^www/", "", file_info$cover)),
+                argonAvatar(
+                  size = "sm",
+                  src = sub("^www/", "", file_info$cover)
+                ),
                 div(
                   class = "d-flex flex-column justify-content-center px-2",
                   h6(class = "mb-0 text-xs", pdf_data$id[i]),
-                  p(class = "text-truncate w-75 text-xs text-default mb-0", pdf_data$pdf_name[i])
+                  p(
+                    class = "text-truncate w-75
+                  text-xs text-default mb-0",
+                    pdf_data$pdf_name[i]
+                  )
                 )
               )
             ),
@@ -276,8 +338,10 @@ server <- function(input, output, session) {
         div(
           id = "buttons_pdf",
           class = "d-flex justify-content-between",
-          actionButton("edit_btn", "", icon = icon("pencil")) |> basic_primary_btn(),
-          actionButton("delete_btn", "", icon = icon("trash")) |> basic_primary_btn()
+          actionButton("edit_btn", "", icon = icon("pencil")) |>
+            basic_primary_btn(),
+          actionButton("delete_btn", "", icon = icon("trash")) |>
+            basic_primary_btn()
         )
       )
     })
@@ -308,51 +372,106 @@ server <- function(input, output, session) {
 
   # output new price
   # output$new_price <- renderText({
-  #    table_data <- rvs$pdf_data
-  #   price <- as.numeric(table_data$price[rvs$idx]) + (input$my_knob / 100) * as.numeric(table_data$price[rvs$idx])
-  ##   return(paste("Ksh. ", price))
+  # table_data <- rvs$pdf_data
+  # price <- as.numeric(table_data$price[rvs$idx]) +
+  # (input$my_knob / 100) * as.numeric(table_data$price[rvs$idx])
+  # return(paste("Ksh. ", price))
   # })
+
   # Render available PDFs
   output$published_pdfs <- renderUI({
-    if (length(rv$pdf_paths) == 0) {
-      show_empty_state_ui
+    if (nrow(rvs$pdf_data) == 0) {
+      tags$p("No PDFs available")
     } else {
       shinybusy::show_spinner()
 
+      # Import available content and extract year
+      available_content <- rvs$pdf_data
+      available_content$year <- substr(available_content$time, 1, 4)
 
-      card_ui <- lapply(seq_along(rv$pdf_paths), function(i) {
-        file_info <- rv$pdf_paths[[i]]
-        pages_no <- pdf_info(file_info$pdf)$pages
-        card_id <- paste0("card_", i)
-        pdf_name_filtered <- fs::path_ext_remove(basename(file_info$pdf))
-        pdf_data <- rvs$pdf_data |>
-          filter(pdf_name == paste0(pdf_name_filtered, ".pdf"))
-        argonR::argonCard(
-          title = tags$h6(
-            class = "text-truncate text-uppercase w-75",
-            pdf_name_filtered
-          ),
-          hover_lift = TRUE,
-          shadow = TRUE,
-          border_level = 5,
-          icon = icon("file-pdf"),
-          status = "default",
-          width = 2,
-          paste("Topic:", pdf_data$topic), br(),
-          paste("Grade:", pdf_data$grade), br(),
+      # Sort years in descending order
+      sorted_years <- sort(unique(available_content$year), decreasing = TRUE)
+
+      # List all images in the "www/images" directory
+      image_files <- list.files(
+        path = "www/images",
+        pattern = "_page_1\\.png$",
+        full.names = TRUE
+      )
+
+      # Create card decks for each year
+      card_decks <- lapply(sorted_years, function(year) {
+        # Filter data for the current year
+        year_data <- filter(available_content, year == !!year)
+
+        div(
+          class = "bg-translucent-light has-success heading
+          floating jumbotron",
+          paste("Year", year),
           div(
-            class = "d-flex justify-content-center",
-            onclick = sprintf("Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());", file_info$pdf),
-            argonR::argonImage(
-              src = sub("^www/", "", file_info$cover),
-              floating = TRUE
-            )
+            class = "d-flex flex-wrap floating",
+            # Create cards for each PDF in the current year
+            lapply(1:nrow(year_data), function(i) {
+              pdf_info <- year_data[i, ]
+              pdf_name_filtered <- fs::path_ext_remove(
+                basename(pdf_info$pdf_name)
+              )
+              # get the cover images
+              cover_image <- image_files[
+                grepl(
+                  paste0(
+                    "^www/images/",
+                    pdf_name_filtered,
+                    "_page_1\\.png$"
+                  ), image_files
+                )
+              ]
+
+              cover_image <- ifelse(
+                length(cover_image) > 0, sub("^www/", "", cover_image[1]),
+                "images/default_cover.png"
+              )
+
+              # create pdf card
+              argonR::argonCard(
+                title = tags$h6(
+                  class = "d-flex text-truncate text-uppercase",
+                  pdf_name_filtered, br(),
+                  pdf_info$time
+                ),
+                hover_lift = TRUE,
+                shadow = TRUE,
+                border_level = 5,
+                icon = icon("file-pdf"),
+                status = "primary",
+                width = 2,
+                argonBadge(
+                  text = pdf_info$topic,
+                  status = "default"
+                ),
+                div(
+                  id = paste("card", i),
+                  class = "d-flex justify-content-center",
+                  onclick = sprintf(
+                    "Shiny.setInputValue('selected_pdf', '%s');
+                      Shiny.setInputValue('trigger_modal', Math.random());",
+                    pdf_info$pdf_name
+                  ),
+                  argonR::argonImage(
+                    src = cover_image
+                  )
+                )
+              )
+            })
           )
         )
       })
-      do.call(tagList, card_ui)
+
+      # Wrap all card decks in a tagList
+      do.call(tagList, card_decks)
     }
   })
+
 
   # Render the current page's image
   output$pdf_images <- renderImage(
@@ -371,13 +490,20 @@ server <- function(input, output, session) {
   observeEvent(input$trigger_modal, {
     runjs('$("#modal").modal("show");')
   })
+
   # Observe selection change and update image paths
   observeEvent(input$selected_pdf, {
     shinybusy::show_spinner()
 
     req(input$selected_pdf)
 
-    image_files <- list.files("www/images", pattern = paste0("^", tools::file_path_sans_ext(tools::file_path_sans_ext(basename(input$selected_pdf))), "_page_.*\\.png$"), full.names = TRUE)
+    image_files <- list.files(
+      path = "www/images",
+      pattern = paste0("^", tools::file_path_sans_ext(
+        tools::file_path_sans_ext(basename(input$selected_pdf))
+      ), "_page_.*\\.png$"),
+      full.names = TRUE
+    )
     rv$image_paths <- image_files
     rv$current_page <- 1
     rv$total_pages <- length(image_files)
@@ -387,7 +513,11 @@ server <- function(input, output, session) {
     output$progress_bar <- renderUI({
       page_text <- paste("Page", rv$current_page, "of", rv$total_pages)
       progress_value <- pmin((rv$current_page / rv$total_pages) * 100, 100)
-      progress_bar_modified(text = page_text, value = progress_value, status = "gradient-gray")
+      progress_bar_modified(
+        text = page_text,
+        value = progress_value,
+        status = "gradient-gray"
+      )
     })
   })
 
@@ -587,7 +717,10 @@ server <- function(input, output, session) {
     )
 
     if (success == 1) {
-      alert_success_ui(info = "New school created successfully!", session = session)
+      alert_success_ui(
+        info = "New school created successfully!",
+        session = session
+      )
       # refresh added data
       rvs$school_data <- refresh_table_data(table_name = "schools")
     } else {
@@ -610,12 +743,18 @@ server <- function(input, output, session) {
               div(
                 class = "d-flex flex-column justify-content-center",
                 h6(class = "mb-0 text-xs", table_data$id[i]),
-                p(class = "text-truncate w-50 text-xs text-default mb-0", table_data$email[i])
+                p(
+                  class = "text-truncate w-50 text-xs text-default mb-0",
+                  table_data$email[i]
+                )
               )
             ),
             argonTableItem(
               div(
-                p(class = "text-xs font-weight-bold mb-0", table_data$school_name[i]),
+                p(
+                  class = "text-xs font-weight-bold mb-0",
+                  table_data$school_name[i]
+                ),
                 p(class = "text-xs text-default mb-0", table_data$level[i])
               )
             ),
@@ -632,7 +771,9 @@ server <- function(input, output, session) {
               dataCell = TRUE,
               argonBadge(
                 text = table_data$status[i],
-                status = ifelse(table_data$status[i] == "Enabled", "success", "primary")
+                status = ifelse(table_data$status[i] == "Enabled", "success",
+                  "primary"
+                )
               )
             ),
             argonTableItem(
@@ -647,18 +788,22 @@ server <- function(input, output, session) {
                   outline = TRUE,
                   flat = TRUE,
                   class = "btn-link bg-transparent border-0",
-                  onclick = sprintf("Shiny.setInputValue('action_button', '%s');", i)
+                  onclick = sprintf("Shiny.setInputValue('action_button',
+                  '%s');", i)
                 ),
                 div(
                   class = "pt-2",
                   h5(table_data$school_name[i]),
                   div(
                     class = "mb--4",
-                    onclick = sprintf("Shiny.setInputValue('status_button', '%s');", i),
+                    onclick = sprintf("Shiny.setInputValue('status_button',
+                    '%s');", i),
                     materialSwitch(
                       inputId = paste0("status_", i),
                       label = table_data$status[i],
-                      value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                      value = ifelse(table_data$status[i] == "Enabled", TRUE,
+                        FALSE
+                      ),
                       status = "success"
                     )
                   ),
@@ -666,17 +811,21 @@ server <- function(input, output, session) {
                     inputId = paste0("del_btn_", i),
                     label = "Delete",
                     icon = icon("trash"),
-                    status = "default",
+                    status = "primary",
                     class = "btn-link bg-transparent mx--3 border-0",
-                    onclick = sprintf("Shiny.setInputValue('del_button', '%s');", i)
+                    onclick = sprintf(
+                      "Shiny.setInputValue('del_button', '%s');", i
+                    )
                   ),
                   actionButton(
                     inputId = paste0("view_btn_", i),
                     label = "Edit",
                     icon = icon("eye"),
-                    status = "default",
+                    status = "primary",
                     class = "btn-link bg-transparent mx--3 border-0",
-                    onclick = sprintf("Shiny.setInputValue('view_button', '%s');", i)
+                    onclick = sprintf(
+                      "Shiny.setInputValue('view_button', '%s');", i
+                    )
                   )
                 )
               )
@@ -709,7 +858,10 @@ server <- function(input, output, session) {
       session = session,
       inputId = "confirm_status",
       title = "Confirmation",
-      text = paste("Are you sure you want to", confirm_text, table_data$school_name[id], "?"),
+      text = paste(
+        "Are you sure you want to", confirm_text,
+        table_data$school_name[id], "?"
+      ),
       btn_labels = c("Cancel", "Yes")
     )
   })
@@ -756,7 +908,10 @@ server <- function(input, output, session) {
       session = session,
       inputId = "confirm_delete",
       title = "Confirmation",
-      text = paste("Are you sure you want to delete", table_data$school_name[id], "?"),
+      text = paste(
+        "Are you sure you want to delete",
+        table_data$school_name[id], "?"
+      ),
       btn_labels = c("Cancel", "Yes")
     )
   })
@@ -772,7 +927,12 @@ server <- function(input, output, session) {
       argonRow(
         argonColumn(
           width = 3,
-          textInput("edit_school_name", label_mandatory("Name:"), value = table_data$school_name[idx], placeholder = "Eg. Lenga Juu")
+          textInput(
+            inputId = "edit_school_name",
+            label_mandatory("Name:"),
+            value = table_data$school_name[idx],
+            placeholder = "Eg. Lenga Juu"
+          )
         ),
         argonColumn(
           width = 3,
@@ -783,7 +943,10 @@ server <- function(input, output, session) {
               style = "btn-outline-light",
               title = "Eg. Primary"
             ),
-            choices = c("Preparatory", "Primary", "Junior Secondary", "Senior Secondary", "University/College", "Other"),
+            choices = c(
+              "Preparatory", "Primary", "Junior Secondary",
+              "Senior Secondary", "University/College", "Other"
+            ),
             selected = table_data$level[idx]
           )
         ),
@@ -821,7 +984,12 @@ server <- function(input, output, session) {
       argonRow(
         argonColumn(
           width = 3,
-          textInput("edit_school_email", label_mandatory("Email:"), value = table_data$email[idx], placeholder = "Eg. johnwekesa@gmail.com")
+          textInput(
+            inputId = "edit_school_email",
+            label_mandatory("Email:"),
+            value = table_data$email[idx],
+            placeholder = "Eg. johnwekesa@gmail.com"
+          )
         ),
         argonColumn(
           width = 3,
@@ -982,6 +1150,26 @@ server <- function(input, output, session) {
     )
   })
 
+  # observe a back move to tab 1
+  observeEvent(input$prevBtn_1, {
+    shinyjs::show("nextBtn_1")
+    shinyjs::hide("nextBtn_2")
+    shinyjs::hide("prevBtn_1")
+
+    shinyjs::hide("tab_u2")
+    shinyjs::show("tab_u1")
+
+    shinyjs::addCssClass(
+      id = "tabu_buttons",
+      class = "justify-content-end"
+    )
+
+    shinyjs::removeCssClass(
+      id = "tabu_buttons",
+      class = "justify-content-between"
+    )
+  })
+
   # observe next stage
   observeEvent(input$nextBtn_2, {
     ivt$enable() # enable validation check
@@ -1000,6 +1188,8 @@ server <- function(input, output, session) {
     shinyjs::show("tab_u3")
     shinyjs::hide("tab_u2")
     shinyjs::hide("nextBtn_2")
+    shinyjs::hide("prevBtn_1")
+    shinyjs::show("prevBtn_2")
 
     # output table for entered data confirmation
     output$confirm_user_data <- renderUI({
@@ -1033,9 +1223,31 @@ server <- function(input, output, session) {
     })
   })
 
+  # observe a back move to tab 2
+  observeEvent(input$prevBtn_2, {
+    shinyjs::hide("confirmBtn_1")
+    shinyjs::hide("prevBtn_2")
+    shinyjs::hide("tab_u3")
+    shinyjs::show("tab_u2")
+    shinyjs::show("nextBtn_2")
+    shinyjs::show("prevBtn_1")
+  })
+
   # save user data after confirmation
   observeEvent(input$confirmBtn_1, {
-    # Create data to append
+    # Get the current year
+    current_year <- paste0("Y", format(Sys.Date(), "%Y"))
+
+    # get the available data
+    available_data <- refresh_table_data(table_name = "users")
+
+    # Identify existing year columns in the existing data
+    year_columns <- colnames(available_data)[grepl(
+      "^Y?\\d{4}$",
+      colnames(available_data)
+    )]
+
+    # Create users data to append
     user_data <- data.frame(
       id = next_user_id("users"),
       user_name = stringr::str_to_title(input$user_name),
@@ -1048,6 +1260,26 @@ server <- function(input, output, session) {
       stringsAsFactors = FALSE
     )
 
+    # Ensure the current year column is included
+    if (!(current_year %in% year_columns)) {
+      # Assign FALSE to all existing users
+      db_name <- Sys.getenv("DATABASE_NAME")
+      conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
+      on.exit(DBI::dbDisconnect(conn), add = TRUE)
+      dbExecute(conn, paste0(
+        "ALTER TABLE users ADD COLUMN ",
+        current_year, " INTEGER DEFAULT 0"
+      ))
+
+      # update years for new user
+      year_columns <- c(year_columns, current_year)
+    }
+
+    # Add FALSE for all year columns in the new user data
+    for (year in year_columns) {
+      user_data[[year]] <- FALSE
+    }
+
     # Call the register_new_user function
     success <- register_new_user(
       table_name = "users",
@@ -1055,46 +1287,57 @@ server <- function(input, output, session) {
     )
 
     if (success == 1) {
-      alert_success_ui(info = "New user created successfully!", session = session)
+      alert_success_ui(
+        info = "New user created successfully!",
+        session = session
+      )
       # refresh added data
       rvs$user_data <- refresh_table_data(table_name = "users")
     } else {
-      alert_fail_ui(info = "Name or email already exists!", session = session)
+      alert_fail_ui(info = "Name or email or phone already exists!", session = session)
     }
   })
 
   # output table for already exisiting teacher data
   output$teachers_data <- renderUI({
     # get the school data
-    table_data <- rvs$user_data 
-    teachers_data <- table_data |> 
-    filter(type == "Teacher")
-    if (nrow(table_data) > 0) {
+    table_data <- rvs$user_data
+    teachers_data <- table_data |>
+      filter(type == "Teacher")
+    if (nrow(teachers_data) > 0) {
       argonTable(
-        headTitles = c("ID", "School", "Grade", "Phone", "Email", "Status", ""),
-        lapply(1:nrow(table_data), function(i) {
+        headTitles = c("ID", "School", "Grade", "Type", "Phone", "Status", ""),
+        lapply(1:nrow(teachers_data), function(i) {
           argonTableItems(
             argonTableItem(
               div(
                 class = "d-flex flex-column justify-content-center",
-                h6(class = "mb-0 text-xs", table_data$user_name[i]),
-                p(class = "text-xs text-default mb-0", table_data$id[i])
+                h6(class = "mb-0 text-xs", teachers_data$user_name[i]),
+                p(class = "text-xs text-default mb-0", teachers_data$id[i])
               )
             ),
             argonTableItem(
               div(
-                p(class = "text-xs font-weight-bold mb-0", table_data$school_name[i]),
-                p(class = "text-truncate w-50 text-xs text-default mb-0", table_data$email[i])
+                p(
+                  class = "text-xs font-weight-bold mb-0",
+                  teachers_data$school_name[i]
+                ),
+                p(
+                  class = "text-truncate w-50 text-xs text-default mb-0",
+                  teachers_data$email[i]
+                )
               )
             ),
-            argonTableItem(table_data$grade[i]),
-            argonTableItem(table_data$type[i]),
-            argonTableItem(paste("+254", table_data$phone[i])),
+            argonTableItem(teachers_data$grade[i]),
+            argonTableItem(teachers_data$type[i]),
+            argonTableItem(paste("+254", teachers_data$phone[i])),
             argonTableItem(
               dataCell = TRUE,
               argonBadge(
-                text = table_data$status[i],
-                status = ifelse(table_data$status[i] == "Enabled", "success", "primary")
+                text = teachers_data$status[i],
+                status = ifelse(teachers_data$status[i] == "Enabled", "success",
+                  "primary"
+                )
               )
             ),
             argonTableItem(
@@ -1109,18 +1352,22 @@ server <- function(input, output, session) {
                   outline = TRUE,
                   flat = TRUE,
                   class = "btn-link bg-transparent border-0",
-                  onclick = sprintf("Shiny.setInputValue('action_button', '%s');", i)
+                  onclick = sprintf("Shiny.setInputValue('action_button',
+                  '%s');", i)
                 ),
                 div(
                   class = "pt-2",
-                  h5(table_data$school_name[i]),
+                  h5(teachers_data$school_name[i]),
                   div(
                     class = "mb--4",
-                    onclick = sprintf("Shiny.setInputValue('status_button', '%s');", i),
+                    onclick = sprintf("Shiny.setInputValue('status_button',
+                    '%s');", i),
                     materialSwitch(
                       inputId = paste0("status_", i),
-                      label = table_data$status[i],
-                      value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                      label = teachers_data$status[i],
+                      value = ifelse(teachers_data$status[i] == "Enabled", TRUE,
+                        FALSE
+                      ),
                       status = "success"
                     )
                   ),
@@ -1128,9 +1375,10 @@ server <- function(input, output, session) {
                     inputId = paste0("del_btn_", i),
                     label = "Delete",
                     icon = icon("trash"),
-                    status = "default",
+                    status = "primary",
                     class = "btn-link bg-transparent mx--3 border-0",
-                    onclick = sprintf("Shiny.setInputValue('del_button', '%s');", i)
+                    onclick = sprintf("Shiny.setInputValue('del_button',
+                    '%s');", i)
                   )
                 )
               )
@@ -1147,35 +1395,43 @@ server <- function(input, output, session) {
   # output table for already exisiting students data
   output$students_data <- renderUI({
     # get the school data
-    table_data <- rvs$user_data 
-    teachers_data <- table_data |> 
-    filter(type == "Student")
-    if (nrow(table_data) > 0) {
+    table_data <- rvs$user_data
+    students_data <- table_data |>
+      filter(type == "Student")
+    if (nrow(students_data) > 0) {
       argonTable(
-        headTitles = c("ID", "School", "Grade", "Phone", "Email", "Status", ""),
-        lapply(1:nrow(table_data), function(i) {
+        headTitles = c("ID", "School", "Grade", "Type", "Phone", "Status", ""),
+        lapply(1:nrow(students_data), function(i) {
           argonTableItems(
             argonTableItem(
               div(
                 class = "d-flex flex-column justify-content-center",
-                h6(class = "mb-0 text-xs", table_data$user_name[i]),
-                p(class = "text-xs text-default mb-0", table_data$id[i])
+                h6(class = "mb-0 text-xs", students_data$user_name[i]),
+                p(class = "text-xs text-default mb-0", students_data$id[i])
               )
             ),
             argonTableItem(
               div(
-                p(class = "text-xs font-weight-bold mb-0", table_data$school_name[i]),
-                p(class = "text-truncate w-50 text-xs text-default mb-0", table_data$email[i])
+                p(
+                  class = "text-xs font-weight-bold mb-0",
+                  students_data$school_name[i]
+                ),
+                p(
+                  class = "text-truncate w-50 text-xs text-default mb-0",
+                  students_data$email[i]
+                )
               )
             ),
-            argonTableItem(table_data$grade[i]),
-            argonTableItem(table_data$type[i]),
-            argonTableItem(paste("+254", table_data$phone[i])),
+            argonTableItem(students_data$grade[i]),
+            argonTableItem(students_data$type[i]),
+            argonTableItem(paste("+254", students_data$phone[i])),
             argonTableItem(
               dataCell = TRUE,
               argonBadge(
-                text = table_data$status[i],
-                status = ifelse(table_data$status[i] == "Enabled", "success", "primary")
+                text = students_data$status[i],
+                status = ifelse(students_data$status[i] == "Enabled", "success",
+                  "primary"
+                )
               )
             ),
             argonTableItem(
@@ -1190,18 +1446,22 @@ server <- function(input, output, session) {
                   outline = TRUE,
                   flat = TRUE,
                   class = "btn-link bg-transparent border-0",
-                  onclick = sprintf("Shiny.setInputValue('action_button', '%s');", i)
+                  onclick = sprintf("Shiny.setInputValue('action_button',
+                  '%s');", i)
                 ),
                 div(
                   class = "pt-2",
                   h5(table_data$school_name[i]),
                   div(
                     class = "mb--4",
-                    onclick = sprintf("Shiny.setInputValue('status_button', '%s');", i),
+                    onclick = sprintf("Shiny.setInputValue('status_button',
+                    '%s');", i),
                     materialSwitch(
                       inputId = paste0("status_", i),
-                      label = table_data$status[i],
-                      value = ifelse(table_data$status[i] == "Enabled", TRUE, FALSE),
+                      label = students_data$status[i],
+                      value = ifelse(students_data$status[i] == "Enabled", TRUE,
+                        FALSE
+                      ),
                       status = "success"
                     )
                   ),
@@ -1209,9 +1469,10 @@ server <- function(input, output, session) {
                     inputId = paste0("del_btn_", i),
                     label = "Delete",
                     icon = icon("trash"),
-                    status = "default",
+                    status = "primary",
                     class = "btn-link bg-transparent mx--3 border-0",
-                    onclick = sprintf("Shiny.setInputValue('del_button', '%s');", i)
+                    onclick = sprintf("Shiny.setInputValue('del_button',
+                    '%s');", i)
                   )
                 )
               )
@@ -1225,8 +1486,26 @@ server <- function(input, output, session) {
     }
   })
 
+  # update teachers depending on selected school
+  observeEvent(input$doc_school, {
+    name <- input$doc_school
+    user_data <- data.table::as.data.table(rvs$user_data)
+    choices <- user_data[
+      school_name == name & type == "Teacher",
+      .(user_name, grade)
+    ]
+    updatePickerInput(
+      session = session,
+      inputId = "doc_teacher",
+      choices = unique(choices$user_name),
+      choicesOpt = list(
+        subtext = unique(choices$grade)
+      )
+    )
+  })
+
   # Actions for logout button
-  observeEvent(input$sign_out, {
+  observeEvent(input$log_out_session, {
     # Sign user out
     sign_out_from_shiny()
     session$reload()
