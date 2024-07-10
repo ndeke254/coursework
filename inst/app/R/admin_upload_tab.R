@@ -25,7 +25,12 @@ admin_upload_page <- div(
           p("All fields are required", class = "mt--2"),
           div(
             class = "d-flex justify-content-center",
-            fileInput("pdfFile", "Select a PDF", width = 500, accept = c(".pdf"))
+            fileInput(
+              inputId = "pdfFile", 
+              label = "Select a PDF", 
+              width = 500,
+               accept = c(".pdf")
+               )
           ),
           argonRow(
             argonColumn(
@@ -97,10 +102,17 @@ admin_upload_page <- div(
             ),
             argonColumn(
               width = 3,
-              shiny::textInput("doc_sub_topic", label_mandatory("Sub-topic:"), "", placeholder = "Eg. Long division method")
+              shiny::textInput(
+                inputId = "doc_sub_topic", 
+                label_mandatory("Sub-topic:"), 
+                value = "",
+                 placeholder = "Eg. Long division method")
             )
           ),
-          actionButton("upload_btn", "Publish PDF", class = "btn-primary mt-2 mb-2 float-right") |>
+          actionButton(
+            inputId = "upload_btn", 
+            label = "Publish PDF",
+             class = "mt-2 mb-2 float-right") |>
             basic_primary_btn()
         )
       )

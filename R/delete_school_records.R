@@ -18,4 +18,3 @@ delete_school_records <- \(user_id) {
   query <- "DELETE from schools WHERE id = :id"
   dbExecute(conn, query, params = list(id = user_id))
 }
-

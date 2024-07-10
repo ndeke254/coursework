@@ -8,12 +8,12 @@
 #' @export
 #'
 
-alert_warn_ui <- \(info, position, session) {
+alert_warn_ui <- \(info, position = "top-end", session) {
   show_toast(
     session = session,
     title = NULL,
     text = info,
-    position = "top-end",
+    position = position,
     type = "warning",
     width = "auto",
     timer = 3000

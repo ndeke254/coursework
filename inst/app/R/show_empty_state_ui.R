@@ -2,6 +2,7 @@
 #'
 #'
 show_empty_state_ui <- div(
+  class = "floating",
   div(
     class = "d-flex justify-content-center",
     img(src = "logo/emptystate.svg", alt = "No Data Available!")

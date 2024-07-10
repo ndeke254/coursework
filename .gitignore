@@ -6,4 +6,7 @@
 .DS_Store
 .quarto
 .Renviron
+.lintr
+*.png
+*.pdf
 
