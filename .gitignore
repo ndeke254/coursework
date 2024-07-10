@@ -6,5 +6,7 @@
 .DS_Store
 .quarto
 .Renviron
-.*sqlite
+.lintr
+*.png
+*.pdf
 .test.R

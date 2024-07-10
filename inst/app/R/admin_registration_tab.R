@@ -11,6 +11,7 @@ admin_registration_tab <- div(
     ),
     argonTab(
       tabName = "School",
+      h2("Register new school"),
       active = TRUE,
       argonRow(
         center = TRUE,
@@ -25,12 +26,15 @@ admin_registration_tab <- div(
             tags$style(HTML(
               " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
               height: 15px; width: 15px; margin: 0 10px;
-               background-color: #bbbbbb; border: 0.5px solid; border-radius: 50%;
-                display: inline-block; opacity: 0.5; box-shadow: 0px 0px 10px 0px #0000003b;
+               background-color: #bbbbbb; border: 0.5px solid;
+               border-radius: 50%;
+                display: inline-block; opacity: 0.5;
+                box-shadow: 0px 0px 10px 0px #0000003b;
                   }
                    #line, #lineu, #lineu1 {
                      box-shadow: 0px 0px 10px 0px #0000003b;
-                      height: 2px; background-color: #bbbbbb; margin: 0 5px; flex-grow: 1;
+                      height: 2px; background-color: #bbbbbb;
+                       margin: 0 5px; flex-grow: 1;
                        }
                         "
             ))
@@ -42,7 +46,7 @@ admin_registration_tab <- div(
               class = "align-items-center d-flex m-auto mt-2 w-75",
               span(id = "step_1"),
               span(id = "line"),
-              span(id = "step_2"),
+              span(id = "step_2")
             ),
             div(
               class = "m-auto pb-3 w-75",
@@ -58,7 +62,12 @@ admin_registration_tab <- div(
               argonRow(
                 argonColumn(
                   width = 3,
-                  shiny::textInput("school_name", label_mandatory("Name:"), "", placeholder = "Eg. Lenga Juu")
+                  shiny::textInput(
+                    inputId = "school_name",
+                    label_mandatory("Name:"),
+                    value = "",
+                    placeholder = "Eg. Lenga Juu"
+                  )
                 ),
                 argonColumn(
                   width = 3,
@@ -69,7 +78,10 @@ admin_registration_tab <- div(
                       style = "btn-outline-light",
                       title = "Eg. Primary"
                     ),
-                    choices = c("Preparatory", "Primary", "Junior Secondary", "Senior Secondary", "University/College", "Other")
+                    choices = c(
+                      "Preparatory", "Primary", "Junior Secondary",
+                      "Senior Secondary", "University/College", "Other"
+                    )
                   )
                 ),
                 argonColumn(
@@ -104,7 +116,12 @@ admin_registration_tab <- div(
               argonRow(
                 argonColumn(
                   width = 3,
-                  shiny::textInput("school_email", label_mandatory("Email:"), "", placeholder = "Eg. johnwekesa@gmail.com")
+                  shiny::textInput(
+                    inputId = "school_email",
+                    label_mandatory("Email:"),
+                    value = "",
+                    placeholder = "Eg. johnwekesa@gmail.com"
+                  )
                 ),
                 argonColumn(
                   width = 3,
@@ -136,14 +153,29 @@ admin_registration_tab <- div(
                 id = "tab_buttons",
                 class = "d-flex mt-3 justify-content-end",
                 shinyjs::hidden(
-                  shiny::actionButton("prevBtn", "", icon = icon("arrow-left"), class = "btn-primary px-5") |>
+                  shiny::actionButton(
+                    inputId = "prevBtn",
+                    label = "",
+                    icon = icon("arrow-left"),
+                    class = "px-5"
+                  ) |>
                     basic_primary_btn()
                 ),
                 shinyjs::hidden(
-                  shiny::actionButton("confirmBtn", "", icon = icon("check"), class = "btn-primary px-5") |>
+                  shiny::actionButton(
+                    inputId = "confirmBtn",
+                    label = "",
+                    icon = icon("check"),
+                    class = "px-5"
+                  ) |>
                     basic_primary_btn()
                 ),
-                shiny::actionButton("nextBtn", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
+                shiny::actionButton(
+                  inputId = "nextBtn",
+                  label = "",
+                  icon = icon("arrow-right"),
+                  class = "px-5"
+                ) |>
                   basic_primary_btn()
               )
             )
@@ -203,7 +235,12 @@ admin_registration_tab <- div(
                 argonRow(
                   argonColumn(
                     width = 3,
-                    shiny::textInput("user_name", label_mandatory("Name:"), "", placeholder = "Eg. Joseph Juma")
+                    shiny::textInput(
+                      inputId = "user_name",
+                      label = label_mandatory("Name:"),
+                      value = "",
+                      placeholder = "Eg. Joseph Juma"
+                    )
                   ),
                   argonColumn(
                     width = 3,
@@ -248,7 +285,11 @@ admin_registration_tab <- div(
                 argonRow(
                   argonColumn(
                     width = 3,
-                    shiny::textInput("user_email", label_mandatory("Email:"), placeholder = "Eg. johnwekesa@gmail.com")
+                    shiny::textInput(
+                      inputId = "user_email",
+                      label_mandatory("Email:"),
+                      placeholder = "Eg. johnwekesa@gmail.com"
+                    )
                   )
                 )
               )
@@ -270,18 +311,47 @@ admin_registration_tab <- div(
                 id = "tabu_buttons",
                 class = "d-flex mt-3 justify-content-end",
                 shinyjs::hidden(
-                  shiny::actionButton("prevBtn_1", "", icon = icon("arrow-left"), class = "btn-primary px-5") |>
+                  shiny::actionButton(
+                    inputId = "prevBtn_1",
+                    label = "",
+                    icon = icon("arrow-left"),
+                    class = "px-5"
+                  ) |>
                     basic_primary_btn()
                 ),
                 shinyjs::hidden(
-                  shiny::actionButton("nextBtn_2", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
+                  shiny::actionButton(
+                    inputId = "prevBtn_2",
+                    label = "",
+                    icon = icon("arrow-left"),
+                    class = "px-5"
+                  ) |>
                     basic_primary_btn()
                 ),
                 shinyjs::hidden(
-                  shiny::actionButton("confirmBtn_1", "", icon = icon("check"), class = "btn-primary px-5") |>
+                  shiny::actionButton(
+                    inputId = "nextBtn_2",
+                    label = "",
+                    icon = icon("arrow-right"),
+                    class = "px-5"
+                  ) |>
                     basic_primary_btn()
                 ),
-                shiny::actionButton("nextBtn_1", "", icon = icon("arrow-right"), class = "btn-primary px-5") |>
+                shinyjs::hidden(
+                  shiny::actionButton(
+                    inputId = "confirmBtn_1",
+                    label = "",
+                    icon = icon("check"),
+                    class = "px-5"
+                  ) |>
+                    basic_primary_btn()
+                ),
+                shiny::actionButton(
+                  inputId = "nextBtn_1",
+                  label = "",
+                  icon = icon("arrow-right"),
+                  class = "px-5"
+                ) |>
                   basic_primary_btn()
               )
             )
@@ -304,22 +374,26 @@ admin_registration_tab <- div(
           argonTabSet(
             id = "users",
             circle = TRUE,
-            size = "lg",
             width = 12,
+            iconList = list(
+              icon = icon("school"),
+              icon = icon("chalkboard-user"),
+              icon = icon("children")
+            ),
             argonTab(
-              tabName = "School",
+              tabName = "Schools",
               active = TRUE,
-              p("Existing schools data", class = "mt-3"),
+              p("Existing schools data", class = "mt-5"),
               uiOutput("school_data")
             ),
             argonTab(
               tabName = "Teachers",
-              p("Existing teachers data", class = "mt-3"),
+              p("Existing teachers data", class = "mt-5"),
               uiOutput("teachers_data")
             ),
             argonTab(
-              tabName = "Students",
-              p("Existing students data", class = "mt-3"),
+              tabName = "students",
+              p("Existing students data", class = "mt-5"),
               uiOutput("students_data")
             )
           )

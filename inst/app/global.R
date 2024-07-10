@@ -15,7 +15,7 @@ library(reactable)
 library(prodlim)
 library(bslib)
 library(polished)
-
+library(lubridate)
 
 
 # counties in Kenya
@@ -79,13 +79,12 @@ app_name <- Sys.getenv("POLISHED_APP_NAME")
 api_key <- Sys.getenv("POLISHED_API_KEY")
  
 # configure polished auth when the app initially starts up.
-polished_config(
-  app_name = app_name,
-  api_key = api_key,
-  is_invite_required = FALSE,
-  cookie_expires = NULL
-)
+ polished_config(
+   app_name = app_name,
+   api_key = api_key,
+   is_invite_required = FALSE
+ )
 
 # Set App api_key
-set_api_key(api_key = api_key)
+ set_api_key(api_key = api_key)
 
