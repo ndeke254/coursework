@@ -3,7 +3,8 @@
 #' Status of the newly created school is "enabled" by default.
 #'
 #' @param table_name Name of the table to add a record to.
-#' @param data A data.frame of the data to be added. Colnames are id, name, level, type, county, email, status.
+#' @param data A data.frame of the data to be added. Colnames are id, name, 
+#' level, type, county, email, status.
 #' @return double `1` if school was created. `0` otherwise.
 #'
 #' @export

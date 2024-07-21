@@ -8,7 +8,7 @@
 #' success_alert_ui("User deleted successfully!", "top-end", session)
 #' @export
 #'
-alert_success_ui <- \(info, position, session) {
+alert_success_ui <- \(info, position, session, timer = 3000) {
   show_toast(
     session = session,
     title = NULL,
@@ -16,6 +16,6 @@ alert_success_ui <- \(info, position, session) {
     position = "top-end",
     type = "success",
     width = "auto",
-    timer = 3000
+    timer = timer
   )
 }

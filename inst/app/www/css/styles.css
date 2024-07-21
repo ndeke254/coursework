@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
 :root {
   --primary: #1D2856;
   --secondary: #E76A35;
@@ -129,7 +135,7 @@
 }
 
 .swal2-popup.swal2-toast {
-  padding: 1em;
+  padding-top: 0.2rem !important;
   font-size: 1rem !important;
 }
 
@@ -209,8 +215,34 @@ body {
   color: var(--secondary);
 }
 
-button#log_out_session, 
+button#log_out_session,
 button#user_profile_edit {
   background-color: white;
   color: #1d2856;
+}
+
+.row {
+  flex-wrap: nowrap;
+}
+
+.sweet-alert .sa-icon.sa-custom {
+  background-size: cover;
+}
+
+.fade-in {
+  opacity: 0;
+  animation-name: fadeInOpacity;
+  animation-timing-function: ease-in;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeInOpacity {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
