@@ -72,7 +72,7 @@ admin_upload_page <- div(
                   title = "Eg. Grade 6",
                   size = 5
                 ),
-                choices = paste(c("Grade"), 1:12)
+                choices = NULL
               )
             ),
             argonColumn(

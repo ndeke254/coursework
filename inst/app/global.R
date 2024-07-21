@@ -16,7 +16,8 @@ library(prodlim)
 library(bslib)
 library(polished)
 library(lubridate)
-
+library(shinyalert)
+library(polished)
 
 # counties in Kenya
 # used as a choices input in school registration tab

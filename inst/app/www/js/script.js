@@ -30,4 +30,13 @@ $(document).ready(function () {
       }
     }
   });
+
+  // monitor network status in the application
+  function update_network_status() {
+    Shiny.setInputValue('network_status', navigator.onLine ? 'online' : 'offline');
+  }
+
+  window.addEventListener('online', update_network_status);
+  window.addEventListener('offline', update_network_status);
+  update_network_status();  // Set initial status
 });
