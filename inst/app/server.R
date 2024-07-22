@@ -1,34 +1,102 @@
 server <- function(input, output, session) {
+  # Initially show the landing page
+  shinyjs::show("landing_page")
+  shinyjs::addClass("landing_page", "show")
+
   # get the sign-in user
   user <- session$userData$user()
   email <- user$email
   email_verified <- user$email_verified
   user_role <- user$roles
   is_admin <- user$is_admin
+  user_uuid <- user$user_uid
+
+  # request registration for a new user
+  user_type <- user$roles
+
+  if (is.na(user_type)) {
+    showModal(
+      modalDialog(
+        title = "LET US KNOW YOU",
+        footer = NULL,
+        size = "s",
+        user_registration_tab
+      )
+    )
+    # update the user_type for proceeding
+    user_type <- "teachers"
+  }
+
 
   # output the signed in user
-  signed_user <- get_signed_user(email)
+  signed_user <- get_signed_user(email, user_type)
   user_status <- signed_user$status
+  user_name <- stringr::word(signed_user$user_name, 1)
 
-  # show thw user on profile
-  output$signed_user <- renderText(
-    stringr::word(signed_user$user_name, 1)
-  )
+  # show the user on profile
+  output$signed_user <- renderText({
+    if (length(user_name) == 0) {
+      return("Uknown")
+    }
+
+    user_name
+  })
 
   # control access according to status
-  if (is.null(user_status) || 
-  user_status %in% "Disabled" ||
-  length(user_status) == 0) {
-    showModal(
-    modalDialog(
-      id = "access_denied_modal",
-      title = "Access Denied",
-      "Access denied. Contact the administrator.",
-      easyClose = TRUE,
-      footer = NULL
-    )
-    )
+  if (nrow(signed_user) > 0) {
+    if (user_status == "Disabled") {
+      return(
+        shinyalert(
+          title = paste0(
+            user_name,
+            ", contact the administrator."
+          ),
+          type = "",
+          text = "Access denied.",
+          inputId = "disabled_alert",
+          imageUrl = "logo/logo.png",
+          imageWidth = 180,
+          session = session,
+          closeOnEsc = FALSE,
+          closeOnClickOutside = FALSE,
+          showConfirmButton = FALSE,
+          callbackR = function() {
+            # Sign user out
+            sign_out_from_shiny()
+            session$reload()
+          }
+        )
+      )
+    }
   }
+
+
+  # Show the dashboard page
+  if (nrow(signed_user) > 0 &&
+    user_status == "Enabled" &&
+    !is.na(user_type)) {
+    # Hide the landing page with animation
+    shinyjs::hide("landing_page", anim = TRUE, animType = "fade", time = 0.5)
+    shinyjs::delay(500, {
+      # Show the dashboard page with animation
+      shinyjs::show("dashboard_page")
+      shinyjs::addClass("dashboard_page", "show")
+    })
+
+    # ---- control access according to roles ----
+    if (is_admin) {
+      shinyjs::show("admin_sidebar")
+    } else if (user_type == "student") {
+      shinyjs::show("student_sidebar")
+    } else if (user_type == "teacher") {
+      shinyjs::show("teacher_sidebar")
+    } else if (user_type == "developer") {
+      shinyjs::show("developer_sidebar")
+    } else {
+      return()
+    }
+  }
+
 
   # make sqlite connection:
   conn <- DBI::dbConnect(
@@ -40,6 +108,7 @@ server <- function(input, output, session) {
   iv <- InputValidator$new()
   ivs <- InputValidator$new()
   ivt <- InputValidator$new()
+  ivp <- InputValidator$new()
 
   # Initialize reactive values
   rv <- reactiveValues(
@@ -55,12 +124,15 @@ server <- function(input, output, session) {
     message = NULL,
     school_data = dbReadTable(conn, "schools"),
     pdf_data = dbReadTable(conn, "content"),
-    user_data = dbReadTable(conn, "users"),
+    teachers_data = dbReadTable(conn, "teachers"),
+    students_data = dbReadTable(conn, "students"),
+    payments_data = dbReadTable(conn, "payments"),
     idx = NULL,
     status = NULL
   )
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
+  teachers_data <- data.table::as.data.table(rvs$teachers_data)
   # output selected tab
   output$selected_tab <- renderText({
     item <- ifelse(
@@ -87,9 +159,13 @@ server <- function(input, output, session) {
   ivs$add_rule("pdfFile", function(value) {
     if (!is.null(value) && length(value) > 0) {
       pdf_info <- pdftools::pdf_info(value$datapath)
+      pdf_name <- fs::path_ext_remove(basename(value$name))
       pages <- pdf_info$pages
       if (pages > 3) {
-        return("PDF exceeded limit of 3 pages!")
+        return("PDF exceeded limit of 3 pages")
+      }
+      if (nchar(pdf_name) > 20) {
+        return("Shorten the PDF name")
       }
     }
     return(NULL) # Return NULL if validation passes
@@ -112,6 +188,7 @@ server <- function(input, output, session) {
           subtext = rvs$school_data$level
         )
       )
+
       updatePickerInput(
         inputId = "user_school",
         choices = unique(rvs$school_data$school_name),
@@ -169,8 +246,12 @@ server <- function(input, output, session) {
         Input = colDef(name = "Input"),
         Value = colDef(name = "Value")
       ),
-      bordered = TRUE,
-      striped = TRUE
+      borderless = TRUE,
+      bordered = FALSE,
+      striped = FALSE,
+      outlined = TRUE,
+      wrap = FALSE,
+      resizable = TRUE
     )
 
     # Show confirmation dialog with reactable table
@@ -205,7 +286,8 @@ server <- function(input, output, session) {
         learning_area = input$doc_learning_area,
         topic = input$doc_topic,
         sub_topic = input$doc_sub_topic,
-        time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S")
+        time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+        views = 0
       )
 
       success <- add_new_pdf(table_name = "content", data = data)
@@ -253,7 +335,7 @@ server <- function(input, output, session) {
   output$pdf_data <- renderUI({
     # get the school data
     pdf_data <- rvs$pdf_data
-    if (nrow(pdf_data) > 0) {
+    if (nrow(pdf_data) > 0 & length(rv$pdf_paths) > 0) {
       argonTable(
         headTitles = c(
           "ID", "Teacher", "Grade", "Learning Area", "Sub Topic",
@@ -273,8 +355,7 @@ server <- function(input, output, session) {
                   class = "d-flex flex-column justify-content-center px-2",
                   h6(class = "mb-0 text-xs", pdf_data$id[i]),
                   p(
-                    class = "text-truncate w-75
-                  text-xs text-default mb-0",
+                    class = "text-truncate w-75 text-xs text-default mb-0",
                     pdf_data$pdf_name[i]
                   )
                 )
@@ -289,7 +370,10 @@ server <- function(input, output, session) {
             argonTableItem(pdf_data$grade[i]),
             argonTableItem(
               div(
-                h6(class = "text-xs mb-0", pdf_data$learning_area[i]),
+                h6(
+                  class = "text-xs mb-0 text-truncate w-75",
+                  pdf_data$learning_area[i]
+                ),
                 p(class = "text-xs mb-0", pdf_data$topic[i])
               )
             ),
@@ -381,16 +465,19 @@ server <- function(input, output, session) {
   # Render available PDFs
   output$published_pdfs <- renderUI({
     if (nrow(rvs$pdf_data) == 0) {
-      tags$p("No PDFs available")
-    } else {
+      # show empty status div
+      show_empty_state_ui
+      } else {
       shinybusy::show_spinner()
 
-      # Import available content and extract year
-      available_content <- rvs$pdf_data
-      available_content$year <- substr(available_content$time, 1, 4)
+      # Import available student PDFs
+      student_content <- rvs$pdf_data |>
+      filter(grade == signed_user$grade &
+             school_name == signed_user$school_name
+             )
 
-      # Sort years in descending order
-      sorted_years <- sort(unique(available_content$year), decreasing = TRUE)
+      # Find unique teachers
+      student_teachers <- unique(student_content$teacher)
 
       # List all images in the "www/images" directory
       image_files <- list.files(
@@ -400,19 +487,35 @@ server <- function(input, output, session) {
       )
 
       # Create card decks for each year
-      card_decks <- lapply(sorted_years, function(year) {
+      card_decks <- lapply(student_teachers, function(s_teacher) {
         # Filter data for the current year
-        year_data <- filter(available_content, year == !!year)
+        teacher_data <- filter(student_content, teacher == !!s_teacher)
+        teacher_data <- arrange(teacher_data, desc(time))
+
+        # check if user has paid for the year
+        user_paid <- signed_user |>
+          select(paid) |>
+          pull(paid) |>
+          as.character()
+
+        # set payment status
+        pay_status <- ifelse(
+          user_paid == "0",
+          "has-danger",
+          "has-success"
+        )
 
         div(
-          class = "bg-translucent-light has-success heading
-          floating jumbotron",
-          paste("Year", year),
+          class = paste(
+            "bg-translucent-light heading floating jumbotron",
+            pay_status
+          ),
+          paste("Teacher:", s_teacher),
           div(
             class = "d-flex flex-wrap floating",
             # Create cards for each PDF in the current year
-            lapply(1:nrow(year_data), function(i) {
-              pdf_info <- year_data[i, ]
+            lapply(1:nrow(teacher_data), function(i) {
+              pdf_info <- teacher_data[i, ]
               pdf_name_filtered <- fs::path_ext_remove(
                 basename(pdf_info$pdf_name)
               )
@@ -435,7 +538,7 @@ server <- function(input, output, session) {
               # create pdf card
               argonR::argonCard(
                 title = tags$h6(
-                  class = "d-flex text-truncate text-uppercase",
+                  class = "text-truncate w-75",
                   pdf_name_filtered, br(),
                   pdf_info$time
                 ),
@@ -472,23 +575,68 @@ server <- function(input, output, session) {
     }
   })
 
-
-  # Render the current page's image
-  output$pdf_images <- renderImage(
-    {
-      list(
-        src = rv$image_paths[[rv$current_page]],
-        width = "100%",
-        height = "auto",
-        class = "rounded"
-      )
-    },
-    deleteFile = FALSE
-  )
-
   # Observe the selected PDF and trigger the modal button click
   observeEvent(input$trigger_modal, {
+    pdf_name <- fs::path_ext_remove(basename(input$selected_pdf))
+
+    # check if user has paid
+    user_paid <- signed_user |>
+      select(paid) |>
+      pull(paid) |>
+      as.character()
+
+    user_school <- rvs$school_data |>
+      filter(
+        school_name == signed_user$school_name
+      )
+    price <- prettyNum(user_school$price, big.mark = ",")
+    if (user_paid == "0") {
+      return(
+        shinyalert(
+          title = "Subscription expired",
+          text = paste(
+            "Please renew your subscription of KES", price
+              ),
+          type = "",
+          inputId = "pay_alert",
+          imageUrl = "images/mpesa_poster.jpg",
+          imageWidth = 180,
+          session = session,
+          confirmButtonText = "PAY",
+          confirmButtonCol = "#1D2856",
+          callbackR = function() {
+            session$sendCustomMessage(
+              type = "update-tabs",
+              message = "payments"
+            )
+          }
+        )
+      )
+    }
+
+    if (length(rv$image_paths) == 0) {
+      return(
+        alert_fail_ui(
+          info = "PDF unavailable...",
+          session = session
+        )
+      )
+    }
+
     runjs('$("#modal").modal("show");')
+
+    # Render the current page's image
+    output$pdf_images <- renderImage(
+      {
+        list(
+          src = rv$image_paths[[rv$current_page]],
+          width = "100%",
+          height = "auto",
+          class = "rounded"
+        )
+      },
+      deleteFile = FALSE
+    )
   })
 
   # Observe selection change and update image paths
@@ -504,6 +652,7 @@ server <- function(input, output, session) {
       ), "_page_.*\\.png$"),
       full.names = TRUE
     )
+
     rv$image_paths <- image_files
     rv$current_page <- 1
     rv$total_pages <- length(image_files)
@@ -1097,15 +1246,13 @@ server <- function(input, output, session) {
   # add validation rules
   ivt$add_rule("user_name", sv_required())
   ivt$add_rule("user_school", sv_required())
-  ivt$add_rule("user_email", sv_required())
   ivt$add_rule("user_grade", sv_required())
   ivt$add_rule("user_tel_number", sv_required())
-  ivt$add_rule("user_email", sv_email())
   # Add a validation rule for the phone number input
   ivt$add_rule("user_tel_number", function(value) {
     phone_number <- gsub("\\D", "", value) # Remove non-digit characters
     if (nchar(phone_number) != 9) {
-      return("Phone number must be exactly 9 digits long")
+      return("Phone number must be 9 digits")
     }
     return(NULL) # Return NULL if validation passes
   })
@@ -1193,24 +1340,29 @@ server <- function(input, output, session) {
 
     # output table for entered data confirmation
     output$confirm_user_data <- renderUI({
+      # Convert the vector of grades to a single string
+      grades <- paste(input$user_grade, collapse = ", ")
+
       argonTable(
-        title = input$school_name,
+        title = div(
+          class = "text-body",
+          email
+        ),
+        cardWrap = TRUE,
         headTitles = c(
           "NAME",
           "TYPE",
           "SCHOOL",
           "GRADE",
           "PHONE",
-          "EMAIL",
           "STATUS"
         ),
         argonTableItems(
           argonTableItem(stringr::str_to_title(input$user_name)),
           argonTableItem(input$user_type),
           argonTableItem(input$user_school),
-          argonTableItem(input$user_grade),
+          argonTableItem(grades),
           argonTableItem(paste("+254", input$user_tel_number)),
-          argonTableItem(tolower(input$user_email)),
           argonTableItem(
             dataCell = TRUE,
             argonBadge(
@@ -1235,75 +1387,112 @@ server <- function(input, output, session) {
 
   # save user data after confirmation
   observeEvent(input$confirmBtn_1, {
-    # Get the current year
-    current_year <- paste0("Y", format(Sys.Date(), "%Y"))
+    # Get user type
+    type <- input$user_type
 
-    # get the available data
-    available_data <- refresh_table_data(table_name = "users")
+    # Convert the vector of grades to a single string
+    grades <- paste(input$user_grade, collapse = ", ")
 
-    # Identify existing year columns in the existing data
-    year_columns <- colnames(available_data)[grepl(
-      "^Y?\\d{4}$",
-      colnames(available_data)
-    )]
-
-    # Create users data to append
-    user_data <- data.frame(
-      id = next_user_id("users"),
-      user_name = stringr::str_to_title(input$user_name),
-      type = input$user_type,
-      school_name = input$user_school,
-      grade = input$user_grade,
-      phone = input$user_tel_number,
-      email = input$user_email,
-      status = "Enabled",
-      stringsAsFactors = FALSE
+    table_name <- ifelse(
+      type == "Teacher",
+      "teachers",
+      "students"
     )
 
-    # Ensure the current year column is included
-    if (!(current_year %in% year_columns)) {
-      # Assign FALSE to all existing users
-      db_name <- Sys.getenv("DATABASE_NAME")
-      conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
-      on.exit(DBI::dbDisconnect(conn), add = TRUE)
-      dbExecute(conn, paste0(
-        "ALTER TABLE users ADD COLUMN ",
-        current_year, " INTEGER DEFAULT 0"
-      ))
+    # get the available data
+    available_data <- refresh_table_data(
+      table_name = table_name
+    )
 
-      # update years for new user
-      year_columns <- c(year_columns, current_year)
-    }
-
-    # Add FALSE for all year columns in the new user data
-    for (year in year_columns) {
-      user_data[[year]] <- FALSE
+    # Create data to append
+    new_user <- if (type == "Teacher") {
+      data.frame(
+        id = next_user_id(table_name, type),
+        user_name = stringr::str_to_title(input$user_name),
+        school_name = input$user_school,
+        grade = grades,
+        phone = input$user_tel_number,
+        email = email,
+        status = "Enabled",
+        views = 0
+      )
+    } else {
+      data.frame(
+        id = next_user_id(table_name, type),
+        user_name = stringr::str_to_title(input$user_name),
+        school_name = input$user_school,
+        grade = grades,
+        phone = input$user_tel_number,
+        email = email,
+        status = "Enabled",
+        paid = 0
+      )
     }
 
     # Call the register_new_user function
     success <- register_new_user(
-      table_name = "users",
-      data = user_data
+      table_name = table_name,
+      data = new_user
     )
 
     if (success == 1) {
-      alert_success_ui(
-        info = "New user created successfully!",
+      name <- stringr::word(input$user_name, 1)
+      shinyalert(
+        title = paste0(
+          name,
+          ", Welcome to Keytabu"
+        ),
+        type = "",
+        inputId = "roles_alert",
+        imageUrl = "logo/logo.png",
+        imageWidth = 180,
+        session = session,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#1D2856"
+      )
+
+      # Hide the landing page with animation
+      shinyjs::hide("landing_page", anim = TRUE, animType = "fade", time = 0.5)
+      shinyjs::delay(500, {
+        # Show the dashboard page with animation
+        shinyjs::show("dashboard_page")
+        shinyjs::addClass("dashboard_page", "show")
+      })
+
+      # refresh added data
+      rvs$user_data <- refresh_table_data(
+        table_name = table_name
+      )
+      polished::add_user_role(
+        user_uid = user_uuid,
+        role_name = stringr::str_to_lower(type)
+      )
+      # output the signed in user
+      signed_user <- get_signed_user(email, type)
+      user_name <- stringr::word(signed_user$user_name, 1)
+
+      # show the user on profile
+      output$signed_user <- renderText({
+        if (length(user_name) == 0) {
+          return("Uknown")
+        }
+
+        user_name
+      })
+
+      removeModal()
+    } else {
+      alert_fail_ui(
+        info = "Name or email or phone already exists!",
         session = session
       )
-      # refresh added data
-      rvs$user_data <- refresh_table_data(table_name = "users")
-    } else {
-      alert_fail_ui(info = "Name or email or phone already exists!", session = session)
     }
   })
 
   # output table for already exisiting teacher data
   output$teachers_data <- renderUI({
-    # get the school data
-    table_data <- rvs$user_data
-    teachers_data <- table_data |>
-      filter(type == "Teacher")
+    # get the teachers data
+    teachers_data <- rvs$teachers_data
     if (nrow(teachers_data) > 0) {
       argonTable(
         headTitles = c("ID", "School", "Grade", "Type", "Phone", "Status", ""),
@@ -1329,7 +1518,6 @@ server <- function(input, output, session) {
               )
             ),
             argonTableItem(teachers_data$grade[i]),
-            argonTableItem(teachers_data$type[i]),
             argonTableItem(paste("+254", teachers_data$phone[i])),
             argonTableItem(
               dataCell = TRUE,
@@ -1394,13 +1582,11 @@ server <- function(input, output, session) {
 
   # output table for already exisiting students data
   output$students_data <- renderUI({
-    # get the school data
-    table_data <- rvs$user_data
-    students_data <- table_data |>
-      filter(type == "Student")
+    # get the student data
+    students_data <- rvs$students_data
     if (nrow(students_data) > 0) {
       argonTable(
-        headTitles = c("ID", "School", "Grade", "Type", "Phone", "Status", ""),
+        headTitles = c("ID", "School", "Grade", "Phone", "Status", ""),
         lapply(1:nrow(students_data), function(i) {
           argonTableItems(
             argonTableItem(
@@ -1423,7 +1609,6 @@ server <- function(input, output, session) {
               )
             ),
             argonTableItem(students_data$grade[i]),
-            argonTableItem(students_data$type[i]),
             argonTableItem(paste("+254", students_data$phone[i])),
             argonTableItem(
               dataCell = TRUE,
@@ -1451,7 +1636,7 @@ server <- function(input, output, session) {
                 ),
                 div(
                   class = "pt-2",
-                  h5(table_data$school_name[i]),
+                  h5(students_data$school_name[i]),
                   div(
                     class = "mb--4",
                     onclick = sprintf("Shiny.setInputValue('status_button',
@@ -1489,9 +1674,8 @@ server <- function(input, output, session) {
   # update teachers depending on selected school
   observeEvent(input$doc_school, {
     name <- input$doc_school
-    user_data <- data.table::as.data.table(rvs$user_data)
-    choices <- user_data[
-      school_name == name & type == "Teacher",
+    choices <- teachers_data[
+      school_name == name,
       .(user_name, grade)
     ]
     updatePickerInput(
@@ -1502,6 +1686,196 @@ server <- function(input, output, session) {
         subtext = unique(choices$grade)
       )
     )
+  })
+
+  # update a teacher grades
+  observeEvent(input$doc_teacher, {
+    req(input$doc_teacher != "")
+
+    name <- input$doc_teacher
+    choices <- teachers_data[
+      user_name == name,
+      .(grade)
+    ]
+    grade <- strsplit(choices$grade, ", ")[[1]] |>
+    as.numeric()
+
+    updatePickerInput(
+      session = session,
+      inputId = "doc_grade",
+      choices = setNames(grade, paste("Grade", grade)),
+    )
+  })
+
+  # monitor network connectivity
+  observeEvent(input$network_status, {
+    if (input$network_status == "offline") {
+      alert_warn_ui(
+        info = "Oops! You are disconnected...",
+        session = session,
+        timer = 0
+      )
+    } else {
+      alert_success_ui(
+        info = "You are now connected...",
+        session = session,
+        timer = 0
+      )
+    }
+  })
+
+
+  # show user payments status
+  output$payments_data <- renderUI({
+    # get the payments data
+    payments_data <- rvs$payments_data |>
+      filter(
+        user_email == email
+      )
+    if (nrow(payments_data) > 0) {
+      argonTable(
+        headTitles = c(
+          "Transaction Code", "Amount", "Number",
+          "Time", "Year", "Status"
+        ),
+        lapply(1:nrow(payments_data), function(i) {
+          argonTableItems(
+            argonTableItem(stringr::str_to_upper(payments_data$code[i])),
+            argonTableItem(payments_data$amount[i]),
+            argonTableItem(payments_data$number[i]),
+            argonTableItem(payments_data$time[i]),
+            argonTableItem(payments_data$year[i]),
+            argonTableItem(
+              dataCell = TRUE,
+              argonBadge(
+                text = payments_data$status[i],
+                status = ifelse(
+                  payments_data$status[i] == "Approved", "success",
+                  "danger"
+                )
+              )
+            )
+          )
+        })
+      )
+    } else {
+      # show empty status div
+      show_empty_state_ui
+    }
+  })
+
+  # create validations
+  ivp$add_rule("transaction_code", sv_required())
+  ivp$add_rule("tel_number", sv_required())
+  ivp$add_rule("amount", sv_required())
+  ivp$add_rule("payment_time", sv_required())
+
+  # add rule on mobile number
+  ivp$add_rule("tel_number", function(value) {
+    phone_number <- gsub("\\D", "", value) # Remove non-digit characters
+    if (nchar(phone_number) != 9) {
+      return("Phone number must be 9 digits")
+    }
+    return(NULL) # Return NULL if validation passes
+  })
+  ivp$add_rule("transaction_code", function(value) {
+    # Check if the length
+    if (!grepl("^[A-Za-z0-9]{10}$", value)) {
+      return("Transaction code must be 10 characters")
+    }
+    return(NULL) # Return NULL if validation passes
+  })
+
+  observeEvent(input$create_ticket, {
+    ivp$enable() # enable validation check
+    req(ivp$is_valid()) # ensure checks are valid
+
+    # Create a reactable table with the input values
+    table_html <- reactable(
+      data.frame(
+        Input = c("Transaction Code", "Amount", "Number", "Time"),
+        Value = c(
+          stringr::str_to_upper(input$transaction_code),
+          input$amount,
+          input$tel_number,
+          format(
+            lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
+          )
+        )
+      ),
+      columns = list(
+        Input = colDef(name = "Input"),
+        Value = colDef(name = "Value")
+      ),
+      borderless = TRUE,
+      bordered = FALSE,
+      striped = FALSE,
+      outlined = TRUE,
+      wrap = FALSE,
+      resizable = TRUE
+    )
+
+    # Show confirmation dialog with reactable table
+    ask_confirmation(
+      session = session,
+      inputId = "confirm_ticket_details",
+      title = NULL,
+      text = tags$div(
+        table_html
+      ),
+      btn_labels = c("Cancel", "Yes"),
+      html = TRUE
+    )
+  })
+
+
+  # Observe ticket confirmation
+  observeEvent(input$confirm_ticket_details, {
+    shinybusy::show_spinner()
+    shinyjs::disable("create_ticket")
+    # if has confirmed details
+    if (input$confirm_ticket_details) {
+      # Create data to append
+      payment_data <- data.frame(
+        user_email = email,
+        code = input$transaction_code,
+        amount = input$amount,
+        number = input$tel_number,
+        time = format(
+          lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
+        ),
+        status = "Pending",
+        stringsAsFactors = FALSE
+      )
+
+      # Call the register_new_school function
+      success <- create_payment_ticket(
+        table_name = "payments",
+        data = payment_data
+      )
+
+      if (success == 1) {
+        alert_success_ui(
+          info = "Payment ticket created successfully!",
+          session = session
+        )
+        # refresh added data
+        rvs$payments_data <- refresh_table_data(
+          table_name = "payments"
+        )
+      } else {
+        alert_fail_ui(
+          info = "Ticket already existing...", session = session
+        )
+      }
+    } else {
+      # if has declined to confirm
+      alert_warn_ui(
+        info = "Details not confirmed...",
+        session = session
+      )
+    }
+    shinyjs::enable("create_ticket")
   })
 
   # Actions for logout button
