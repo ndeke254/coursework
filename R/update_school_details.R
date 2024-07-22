@@ -17,7 +17,12 @@ update_school_details <- function(school_id, new_values) {
   on.exit(dbDisconnect(conn), add = TRUE)
   
   # Build the SET part of the query
-  set_clause <- paste0(names(new_values), " = :", names(new_values), collapse = ", ")
+  set_clause <- paste0(
+    names(new_values), 
+    " = :",
+     names(new_values), 
+     collapse = ", "
+     )
   
   # Build the full query
   query <- paste0("UPDATE schools SET ", set_clause, " WHERE id = :id")
@@ -25,7 +30,7 @@ update_school_details <- function(school_id, new_values) {
   # Add the school ID to the parameters
   params <- new_values
   params$id <- school_id
-  print(params)
+
   # Update the school details in the database
   dbExecute(conn, query, params = params)
 }
