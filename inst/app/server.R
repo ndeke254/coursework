@@ -42,6 +42,23 @@ server <- function(input, output, session) {
     user_name
   })
 
+  # output dashboard
+  output$role <- renderText(str_to_upper(user_role))
+  output$full_name <- renderText(signed_user$user_name)
+  output$email <- renderText(email)
+  output$school <- renderText(signed_user$school_name)
+  output$id <- renderText(signed_user$id)
+
+  output$paid_badge <- renderUI({
+    paid <- signed_user$paid
+    text <- ifelse(paid == 0, "UNPAID", "PAID")
+    status <- ifelse(paid == 0, "danger", "success")
+    argonBadge(
+      text = text,
+      status = status
+    )
+  })
+
   # control access according to status
   if (nrow(signed_user) > 0) {
     if (user_status == "Disabled") {
@@ -77,7 +94,7 @@ server <- function(input, output, session) {
     !is.na(user_type)) {
     # Hide the landing page with animation
     shinyjs::hide("landing_page", anim = TRUE, animType = "fade", time = 0.5)
-    shinyjs::delay(500, {
+    shinyjs::delay(200, {
       # Show the dashboard page with animation
       shinyjs::show("dashboard_page")
       shinyjs::addClass("dashboard_page", "show")
@@ -462,117 +479,149 @@ server <- function(input, output, session) {
   # return(paste("Ksh. ", price))
   # })
 
-  # Render available PDFs
-  output$published_pdfs <- renderUI({
-    if (nrow(rvs$pdf_data) == 0) {
-      # show empty status div
-      show_empty_state_ui
-      } else {
-      shinybusy::show_spinner()
+  observe({
+    req(nrow(signed_user) > 0)
 
-      # Import available student PDFs
-      student_content <- rvs$pdf_data |>
+    # Sample data frame for example
+    student_content <- rvs$pdf_data |>
       filter(grade == signed_user$grade &
-             school_name == signed_user$school_name
-             )
+        school_name == signed_user$school_name)
 
-      # Find unique teachers
-      student_teachers <- unique(student_content$teacher)
+      # Reactive values to store filtered data
+      rvts <- reactiveValues(data = student_content)
 
-      # List all images in the "www/images" directory
-      image_files <- list.files(
-        path = "www/images",
-        pattern = "_page_1\\.png$",
-        full.names = TRUE
+      # Function to update filtered data based on picker inputs
+      update_filtered_data <- function() {
+        filtered_data <- rvts$data
+
+        # List of columns to filter
+        columns <- c("teacher", "learning_area", "topic", "sub_topic")
+
+        for (col in columns) {
+          selected_values <- input[[paste0("filter_", col)]]
+
+          if (!is.null(selected_values) && length(selected_values) > 0) {
+            filtered_data <- filtered_data %>% filter(get(col) %in% selected_values)
+          }
+        }
+
+        return(filtered_data)
+      }
+
+    # Update filters
+    updatePickerInput(
+      session = session,
+      inputId = "filter_teacher",
+      choices = unique(student_content$teacher)
       )
+      updatePickerInput(
+      session = session,
+      inputId = "filter_learning_area",
+      choices = unique(student_content$learning_area)
+    )
+    updatePickerInput(
+      session = session,
+      inputId = "filter_topic",
+      choices = unique(student_content$topic)
+    )
+    updatePickerInput(
+      session = session,
+      inputId = "filter_sub_topic",
+      choices = unique(student_content$sub_topic)
+    )
 
-      # Create card decks for each year
-      card_decks <- lapply(student_teachers, function(s_teacher) {
-        # Filter data for the current year
-        teacher_data <- filter(student_content, teacher == !!s_teacher)
-        teacher_data <- arrange(teacher_data, desc(time))
+    filtered_data <- update_filtered_data()
 
-        # check if user has paid for the year
-        user_paid <- signed_user |>
-          select(paid) |>
-          pull(paid) |>
-          as.character()
+    # List all images in the "www/images" directory
+    image_files <- list.files(
+      path = "www/images",
+      pattern = "_page_1\\.png$",
+      full.names = TRUE
+    )
 
-        # set payment status
-        pay_status <- ifelse(
-          user_paid == "0",
-          "has-danger",
-          "has-success"
-        )
+    # Render available PDFs
+    output$published_pdfs <- renderUI({
+      if (nrow(filtered_data) == 0) {
+        # Show empty state if no data is available
+        show_empty_state_ui
+      } else {
+        shinybusy::show_spinner()
 
-        div(
-          class = paste(
-            "bg-translucent-light heading floating jumbotron",
-            pay_status
-          ),
-          paste("Teacher:", s_teacher),
+        student_content <- filtered_data
+
+        # Find unique teachers for filter updates
+        student_teachers <- unique(student_content$teacher)
+
+        # Create card decks for each teacher
+        card_decks <- lapply(student_teachers, function(s_teacher) {
+          # Filter data for the current teacher
+          teacher_data <- filter(student_content, teacher == !!s_teacher)
+          teacher_data <- arrange(teacher_data, desc(time))
+
+          # Create cards for each PDF in the current teacher's data
           div(
-            class = "d-flex flex-wrap floating",
-            # Create cards for each PDF in the current year
-            lapply(1:nrow(teacher_data), function(i) {
-              pdf_info <- teacher_data[i, ]
-              pdf_name_filtered <- fs::path_ext_remove(
-                basename(pdf_info$pdf_name)
-              )
-              # get the cover images
-              cover_image <- image_files[
-                grepl(
-                  paste0(
-                    "^www/images/",
-                    pdf_name_filtered,
-                    "_page_1\\.png$"
-                  ), image_files
+            class = "bg-translucent-light heading floating jumbotron",
+            paste("Teacher:", s_teacher),
+            div(
+              class = "d-flex flex-wrap floating",
+              lapply(1:nrow(teacher_data), function(i) {
+                pdf_info <- teacher_data[i, ]
+                pdf_name_filtered <- fs::path_ext_remove(
+                  basename(pdf_info$pdf_name)
                 )
-              ]
+                cover_image <- image_files[
+                  grepl(
+                    paste0(
+                      "^www/images/",
+                      pdf_name_filtered,
+                      "_page_1\\.png$"
+                    ), image_files
+                  )
+                ]
 
-              cover_image <- ifelse(
-                length(cover_image) > 0, sub("^www/", "", cover_image[1]),
-                "images/default_cover.png"
-              )
+                cover_image <- ifelse(
+                  length(cover_image) > 0, sub("^www/", "", cover_image[1]),
+                  "images/default_cover.png"
+                )
 
-              # create pdf card
-              argonR::argonCard(
-                title = tags$h6(
-                  class = "text-truncate w-75",
-                  pdf_name_filtered, br(),
-                  pdf_info$time
-                ),
-                hover_lift = TRUE,
-                shadow = TRUE,
-                border_level = 5,
-                icon = icon("file-pdf"),
-                status = "primary",
-                width = 2,
-                argonBadge(
-                  text = pdf_info$topic,
-                  status = "default"
-                ),
-                div(
-                  id = paste("card", i),
-                  class = "d-flex justify-content-center",
-                  onclick = sprintf(
-                    "Shiny.setInputValue('selected_pdf', '%s');
-                      Shiny.setInputValue('trigger_modal', Math.random());",
-                    pdf_info$pdf_name
+                argonR::argonCard(
+                  title = tags$h6(
+                    class = "text-truncate w-75",
+                    pdf_name_filtered, br(),
+                    pdf_info$time
                   ),
-                  argonR::argonImage(
-                    src = cover_image
+                  hover_lift = TRUE,
+                  shadow = TRUE,
+                  border_level = 5,
+                  icon = icon("file-pdf"),
+                  status = "primary",
+                  width = 2,
+                  argonBadge(
+                    text = pdf_info$topic,
+                    status = "default"
+                  ),
+                  div(
+                    id = paste("card", i),
+                    class = "d-flex justify-content-center",
+                    onclick = sprintf(
+                      "Shiny.setInputValue('selected_pdf', '%s');
+                      Shiny.setInputValue('trigger_modal', Math.random());",
+                      pdf_info$pdf_name
+                    ),
+                    argonR::argonImage(
+                      src = cover_image
+                    )
                   )
                 )
-              )
-            })
+              })
+            )
           )
-        )
-      })
+        })
 
-      # Wrap all card decks in a tagList
-      do.call(tagList, card_decks)
-    }
+        # Wrap all card decks in a tagList
+        do.call(tagList, card_decks)
+      }
+    })
   })
 
   # Observe the selected PDF and trigger the modal button click
@@ -596,7 +645,7 @@ server <- function(input, output, session) {
           title = "Subscription expired",
           text = paste(
             "Please renew your subscription of KES", price
-              ),
+          ),
           type = "",
           inputId = "pay_alert",
           imageUrl = "images/mpesa_poster.jpg",
@@ -711,6 +760,9 @@ server <- function(input, output, session) {
 
   # Observe first and last pages
   observe({
+    req(!is.null(rv$current_page))
+    req(!is.null(rv$total_pages))
+
     if (rv$current_page == rv$total_pages) {
       shinyjs::hide("next_btn")
       shinyjs::show("prev_btn")
@@ -1448,16 +1500,18 @@ server <- function(input, output, session) {
         imageWidth = 180,
         session = session,
         confirmButtonText = "OK",
-        confirmButtonCol = "#1D2856"
+        confirmButtonCol = "#1D2856",
+        callbackR = function() {
+          session$reload()
+           # Hide the landing page with animation
+           shinyjs::hide("landing_page", anim = TRUE, animType = "fade", time = 0.5)
+           shinyjs::delay(200, {
+             # Show the dashboard page with animation
+             shinyjs::show("dashboard_page")
+             shinyjs::addClass("dashboard_page", "show")
+           })
+        }
       )
-
-      # Hide the landing page with animation
-      shinyjs::hide("landing_page", anim = TRUE, animType = "fade", time = 0.5)
-      shinyjs::delay(500, {
-        # Show the dashboard page with animation
-        shinyjs::show("dashboard_page")
-        shinyjs::addClass("dashboard_page", "show")
-      })
 
       # refresh added data
       rvs$user_data <- refresh_table_data(
@@ -1698,7 +1752,7 @@ server <- function(input, output, session) {
       .(grade)
     ]
     grade <- strsplit(choices$grade, ", ")[[1]] |>
-    as.numeric()
+      as.numeric()
 
     updatePickerInput(
       session = session,
@@ -1724,6 +1778,42 @@ server <- function(input, output, session) {
     }
   })
 
+  output$paid_tickets <- renderUI({
+    # get the payments data
+    payments_data <- rvs$payments_data
+
+    if (nrow(payments_data) > 0) {
+      argonTable(
+        cardWrap = TRUE,
+        headTitles = c(
+          "Transaction Code", "Amount", "Number",
+          "Time", "TERM", "Status", "Actions"
+        ),
+        lapply(1:nrow(payments_data), function(i) {
+          argonTableItems(
+            argonTableItem(stringr::str_to_upper(payments_data$code[i])),
+            argonTableItem(payments_data$amount[i]),
+            argonTableItem(payments_data$number[i]),
+            argonTableItem(payments_data$time[i]),
+            argonTableItem(payments_data$year[i]),
+            argonTableItem(
+              dataCell = TRUE,
+              argonBadge(
+                text = payments_data$status[i],
+                status = ifelse(
+                  payments_data$status[i] == "Approved", "success",
+                  "danger"
+                )
+              )
+            )
+          )
+        })
+      )
+    } else {
+      # show empty status div
+      show_empty_state_ui
+    }
+  })
 
   # show user payments status
   output$payments_data <- renderUI({
@@ -1736,7 +1826,7 @@ server <- function(input, output, session) {
       argonTable(
         headTitles = c(
           "Transaction Code", "Amount", "Number",
-          "Time", "Year", "Status"
+          "Time", "TERM", "Status"
         ),
         lapply(1:nrow(payments_data), function(i) {
           argonTableItems(

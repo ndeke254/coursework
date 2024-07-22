@@ -59,7 +59,7 @@ admin_upload_page <- div(
                   style = "btn-outline-light",
                   size = 5
                 ),
-                choices = kenyan_counties
+                choices = NULL
               )
             ),
             argonColumn(
