@@ -1,4 +1,6 @@
 student_content_tab <- div(
+  student_content_filters,
+        tableOutput("filtered_table"),
   uiOutput("published_pdfs"),
   argonR::argonModal(
     width = 12,
