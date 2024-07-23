@@ -10,6 +10,7 @@ library(shinyjs)
 library(shinyWidgets)
 library(RSQLite)
 library(shinyvalidate)
+library(plyr)
 library(dplyr)
 library(reactable)
 library(prodlim)
@@ -18,6 +19,7 @@ library(polished)
 library(lubridate)
 library(shinyalert)
 library(polished)
+library(stringr)
 
 # counties in Kenya
 # used as a choices input in school registration tab

@@ -97,6 +97,11 @@ ui <- argonPage(
                   "Upload",
                   tabName = "upload",
                   icon = argonIcon("cloud-upload-96", color = "body")
+                ),
+                argonSidebarItem(
+                  "Payments",
+                  tabName = "admin_payments",
+                  icon = icon("sack-dollar")
                 )
               )
             )
@@ -110,16 +115,6 @@ ui <- argonPage(
                 title = "STUDENT"
               ),
               argonSidebarMenu(
-                argonSidebarItem(
-                  "Subscriptions",
-                  tabName = "subscriptions",
-                  icon = argonIcon("books", color = "body")
-                ),
-                argonSidebarItem(
-                  "Cart",
-                  tabName = "cart",
-                  icon = argonIcon("cart", color = "body")
-                ),
                 argonSidebarItem(
                   "Content",
                   tabName = "content",
@@ -184,7 +179,7 @@ ui <- argonPage(
           argonTabItems(
             argonTabItem(
               tabName = "dashboard",
-              "Dashboard Here"
+              dashboard_user_content
             ),
             argonTabItem(
               tabName = "registration",
@@ -198,6 +193,18 @@ ui <- argonPage(
             argonTabItem(
               tabName = "content",
               student_content_tab
+            ),
+            argonTabItem(
+              tabName = "admin_payments",
+              argonR::argonCard(
+                title = "Create a payment ticket",
+                shadow = TRUE,
+                border_level = 5,
+                icon = icon("credit-card"),
+                status = "default",
+                width = 12,
+                uiOutput("paid_tickets")
+              )
             ),
             argonTabItem(
               tabName = "payments",
@@ -288,4 +295,4 @@ ui <- argonPage(
   )
 )
 
-secure_ui(ui)
+secure_ui(ui, custom_sign_in_page)
