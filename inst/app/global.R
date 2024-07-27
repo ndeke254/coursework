@@ -1,6 +1,7 @@
 library(coursework)
 library(shiny)
 library(pdftools)
+library(htmltools)
 library(magick)
 library(shinyjs)
 library(argonDash)
@@ -19,6 +20,7 @@ library(polished)
 library(lubridate)
 library(shinyalert)
 library(polished)
+library(frbs)
 library(stringr)
 
 # counties in Kenya
@@ -77,17 +79,26 @@ junior_secondary <- c(
 )
 
 
-# Retrieve polished credentials
+# Retrieve credentials
 app_name <- Sys.getenv("POLISHED_APP_NAME")
 api_key <- Sys.getenv("POLISHED_API_KEY")
- 
-# configure polished auth when the app initially starts up.
- polished_config(
-   app_name = app_name,
-   api_key = api_key,
-   is_invite_required = FALSE
- )
+apiKey <- Sys.getenv("apiKey")
+projectId <- Sys.getenv("projectId")
+appId <- Sys.getenv("appId")
+
+# configure polished auth
+polished_config(
+  app_name = app_name,
+  api_key = api_key,
+  is_invite_required = FALSE
+)
+
+# configure firebase auth
+firebase::firebase_config(
+  api_key = apiKey,
+  project_id = projectId,
+  app_id = appId
+  )
 
 # Set App api_key
- set_api_key(api_key = api_key)
-
+set_api_key(api_key = api_key)

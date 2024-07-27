@@ -105,6 +105,13 @@ server <- function(input, output, session) {
       shinyjs::show("admin_sidebar")
     } else if (user_type == "student") {
       shinyjs::show("student_sidebar")
+      session$sendCustomMessage(
+        type = "update-tabs",
+        message = "content"
+      )
+      output$selected_tab <- renderText({
+        "CONTENT"
+      })
     } else if (user_type == "teacher") {
       shinyjs::show("teacher_sidebar")
     } else if (user_type == "developer") {
@@ -483,79 +490,60 @@ server <- function(input, output, session) {
     req(nrow(signed_user) > 0)
 
     # Sample data frame for example
-    student_content <- rvs$pdf_data |>
-      filter(grade == signed_user$grade &
-        school_name == signed_user$school_name)
+    student_content <- rvs$pdf_data %>%
+      filter(grade == signed_user$grade & school_name == signed_user$school_name)
 
-      # Reactive values to store filtered data
-      rvts <- reactiveValues(data = student_content)
+    # Reactive expression to store filtered data
+    filtered_data <- reactive({
+      data <- student_content
 
-      # Function to update filtered data based on picker inputs
-      update_filtered_data <- function() {
-        filtered_data <- rvts$data
+      # List of columns to filter
+      columns <- c("teacher", "learning_area", "topic", "sub_topic")
 
-        # List of columns to filter
-        columns <- c("teacher", "learning_area", "topic", "sub_topic")
+      for (col in columns) {
+        selected_values <- input[[paste0("filter_", col)]]
 
-        for (col in columns) {
-          selected_values <- input[[paste0("filter_", col)]]
-
-          if (!is.null(selected_values) && length(selected_values) > 0) {
-            filtered_data <- filtered_data %>% filter(get(col) %in% selected_values)
-          }
+        if (!is.null(selected_values) && length(selected_values) > 0) {
+          data <- data %>% filter(get(col) %in% selected_values)
         }
-
-        return(filtered_data)
       }
 
-    # Update filters
-    updatePickerInput(
-      session = session,
-      inputId = "filter_teacher",
-      choices = unique(student_content$teacher)
-      )
-      updatePickerInput(
-      session = session,
-      inputId = "filter_learning_area",
-      choices = unique(student_content$learning_area)
-    )
-    updatePickerInput(
-      session = session,
-      inputId = "filter_topic",
-      choices = unique(student_content$topic)
-    )
-    updatePickerInput(
-      session = session,
-      inputId = "filter_sub_topic",
-      choices = unique(student_content$sub_topic)
-    )
+      data
+    })
 
-    filtered_data <- update_filtered_data()
+    # Update filter choices
+    observe({
+      updatePickerInput(session, "filter_teacher", choices = unique(student_content$teacher))
+    })
+    observe({
+      updatePickerInput(session, "filter_learning_area", choices = unique(student_content$learning_area))
+    })
+    observe({
+      updatePickerInput(session, "filter_topic", choices = unique(student_content$topic))
+    })
+    observe({
+      updatePickerInput(session, "filter_sub_topic", choices = unique(student_content$sub_topic))
+    })
 
     # List all images in the "www/images" directory
-    image_files <- list.files(
-      path = "www/images",
-      pattern = "_page_1\\.png$",
-      full.names = TRUE
-    )
+    image_files <- list.files(path = "www/images", pattern = "_page_1\\.png$", full.names = TRUE)
 
     # Render available PDFs
     output$published_pdfs <- renderUI({
-      if (nrow(filtered_data) == 0) {
+      data <- filtered_data()
+      if (nrow(data) == 0) {
         # Show empty state if no data is available
         show_empty_state_ui
       } else {
         shinybusy::show_spinner()
 
-        student_content <- filtered_data
-
         # Find unique teachers for filter updates
-        student_teachers <- unique(student_content$teacher)
+        student_teachers <- unique(data$teacher)
 
         # Create card decks for each teacher
         card_decks <- lapply(student_teachers, function(s_teacher) {
           # Filter data for the current teacher
-          teacher_data <- filter(student_content, teacher == !!s_teacher)
+          teacher_data <- filter(data, teacher == !!s_teacher)
           teacher_data <- arrange(teacher_data, desc(time))
 
           # Create cards for each PDF in the current teacher's data
@@ -566,51 +554,28 @@ server <- function(input, output, session) {
               class = "d-flex flex-wrap floating",
               lapply(1:nrow(teacher_data), function(i) {
                 pdf_info <- teacher_data[i, ]
-                pdf_name_filtered <- fs::path_ext_remove(
-                  basename(pdf_info$pdf_name)
-                )
-                cover_image <- image_files[
-                  grepl(
-                    paste0(
-                      "^www/images/",
-                      pdf_name_filtered,
-                      "_page_1\\.png$"
-                    ), image_files
-                  )
-                ]
+                pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name))
+                cover_image <- image_files[grepl(paste0("^www/images/", pdf_name_filtered, "_page_1\\.png$"), image_files)]
 
-                cover_image <- ifelse(
-                  length(cover_image) > 0, sub("^www/", "", cover_image[1]),
-                  "images/default_cover.png"
-                )
+                cover_image <- ifelse(length(cover_image) > 0, sub("^www/", "", cover_image[1]), "logo/default_cover.png")
 
                 argonR::argonCard(
-                  title = tags$h6(
-                    class = "text-truncate w-75",
-                    pdf_name_filtered, br(),
-                    pdf_info$time
-                  ),
+                  title = tags$h6(class = "text-truncate w-75", pdf_name_filtered, br(), pdf_info$time),
                   hover_lift = TRUE,
                   shadow = TRUE,
                   border_level = 5,
                   icon = icon("file-pdf"),
                   status = "primary",
                   width = 2,
-                  argonBadge(
-                    text = pdf_info$topic,
-                    status = "default"
-                  ),
+                  argonBadge(text = pdf_info$topic, status = "default"),
                   div(
                     id = paste("card", i),
                     class = "d-flex justify-content-center",
                     onclick = sprintf(
-                      "Shiny.setInputValue('selected_pdf', '%s');
-                      Shiny.setInputValue('trigger_modal', Math.random());",
+                      "Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());",
                       pdf_info$pdf_name
                     ),
-                    argonR::argonImage(
-                      src = cover_image
-                    )
+                    argonR::argonImage(src = cover_image)
                   )
                 )
               })
@@ -623,6 +588,7 @@ server <- function(input, output, session) {
       }
     })
   })
+
 
   # Observe the selected PDF and trigger the modal button click
   observeEvent(input$trigger_modal, {
@@ -648,7 +614,7 @@ server <- function(input, output, session) {
           ),
           type = "",
           inputId = "pay_alert",
-          imageUrl = "images/mpesa_poster.jpg",
+          imageUrl = "logo/mpesa_poster.jpg",
           imageWidth = 180,
           session = session,
           confirmButtonText = "PAY",

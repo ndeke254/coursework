@@ -53,15 +53,5 @@ student_content_filters <- argonRow(
             ),
             choices = NULL
         )
-    ),
-    argonColumn(
-        width = 3,
-        class = "mt-4",
-        actionButton(
-         inputId = "search_filters",
-         label = "",
-         size = "lg",
-         icon = icon("search")
-        )
     )
 )
