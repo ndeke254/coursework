@@ -38,6 +38,15 @@ ui <- argonPage(
       class = "fade-in"
     )
   ),
+  
+  # ---- Login page ----
+  shinyjs::hidden(
+    div(
+      id = "login_page",
+      class = "fade_in",
+      "here"
+    )
+  ),
 
   # ---- Dashboard Page ----
   shinyjs::hidden(
@@ -100,7 +109,7 @@ ui <- argonPage(
                 ),
                 argonSidebarItem(
                   "Payments",
-                  tabName = "admin_payments",
+                  tabName = "approvals",
                   icon = icon("sack-dollar")
                 )
               )
@@ -179,6 +188,7 @@ ui <- argonPage(
           argonTabItems(
             argonTabItem(
               tabName = "dashboard",
+                        
               dashboard_user_content
             ),
             argonTabItem(
@@ -195,7 +205,7 @@ ui <- argonPage(
               student_content_tab
             ),
             argonTabItem(
-              tabName = "admin_payments",
+              tabName = "approvals",
               argonR::argonCard(
                 title = "Create a payment ticket",
                 shadow = TRUE,
