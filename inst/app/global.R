@@ -22,6 +22,8 @@ library(shinyalert)
 library(polished)
 library(frbs)
 library(stringr)
+library(magrittr)
+
 
 # counties in Kenya
 # used as a choices input in school registration tab
@@ -85,6 +87,9 @@ api_key <- Sys.getenv("POLISHED_API_KEY")
 apiKey <- Sys.getenv("apiKey")
 projectId <- Sys.getenv("projectId")
 appId <- Sys.getenv("appId")
+authDomain <- Sys.getenv("authDomain")
+storageBucket <- Sys.getenv("storageBucket")
+
 
 # configure polished auth
 polished_config(
@@ -94,11 +99,29 @@ polished_config(
 )
 
 # configure firebase auth
-firebase::firebase_config(
-  api_key = apiKey,
-  project_id = projectId,
-  app_id = appId
-  )
+# firebase::firebase_config(
+# api_key = apiKey,
+# project_id = projectId,
+# app_id = appId
+# )
 
 # Set App api_key
 set_api_key(api_key = api_key)
+
+
+# website text
+tabText1 <- "Raw denim you probably haven't heard of them jean shorts Austin.
+            Nesciunt tofu stumptown aliqua, retro synth master cleanse. Mustache
+cliche tempor, williamsburg carles vegan helvetica. Reprehenderit
+butcher retro keffiyeh dreamcatcher synth. Raw denim you probably
+haven't heard of them jean shorts Austin. Nesciunt tofu stumptown
+aliqua, retro synth master cleanse"
+
+tabText2 <- "Cosby sweater eu banh mi, qui irure terry richardson ex squid.
+Aliquip placeat salvia cillum iphone. Seitan aliquip quis cardigan
+american apparel, butcher voluptate nisi qui."
+
+tabText3 <- "Raw denim you probably haven't heard of them jean shorts Austin.
+Nesciunt tofu stumptown aliqua, retro synth master cleanse.
+Mustache cliche tempor, williamsburg carles vegan helvetica.
+Reprehenderit butcher retro keffiyeh dreamcatcher synth"
