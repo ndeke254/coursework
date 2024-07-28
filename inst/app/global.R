@@ -24,7 +24,6 @@ library(frbs)
 library(stringr)
 library(magrittr)
 
-
 # counties in Kenya
 # used as a choices input in school registration tab
 kenyan_counties <- c(
