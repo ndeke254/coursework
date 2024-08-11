@@ -2,5 +2,7 @@
 #'
 #' @noRd
 dashboard_sidebar <- function() {
-  bs4Dash::bs4DashSidebar()
+  bs4Dash::bs4DashSidebar(
+    disable = TRUE
+  )
 }
