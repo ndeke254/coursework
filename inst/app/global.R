@@ -87,7 +87,6 @@ authDomain <- Sys.getenv("authDomain")
 storageBucket <- Sys.getenv("storageBucket")
 app_uid <- Sys.getenv("POLISHED_UID")
 
-
 # configure polished auth
 polished_config(
   app_name = app_name,
