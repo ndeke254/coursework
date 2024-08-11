@@ -20,6 +20,7 @@ library(polished)
 library(frbs)
 library(stringr)
 library(magrittr)
+library(coursework)
 
 # counties in Kenya
 # used as a choices input in school registration tab
@@ -86,7 +87,6 @@ appId <- Sys.getenv("appId")
 authDomain <- Sys.getenv("authDomain")
 storageBucket <- Sys.getenv("storageBucket")
 app_uid <- Sys.getenv("POLISHED_UID")
-
 
 # configure polished auth
 polished_config(

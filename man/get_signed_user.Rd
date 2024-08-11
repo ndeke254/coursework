@@ -15,6 +15,8 @@ get_signed_user(user_email, user_type)
 Get the signed in user
 }
 \examples{
+\dontrun {
 email <- "useremail@gmail.com"
 get_signed_user(user_email = "useremail@gmail.com", user_type = "student")
+}
 }

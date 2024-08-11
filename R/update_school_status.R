@@ -6,7 +6,6 @@
 #'
 #' @import DBI
 #' @export
-#'
 update_school_status <- \(user_id, new_status) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")

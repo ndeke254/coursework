@@ -4,7 +4,6 @@
 #' # Example of refreshing table data (commented out due to missing file)
 #' # refresh_table_data(reactive_data = rv$school_data, table_name = "schools")
 #' @export
-
 refresh_table_data <- function(table_name) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
