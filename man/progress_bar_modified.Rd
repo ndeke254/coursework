@@ -20,3 +20,7 @@ include 100\% in the progessBar
 origin function from ArgonR has excluded 0\% and 100\%
 I want a full bar on last page
 }
+\examples{
+progress_bar_modified(text = page_text, value = progress_value,
+status = "gradient-gray")
+}

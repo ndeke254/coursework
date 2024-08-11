@@ -140,6 +140,11 @@ header.header-global {
   border: var(--secondary);
 }
 
+.btn:hover {
+  background-color: var(--secondary);
+  border: 0;
+}
+
 .progress.shiny-file-input-progress {
   height: 15px;
 }
@@ -222,6 +227,15 @@ body {
 
 }
 
+.selectize-input {
+  min-height: 40px;
+}
+
+a#auth-reset_password {
+  background-color: transparent;
+  color: #5e72e4;
+}
+
 .fa,
 .far,
 .ni,
@@ -261,22 +275,34 @@ button#user_profile_edit {
   }
 }
 
-
 a#home_link,
-a#about_us,
+a#contact_us_link,
+a#about_us_link,
+a#login_link,
+a#teachers_link,
+a#students_link,
 a#log_link {
   color: white;
   background-color: transparent;
+  font-weight: 900;
 }
 
 a#home_link:hover,
-a#about_us:hover,
+a#login_link:hover,
+a#teachers_link:hover,
+a#contact_us_link:hover,
+a#about_us_link:hover,
+a#students_link:hover,
 a#log_link:hover {
   color: var(--secondary);
 }
 
 a:hover {
   color: var(--secondary);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 h2.text-left.text-uppercase {
@@ -327,6 +353,9 @@ label {
   }
 }
 
+.input-error {
+  border: 2px solid red;
+}
 /*--------------------------------------------------------------
 # Header
 --------------------------------------------------------------*/
@@ -345,7 +374,7 @@ header.header-scrolled {
 
 header .logo {
   font-size: 28px;
-  margin: 0;
+  margin-left: -20px;
   padding: 0;
   line-height: 1;
   font-weight: 300;
@@ -367,15 +396,21 @@ header .logo img {
 }
 
 button#register_now {
+  line-height: 2.0 !important;
+  font-size: large !important;
   color: var(--primary);
   background-color: white;
 }
 
 button#lets_partner {
   border: 0;
+  line-height: 2.0 !important;
+  font-size: large !important;
 }
 
 button#register_now_1 {
+  line-height: 2.0 !important;
+  font-size: large !important;
   border: 0;
 }
 
@@ -385,6 +420,13 @@ button#register_now_1:hover {
   color: white;
   background-color: var(--secondary);
 }
+
+
+
+.back-to-top:hover {
+  background-color: var(--secondary);
+}
+
 
 /*--------------------------------------------------------------
 # Navigation Menu
@@ -406,7 +448,9 @@ button#register_now_1:hover {
 
 .navbar li {
   position: relative;
+  padding: 30px;
 }
+
 
 .nav-link:hover {
   color: var(--secondary);
@@ -422,7 +466,7 @@ button#register_now_1:hover {
   align-items: center;
   justify-content: space-between;
   padding: 10px 0 10px 30px;
-  font-size: 14px;
+  font-size: 17px;
   color: white;
   white-space: nowrap;
   transition: 0.3s;
@@ -702,7 +746,6 @@ button#register_now_1:hover {
 }
 
 
-
 /*
 Firebase UI
 */
@@ -735,9 +778,3 @@ Firebase UI
 /*--------------------------------------------------------------
 select dropdowns
 --------------------------------------------------------------*/
-
-.dropdown-item.active,
-.dropdown-item:active {
-  color: #fff !important;
-  background-color: var(--success);
-}
