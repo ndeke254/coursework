@@ -4,7 +4,6 @@
 #' # Example of getting next school ID (commented out due to missing file)
 #' # next_school_id("schools")
 #' @export
-
 next_school_id <- function(table_name) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")

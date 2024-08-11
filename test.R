@@ -1,26 +1,29 @@
 library(RSQLite)
-
+library(DBI)
 # make sqlite connection:
 conn <- DBI::dbConnect(
-
   drv = RSQLite::SQLite(),
   "/home/jefferson.ndeke/PersonalR/coursework/inst/app/coursework.sqlite"
 )
 
 dbListTables(conn = conn)
 
-table <- dbReadTable(conn, "students")
+table <- dbReadTable(conn, "teachers")
+table
+
+
 table$time[1]
 table[5, "id"]
-RSQLite::dbRemoveTable(conn, "payments")
+RSQLite::dbRemoveTable(conn, "content")
 query <- "DELETE FROM students WHERE user_name LIKE '%Mwende%';"
+query <- "DELETE FROM teachers WHERE school_name LIKE '%C%';"
 
 
-query <- "UPDATE students 
+query <- "UPDATE students
 	SET paid = 1
-	WHERE id = 'TEA-004'
+  	WHERE grade = '5'
   "
-  query <- "ALTER TABLE students
+query <- "ALTER TABLE students
 DROP COLUMN type"
 
 query <- "ALTER TABLE teachers
@@ -58,7 +61,6 @@ teacher <- structure(
   .Data = list(
     id = character(),
     user_name = character(),
-    type = character(),
     school_name = character(),
     grade = character(),
     phone = character(),
@@ -105,7 +107,6 @@ student <- structure(
   .Data = list(
     id = character(),
     user_name = character(),
-    type = character(),
     school_name = character(),
     grade = character(),
     phone = character(),
@@ -190,3 +191,21 @@ dbExecute(conn, "
 dbRemoveTable(conn, "schools")
 
 existing_emails$content$email
+
+
+get_new_user <- polished::get_users(
+  email = "musumbijefferson@gmail.com"
+)
+email <- get_new_user$content$email
+uid <- get_new_user$content$uid
+user_role <- polished::get_user_roles(
+  user_uid = uid
+)
+user_role$content$role_name
+polished::get_app_users(email = "musumbijefferson@gmail.com")
+
+
+rsconnect::deployApp()
+rsconnect::accountInfo()
+rsconnect::applications()
+rsconnect::deployments()

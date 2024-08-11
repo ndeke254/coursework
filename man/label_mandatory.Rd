@@ -2,7 +2,7 @@
 % Please edit documentation in R/label_mandatory.R
 \name{label_mandatory}
 \alias{label_mandatory}
-\title{add a red star after an input label}
+\title{Add a red star after an input label}
 \usage{
 label_mandatory(label)
 }
@@ -10,10 +10,11 @@ label_mandatory(label)
 \item{label}{A string}
 }
 \value{
-A label with a red asterick
-@examples
-shiny::actionButton(inputId = "confirm_btn", label = label_mandatory("Confirm"), icon = icon("check"))
+A label with a red asterisk
 }
 \description{
-add a red star after an input label
+Add a red star after an input label
+}
+\examples{
+shiny::actionButton(inputId = "confirm_btn", label = label_mandatory("Confirm"), icon = icon("check"))
 }
