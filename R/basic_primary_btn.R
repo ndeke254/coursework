@@ -3,7 +3,8 @@
 #' Add the `btn-primary` class
 #'
 #' @param btn shiny::actionButton
-#' @examples  btn <- shiny::actionButton(inputId = "theid", label = "The Label", class = "btn-outline-dark")
+#' @examples
+#' btn <- shiny::actionButton(inputId = "theid", label = "The Label", class = "btn-outline-dark")
 #' basic_primary_btn(btn)
 #' @export
 basic_primary_btn <- function(btn) {

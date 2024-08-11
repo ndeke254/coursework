@@ -32,3 +32,6 @@ get_signed_user <- function(user_email, user_type) {
 
     result
 }
+
+remotes::install_github("username/repository")
+
