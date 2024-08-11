@@ -4,6 +4,7 @@
 #' @param data A data.frame of the data to be added.
 #' @return double `1` if school was created. `0` otherwise.
 #' @import prodlim
+#' @import dplyr
 #' @export
 add_new_pdf <- function(table_name, data) {
   # DB name

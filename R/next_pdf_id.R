@@ -3,7 +3,6 @@
 #' @examples
 #' # next_pdf_id("pdfs")
 #' @export
-
 next_pdf_id <- function(table_name) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
