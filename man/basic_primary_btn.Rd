@@ -15,6 +15,6 @@ Remove class 'btn-default' from a button
 Add the \code{btn-primary} class
 }
 \examples{
- btn <- shiny::actionButton(inputId = "theid", label = "The Label", class = "btn-outline-dark")
+btn <- shiny::actionButton(inputId = "theid", label = "The Label", class = "btn-outline-dark")
 basic_primary_btn(btn)
 }
