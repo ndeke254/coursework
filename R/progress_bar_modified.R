@@ -4,9 +4,9 @@
 #' @param value String. Numeric string to show progress
 #' @param text String. Show label on the progress
 #' @param status String. A color string showing the class to apply
-#'@example progress_bar_modified(text = page_text, value = progress_value, status = "gradient-gray")
+#'@examples progress_bar_modified(text = page_text, value = progress_value,
+#' status = "gradient-gray")
 #' @export
-
 progress_bar_modified <- function(value, text = NULL, status = "primary") {
     stopifnot(value <= 100)
     progressWrapper <- htmltools::tags$div(class = "progress-wrapper")

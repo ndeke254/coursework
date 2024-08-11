@@ -5,17 +5,122 @@ admin_registration_tab <- div(
     size = "lg",
     width = 12,
     iconList = list(
-      icon("university", class = "text-body"),
+      icon = argonIcon("cloud-upload-96", color = "body"),
+      icon = argonIcon("caps-small", color = "body"),
       icon = argonIcon("settings", color = "body")
     ),
     argonTab(
-      tabName = "School",
-      h2("Register new school"),
+      tabName = "Upload",
       active = TRUE,
       argonRow(
         center = TRUE,
+        argonR::argonCard(
+          title = h6("Upload PDF"),
+          shadow = TRUE,
+          border_level = 5,
+          icon = icon("upload", class = "default"),
+          status = "default",
+          width = 12,
+          argonTabSet(
+            id = "upload_tabset",
+            circle = TRUE,
+            horizontal = TRUE,
+            width = 12,
+            iconList = list(
+              argonIcon("books", color = "body"),
+              argonIcon("ungroup", color = "body")
+            ),
+            argonTab(
+              tabName = "Content",
+              active = TRUE,
+              p("All fields are required", class = "mt-5"),
+              div(
+                class = "d-flex justify-content-center",
+                fileInput(
+                  inputId = "pdfFile",
+                  label = "Select a PDF",
+                  width = 500,
+                  accept = c(".pdf")
+                )
+              ),
+              argonRow(
+                argonColumn(
+                  width = 4,
+               shiny::selectizeInput(
+                 inputId = "doc_school",
+                 label = label_mandatory("School:"),
+                 options = list(maxOptions = 3),
+                 choices = NULL
+               )
+                ),
+                argonColumn(
+                  width = 4,
+                  shiny::selectizeInput(
+                    inputId = "doc_teacher",
+                    label = label_mandatory("Teacher:"),
+                    choices = NULL,
+                    options = list(maxOptions = 5)
+                  )
+                ),
+                argonColumn(
+                  width = 4,
+                  shiny::selectizeInput(
+                    inputId = "doc_grade",
+                    label = label_mandatory("Grade:"),
+                    choices = NULL,
+                    options = list(maxOptions = 5)
+                  )
+                )
+              ),
+              argonRow(
+                argonColumn(
+                  width = 4,
+                  shiny::selectizeInput(
+                    inputId = "doc_learning_area",
+                    label = label_mandatory("Learning Area:"),
+                    choices = NULL,
+                    options = list(maxOptions = 5)
+                  )
+                ),
+                argonColumn(
+                  width = 4,
+                  shiny::textInput(
+                    inputId = "doc_topic",
+                    label = label_mandatory("Topic:"),
+                    placeholder = "Eg. Addition"
+                  )
+                ),
+                argonColumn(
+                  width = 4,
+                  shiny::textInput(
+                    inputId = "doc_sub_topic",
+                    label_mandatory("Sub-topic:"),
+                    value = "",
+                    placeholder = "Eg. Long division method"
+                  )
+                )
+              ),
+              actionButton(
+                inputId = "upload_btn",
+                label = "Publish PDF",
+                class = "mt-2 mb-2 float-right"
+              ) |>
+                basic_primary_btn()
+            ),
+            argonTab(
+              tabName = "General",
+              p("All fields are required", class = "mt-5")
+            )
+          )
+        )
+      )
+    ),
+    argonTab(
+      tabName = "Registration",
+      argonRow(
+        center = TRUE,
         argonCard(
-          title = "School Registration Form",
+          title = h6("School Registration"),
           status = "default",
           border_level = 5,
           shadow = TRUE,
@@ -57,10 +162,10 @@ admin_registration_tab <- div(
             ),
             div(
               id = "tab_1",
-              h3("Details", class = "mt--3 mb-3"),
+              h6("Details:", class = "mt--3 mb-3"),
               argonRow(
                 argonColumn(
-                  width = 3,
+                  width = 4,
                   shiny::textInput(
                     inputId = "school_name",
                     label_mandatory("Name:"),
@@ -69,14 +174,10 @@ admin_registration_tab <- div(
                   )
                 ),
                 argonColumn(
-                  width = 3,
-                  shinyWidgets::pickerInput(
+                  width = 4,
+                  shiny::selectizeInput(
                     inputId = "school_level",
                     label = label_mandatory("Level:"),
-                    options = list(
-                      style = "btn-outline-light",
-                      title = "Eg. Primary"
-                    ),
                     choices = c(
                       "Preparatory", "Primary", "Junior Secondary",
                       "Senior Secondary", "University/College", "Other"
@@ -84,37 +185,26 @@ admin_registration_tab <- div(
                   )
                 ),
                 argonColumn(
-                  width = 3,
-                  shinyWidgets::pickerInput(
+                  width = 4,
+                  shiny::selectizeInput(
                     inputId = "school_type",
                     label = label_mandatory("Type:"),
-                    options = list(
-                      style = "btn-outline-light",
-                      title = "Eg. Public"
-                    ),
                     choices = c("Public", "Private", "Other")
-                  )
-                ),
-                argonColumn(
-                  width = 3,
-                  shinyWidgets::pickerInput(
-                    inputId = "county",
-                    label = label_mandatory("County:"),
-                    options = list(
-                      title = "Eg. Nairobi",
-                      style = "btn-outline-light",
-                      size = 5,
-                      `live-search` = TRUE,
-                      `live-search-placeholder` = "Search county"
-                    ),
-                    choices = kenyan_counties,
-                    autocomplete = TRUE
                   )
                 )
               ),
               argonRow(
                 argonColumn(
-                  width = 3,
+                  width = 4,
+                  shiny::selectizeInput(
+                    inputId = "county",
+                    label = label_mandatory("County:"),
+                    choices = kenyan_counties,
+                    options = list(maxOptions = 5)
+                  )
+                ),
+                argonColumn(
+                  width = 4,
                   shiny::textInput(
                     inputId = "school_email",
                     label_mandatory("Email:"),
@@ -123,7 +213,7 @@ admin_registration_tab <- div(
                   )
                 ),
                 argonColumn(
-                  width = 3,
+                  width = 4,
                   autonumericInput(
                     inputId = "doc_price",
                     label_mandatory("Price:"),
@@ -135,15 +225,12 @@ admin_registration_tab <- div(
                 )
               )
             ),
-            shinyjs::hidden(
-              div(
-                id = "tab_2",
-                argonColumn(
-                  width = 12,
-                  h3("Confirm", class = "mt--3 mb-3"),
-                  p("New school details", class = "mt-3"),
-                  uiOutput("confirm_school_data")
-                )
+            div(
+              id = "tab_2",
+              argonColumn(
+                width = 12,
+                p("Confirm school details", class = "mt-3"),
+                uiOutput("confirm_school_data")
               )
             ),
             div(
@@ -184,11 +271,10 @@ admin_registration_tab <- div(
     ),
     argonTab(
       tabName = "Manage",
-      h2("Enable/Disable users"),
       argonRow(
         center = TRUE,
         argonCard(
-          title = "Shools/Users Records",
+          title = h6("Records"),
           status = "default",
           border_level = 5,
           shadow = TRUE,
@@ -201,7 +287,8 @@ admin_registration_tab <- div(
             iconList = list(
               icon = icon("school"),
               icon = icon("chalkboard-user"),
-              icon = icon("children")
+              icon = icon("children"),
+              argonIcon("collection", color = "body")
             ),
             argonTab(
               tabName = "School",
@@ -218,6 +305,22 @@ admin_registration_tab <- div(
               tabName = "Student",
               p("Existing students data", class = "mt-5"),
               uiOutput("students_data")
+            ),
+            argonTab(
+              tabName = "Content",
+              p("Existing PDFs", class = "mt-5"),
+              bslib::card(
+                id = "pdf_card",
+                bslib::layout_sidebar(
+                  sidebar = bslib::sidebar(
+                    id = "card_sidebar",
+                    position = "right",
+                    open = FALSE,
+                    uiOutput("sidebar_content")
+                  ),
+                  uiOutput("pdf_data")
+                )
+              )
             )
           )
         )

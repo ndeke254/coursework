@@ -40,4 +40,4 @@ $(document).ready(function () {
   window.addEventListener('offline', update_network_status);
   update_network_status();  // Set initial status
 
-});
+ });
