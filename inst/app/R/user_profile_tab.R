@@ -1,3 +1,4 @@
+#' @export
 user_profile_tab <-
     shiny::tagList(
         tags$div(
