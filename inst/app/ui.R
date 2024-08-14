@@ -54,6 +54,14 @@ ui <- argonPage(
     color = "#414042",
     margins = c("30%", "50%")
   ),
+
+        shiny::textInput(
+            inputId = "student_username",
+            label = label_mandatory("Name:"),
+            value = "",
+            placeholder = "Eg. Joseph Juma"
+        ),
+
   tagList(
     header_section,
     company_website,

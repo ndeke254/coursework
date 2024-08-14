@@ -83,7 +83,7 @@ teacher_registration_tab <- div(
                   width = 4,
                   shiny::passwordInput(
                       inputId = "teacher_confirm_password",
-                      label = label_mandatory("Password"),
+                      label = label_mandatory(" Confirm password"),
                       placeholder = "Password",
                       width = "400px"
                   )
