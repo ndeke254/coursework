@@ -145,9 +145,6 @@ DBI::dbWriteTable(
 )
 
 
-
-
-
 data <- data.frame(
   id = "SCH-001",
   name = "Kataa",
@@ -209,3 +206,11 @@ rsconnect::deployApp()
 rsconnect::accountInfo()
 rsconnect::applications()
 rsconnect::deployments()
+
+remotes::install_github("https://github.com/ndeke254/coursework/")
+pak::pkg_install("ndeke254/coursework")
+install.packages("pak")
+gitcreds::gitcreds_set()
+remotes::install_github("ndeke254/coursework")
+pak::pkg_install("ndeke254/coursework")
+packageStatus()

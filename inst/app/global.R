@@ -9,6 +9,7 @@ library(shinyWidgets)
 library(RSQLite)
 library(shinyvalidate)
 library(plyr)
+library(magick)
 library(dplyr)
 library(reactable)
 library(prodlim)
@@ -20,7 +21,8 @@ library(polished)
 library(frbs)
 library(stringr)
 library(magrittr)
-library(coursework)
+
+
 
 # counties in Kenya
 # used as a choices input in school registration tab
@@ -104,4 +106,19 @@ polished_config(
 
 # Set App api_key
 set_api_key(api_key = api_key)
+
+label_mandatory <- \(label) {
+  tagList(
+    label,
+    span("*", class = "text-danger")
+  )
+}
+
+basic_primary_btn <- function(btn) {
+  html_tag_q <- htmltools::tagQuery(btn)
+  html_tag_q$removeClass("btn-default")
+  return(html_tag_q$allTags())
+}
+
+
 

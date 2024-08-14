@@ -1,5 +1,6 @@
 student_registration_tab <- div(
     id = "registration_form",
+
     create_card(
         title = "Welcome to Keytabu",
         title_icon = NULL,
@@ -14,7 +15,6 @@ student_registration_tab <- div(
         div(
             id = "student_registration",
             p("Student Details"),
-            uiOutput("error_styles"), # Include the error CSS
 
             argonRow(
                 argonColumn(
@@ -81,7 +81,7 @@ student_registration_tab <- div(
                     width = 4,
                     shiny::passwordInput(
                         inputId = "student_confirm_password",
-                        label = label_mandatory("Password"),
+                        label = label_mandatory("Confirm password"),
                         placeholder = "Password",
                         width = "400px"
                     )
