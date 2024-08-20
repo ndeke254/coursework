@@ -5,7 +5,7 @@ account: ndekejefferson
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12376052
-bundleId: 8971238
+bundleId: 9004923
 url: https://ndekejefferson.shinyapps.io/Keytabu/
 version: 1
 asMultiple: FALSE

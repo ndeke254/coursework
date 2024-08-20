@@ -427,7 +427,10 @@ server <- function(input, output, session) {
                     shinyjs::show("published_pdfs", anim = TRUE, animType = "fade")
                     shinyjs::show("filters", anim = TRUE, animType = "fade")
                 } else if (user_role == "teacher") {
-                    shinyjs::show("teacher_content", anim = TRUE, animType = "fade")
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "teacher_content"
+                    )
                     return()
                 } else {
                     return()
@@ -708,7 +711,70 @@ server <- function(input, output, session) {
                         })
                     })
                 } else if (user_role == "teacher") {
-                    shinyjs::show("teacher_sidebar")
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "teacher_content"
+                    )
+                    grade <- strsplit(signed_user$grade, ", ")[[1]] |>
+                        as.numeric()
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "request_grade",
+                        choices = setNames(grade, paste("Grade", grade))
+                    )
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "request_learning_area",
+                        choices = c(
+                            pre_primary,
+                            lower_primary,
+                            upper_primary,
+                            junior_secondary
+                        )
+                    )
+
+                    observeEvent(input$request_btn, {
+                        photos <- input$photo_file
+                        table_html <- reactable(
+                            data = data.frame(
+                                Input = c(
+                                    "No. photos", "Grade", "Learning Area", "Topic", "Sub Topic"
+                                ),
+                                Value = stringr::str_trunc(
+                                    c(
+                                        nrow(photos),
+                                        input$request_grade,
+                                        input$request_learning_area,
+                                        input$request_topic,
+                                        input$request_sub_topic
+                                    ),
+                                    width = 25
+                                )
+                            ),
+                            columns = list(
+                                Input = colDef(name = "Input"),
+                                Value = colDef(name = "Value")
+                            ),
+                            borderless = TRUE,
+                            bordered = FALSE,
+                            striped = FALSE,
+                            outlined = TRUE,
+                            wrap = FALSE,
+                            resizable = FALSE
+                        )
+
+                        # Show confirmation dialog with reactable table
+                        shinyalert(
+                            session = session,
+                            inputId = "confirm_request_details",
+                            title = NULL,
+                            text = tags$div(
+                                table_html
+                            ),
+                            #              btn_labels = c("Cancel", "Yes"),
+                            html = TRUE
+                        )
+                    })
                 } else if (user_role == "developer") {
                 } else {
                     return()

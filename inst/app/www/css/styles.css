@@ -45,26 +45,6 @@ header.header-global {
   background-color: #E76A35;
 }
 
-.modal-secondary .close>span:not(.sr-only) {
-  color: var(--bslib-page-sidebar-title-bg);
-}
-
-.modal-open .modal {
-  backdrop-filter: blur(5px) !important;
-}
-
-.modal-dialog-centered {
-  align-items: normal;
-}
-
-.modal-dialog {
-  max-width: 1056px;
-}
-
-#modal-content {
-  position: relative;
-}
-
 #hover-div {
   display: none;
   position: absolute;

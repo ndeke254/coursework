@@ -82,7 +82,7 @@ ui <- bslib::page(
     ),
     tabPanelBody(
       value = "teacher_content",
-      uiOutput("teacher_content")
+      teacher_request_tab
     ),
     tabPanelBody(
       value = "student_content",
