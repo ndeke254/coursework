@@ -1,7 +1,8 @@
 # ----overall page ----
-ui <- argonPage(
+ui <- bslib::page(
   title = "KEYTABU",
-  # Load dependencies and error items
+  theme = bs_theme(version = 5),
+  # Load dependencies
   useSweetAlert(),
   shinyjs::useShinyjs(),
   includeCSS("www/css/styles.css"),
@@ -34,7 +35,7 @@ ui <- argonPage(
   tags$a(
     href = "#",
     class = "back-to-top d-flex align-items-center justify-content-center",
-    tags$i(class = "ni ni-bold-up")
+    bsicons::bs_icon("arrow-up")
   ),
   tags$script(
     src = "https://unpkg.com/aos@2.3.1/dist/aos.js"
@@ -54,50 +55,38 @@ ui <- argonPage(
     color = "#414042",
     margins = c("30%", "50%")
   ),
-
-        shiny::textInput(
-            inputId = "student_username",
-            label = label_mandatory("Name:"),
-            value = "",
-            placeholder = "Eg. Joseph Juma"
-        ),
-
-  tagList(
-    header_section,
-    company_website,
-    shinyjs::hidden(
-      tags$div(
-        id = "auth_page",
-        argonSection(
-          status = "secondary",
-          mod_auth_ui("auth")
-        )
-      ),
-      tags$div(
-        id = "reg_student_page",
-        argonR::argonSection(
-          status = "secondary",
-          student_registration_tab
-        )
-      ),
-      tags$div(
-        id = "reg_teacher_page",
-        argonR::argonSection(
-          status = "secondary",
-          teacher_registration_tab
-        )
-      )
+  header_section,
+  tabsetPanel(
+    id = "app_pages",
+    type = "hidden",
+    selected = "company_website",
+    tabPanelBody(
+      value = "company_website",
+      company_website
     ),
-    shinyjs::hidden(
-      tags$div(
-        id = "admin_page",
-        argonR::argonSection(
-          status = "secondary",
-          admin_registration_tab
-        )
-      )
+    tabPanelBody(
+      value = "auth_page",
+      mod_auth_ui("auth")
     ),
-    uiOutput("teacher_content"),
-    student_content_tab
+    tabPanelBody(
+      value = "reg_student_page",
+      student_registration_tab
+    ),
+    tabPanelBody(
+      value = "reg_teacher_page",
+      teacher_registration_tab
+    ),
+    tabPanelBody(
+      value = "admin_page",
+      admin_registration_tab
+    ),
+    tabPanelBody(
+      value = "teacher_content",
+      uiOutput("teacher_content")
+    ),
+    tabPanelBody(
+      value = "student_content",
+      student_content_tab
+    )
   )
 )

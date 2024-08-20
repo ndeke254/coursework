@@ -35,67 +35,71 @@ server <- function(input, output, session) {
 
     user_details <- mod_auth_server("auth")
 
+    observeEvent(
+        list(input$register_now, input$register_now_1),
+        {
+            updateTabsetPanel(
+                inputId = "app_pages",
+                selected = "reg_student_page"
+            )
+        },
+        ignoreInit = TRUE
+    )
+
+    observeEvent(input$lets_partner, {
+        updateTabsetPanel(
+            inputId = "app_pages",
+            selected = "reg_teacher_page"
+        )
+    })
     observeEvent(input$home_link, {
-        shinyjs::show("website", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("admin_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("published_pdfs", anim = TRUE, animType = "fade")
-        shinyjs::hide("filters", anim = TRUE, animType = "fade")
-
-        shinyjs::hide("selected_pdf_frame", anim = TRUE, animType = "fade")
-
+        updateTabsetPanel(
+            inputId = "app_pages",
+            selected = "company_website"
+        )
         shinyjs::runjs("$('#home_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
 
     observeEvent(input$about_us_link, {
-        shinyjs::show("website", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("admin_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("published_pdfs", anim = TRUE, animType = "fade")
-        shinyjs::hide("selected_pdf_frame", anim = TRUE, animType = "fade")
-        shinyjs::hide("filters", anim = TRUE, animType = "fade")
-
+        updateTabsetPanel(
+            inputId = "app_pages",
+            selected = "company_website"
+        )
 
         shinyjs::runjs("$('#about_us_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
 
     observeEvent(input$contact_us_link, {
-        shinyjs::show("website", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("admin_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("published_pdfs", anim = TRUE, animType = "fade")
-        shinyjs::hide("selected_pdf_frame", anim = TRUE, animType = "fade")
-        shinyjs::hide("filters", anim = TRUE, animType = "fade")
-
+        updateTabsetPanel(
+            inputId = "app_pages",
+            selected = "company_website"
+        )
 
         shinyjs::runjs("$('#contact_us_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
 
     observeEvent(input$students_link, {
-        shinyjs::hide("website", anim = TRUE, animType = "fade")
-        shinyjs::show("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
+        updateTabsetPanel(
+            session = session,
+            inputId = "app_pages",
+            selected = "reg_student_page"
+        )
     })
 
     observeEvent(input$teachers_link, {
-        shinyjs::hide("website", anim = TRUE, animType = "fade")
-        shinyjs::show("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
+        updateTabsetPanel(
+            session = session,
+            inputId = "app_pages",
+            selected = "reg_teacher_page"
+        )
     })
 
     observeEvent(input$login_link, {
-        shinyjs::hide("website", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_teacher_page", anim = TRUE, animType = "fade")
-        shinyjs::hide("reg_student_page", anim = TRUE, animType = "fade")
-        shinyjs::show("auth_page", anim = TRUE, animType = "fade")
+        updateTabsetPanel(
+            session = session,
+            inputId = "app_pages",
+            selected = "auth_page"
+        )
     })
 
     # Register a new teacher
@@ -191,6 +195,10 @@ server <- function(input, output, session) {
         # Call the register_new_user function
         success <- register_new_user(table_name = "teachers", data = new_user)
         if (success == 1) {
+            updateTabsetPanel(
+                inputId = "app_pages",
+                selected = "auth_page"
+            )
             name <- stringr::word(input$teacher_username, 1)
             shinyalert(
                 title = paste0(name, ", Welcome to Keytabu"),
@@ -227,7 +235,7 @@ server <- function(input, output, session) {
     ivst$add_rule("student_grade", sv_required())
     ivst$add_rule("student_tel_number", sv_required())
     ivst$add_rule("student_email", sv_email())
-    
+
     # Add a validation rule for the phone number input
     ivst$add_rule("student_tel_number", function(value) {
         phone_number <- gsub("\\D", "", value) # Remove non-digit characters
@@ -313,6 +321,10 @@ server <- function(input, output, session) {
         )
         if (success == 1) {
             name <- stringr::word(input$student_username, 1)
+            updateTabsetPanel(
+                inputId = "app_pages",
+                selected = "auth_page"
+            )
             shinyalert(
                 title = paste0(name, ", Welcome to Keytabu"),
                 text = "You can now log in",
@@ -369,6 +381,21 @@ server <- function(input, output, session) {
             signed_user <- get_signed_user(signed_email, user_role)
             user_status <- signed_user$status
             user_name <- signed_user$user_name
+            table <- data.frame(
+                ID = signed_user$id,
+                SCHOOL = signed_user$school_name,
+                EMAIL = signed_user$email,
+                PHONE = signed_user$phone
+            )
+            output$signed <- renderUI({
+                reactable(
+                    table,
+                    borderless = TRUE,
+                    bordered = FALSE,
+                    striped = FALSE,
+                    outlined = TRUE
+                )
+            })
 
             # show the user on profile
             output$signed_user <- renderText({
@@ -382,16 +409,21 @@ server <- function(input, output, session) {
             shinyjs::hide("login_link")
             shinyjs::hide("teachers_link")
             shinyjs::hide("students_link")
-
             shinyjs::show("user_profile_tab")
 
             observeEvent(input$signed_user_link, {
-                shinyjs::hide("website", anim = TRUE, animType = "fade")
-
                 if (is_admin) {
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "admin_page"
+                    )
                     shinyjs::show("admin_page", anim = TRUE, animType = "fade")
                     return()
                 } else if (user_role == "student") {
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "student_content"
+                    )
                     shinyjs::show("published_pdfs", anim = TRUE, animType = "fade")
                     shinyjs::show("filters", anim = TRUE, animType = "fade")
                 } else if (user_role == "teacher") {
@@ -418,14 +450,17 @@ server <- function(input, output, session) {
             # Show the dashboard page if conditions are met
             if (nrow(signed_user) == 1 &&
                 user_status == "Enabled" && !is.na(user_role)) {
-                shinyjs::hide("auth_page", anim = TRUE, animType = "fade")
-
                 # Control access according to roles
                 if (is_admin) {
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "admin_page"
+                    )
                     shinyjs::show("admin_page", anim = TRUE, animType = "fade")
                 } else if (user_role == "student") {
-                    output$filters <- renderUI(
-                        student_content_filters
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "student_content"
                     )
 
                     # Filter the student content based on the signed-in user's grade and school
@@ -525,45 +560,72 @@ server <- function(input, output, session) {
 
                                 # Set payment status
                                 pay_status <- ifelse(user_paid == "0", "has-danger", "has-success")
-
-                                div(class = "d-flex flex-wrap", lapply(1:nrow(teacher_data), function(i) {
-                                    pdf_info <- teacher_data[i, ]
-                                    pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name))
-
-                                    # Get the cover images
-                                    cover_image <- image_files[grepl(
-                                        paste0(
-                                            "^www/images/",
-                                            pdf_name_filtered,
-                                            "_page_1\\.png$"
-                                        ),
-                                        image_files
-                                    )]
-                                    cover_image <- ifelse(
-                                        length(cover_image) > 0,
-                                        sub("^www/", "", cover_image[1]),
-                                        "images/default_cover.png"
-                                    )
-
-                                    # Create PDF card
-                                    argonR::argonCard(
-                                        title = NULL,
-                                        hover_lift = TRUE,
-                                        border_level = 5,
-                                        icon = icon("file-pdf"),
-                                        status = "default",
-                                        width = 4,
-                                        div(
-                                            id = paste("card", i),
-                                            class = "d-flex justify-content-center",
-                                            onclick = sprintf(
-                                                "Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());",
-                                                pdf_info$pdf_name
+                                div(
+                                    class = "d-flex flex-wrap justify-content-center",
+                                    lapply(1:nrow(teacher_data), function(i) {
+                                        pdf_info <- teacher_data[i, ]
+                                        pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name))
+                                        table_html <- reactable(
+                                            data = data.frame(
+                                                Input = c("Teacher", "Learning Area", "Topic", "Sub Topic"),
+                                                Value = stringr::str_trunc(
+                                                    c(
+                                                        stringr::str_to_title(input$pdfFile$name),
+                                                        pdf_info$teacher,
+                                                        pdf_info$learning_area,
+                                                        pdf_info$topic,
+                                                        pdf_info$sub_topic
+                                                    ),
+                                                    width = 25
+                                                )
                                             ),
-                                            argonR::argonImage(src = cover_image)
+                                            columns = list(
+                                                Input = colDef(name = "Item"),
+                                                Value = colDef(name = "Details")
+                                            ),
+                                            borderless = TRUE,
+                                            bordered = FALSE,
+                                            striped = FALSE,
+                                            outlined = TRUE,
+                                            wrap = FALSE
                                         )
-                                    )
-                                }))
+                                        # Get the cover images
+                                        cover_image <- image_files[grepl(
+                                            paste0(
+                                                "^www/images/",
+                                                pdf_name_filtered,
+                                                "_page_1\\.png$"
+                                            ),
+                                            image_files
+                                        )]
+                                        cover_image <- ifelse(
+                                            length(cover_image) > 0,
+                                            sub("^www/", "", cover_image[1]),
+                                            "images/default_cover.png"
+                                        )
+
+                                        # Create PDF card
+                                        div(
+                                            class = "                                    card shadow w-25 mt-2
+                                        mx-2 hover-card",
+                                            div(
+                                                id = paste("card", i),
+                                                class = "d-flex justify-content-center",
+                                                onclick = sprintf(
+                                                    "Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());",
+                                                    pdf_info$pdf_name
+                                                ),
+                                                argonR::argonImage(
+                                                    src = cover_image
+                                                ),
+                                                div(
+                                                    class = "card-details",
+                                                    table_html
+                                                )
+                                            )
+                                        )
+                                    })
+                                )
                             })
 
                             # Wrap all card decks in a tagList
@@ -637,6 +699,7 @@ server <- function(input, output, session) {
                                     )
                                 ),
                                 tags$iframe(
+                                    class = "pt-3",
                                     src = file.path("pdf", input$selected_pdf, "#toolbar=0"),
                                     style = "width: 100%; height: 100vh; border: none;",
                                     scrolling = "no"

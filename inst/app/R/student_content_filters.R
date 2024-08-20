@@ -1,7 +1,7 @@
-student_content_filters <- argonRow(
+student_content_filters <- fluidRow(
     id = "filters",
     class = "mt-3 mx-xl-xl",
-    argonColumn(
+    column(
         width = 3,
         selectizeInput(
             inputId = "filter_teacher",
@@ -10,7 +10,7 @@ student_content_filters <- argonRow(
             choices = NULL
         )
     ),
-    argonColumn(
+    column(
         width = 3,
         selectizeInput(
             inputId = "filter_learning_area",
@@ -19,7 +19,7 @@ student_content_filters <- argonRow(
             choices = NULL
         )
     ),
-    argonColumn(
+    column(
         width = 3,
         selectizeInput(
             inputId = "filter_topic",
@@ -28,7 +28,7 @@ student_content_filters <- argonRow(
             choices = NULL
         )
     ),
-    argonColumn(
+    column(
         width = 3,
         selectizeInput(
             inputId = "filter_sub_topic",

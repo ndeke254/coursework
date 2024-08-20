@@ -58,13 +58,13 @@ header_section <- div(
             label = "Log In"
           )
         ),
-      tags$li(
-        class = "fade-in text-truncate w-75",
-        shiny::actionLink(
-          inputId = "signed_user_link",
-          label = textOutput("signed_user")
+        tags$li(
+          class = "fade-in text-truncate w-75",
+          shiny::actionLink(
+            inputId = "signed_user_link",
+            label = textOutput("signed_user")
+          )
         )
-      )
       )
     )
   )
