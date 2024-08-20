@@ -25,13 +25,17 @@ mod_auth_server <- \(id) {
                             stop("Invalid email!", call. = FALSE)
                         }
 
-                        toast_success(
-                            message = "Password reset link sent!"
+                        alert_success_ui(
+                            session = session,
+                            info = "Password reset link sent!"
                         )
                     },
                     error = \(e) {
                         print(e)
-                        toast_error(message = conditionMessage(e), timeOut = 0)
+                        alert_fail_ui(
+                            session = session,
+                            info = conditionMessage(e)
+                            )
                     }
                 )
             })

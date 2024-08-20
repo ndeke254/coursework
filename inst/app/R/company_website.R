@@ -4,8 +4,7 @@ company_website <- div(
     `data-aos-delay` = "100",
     argonSection(
         status = "default",
-        gradient = TRUE,
-        class = "mt--100 pt-5",
+        class = "pt-5",
         div(
             id = "intro_page",
             `data-aos` = "fade-up",
@@ -13,12 +12,13 @@ company_website <- div(
             argonColumn(
                 argonRow(
                     argonColumn(
-                        width = 6,
+                        width = 4,
                         div(
                             id = "sign_in_container",
-                            class = "pt-100 ",
+                            class = "pt-100",
                             argonH1(
-                                display = 1,
+                                display = 3,
+                                class = "fw-bold",
                                 "Learn Quick",
                                 br(),
                                 "Learn Smart",
@@ -29,91 +29,83 @@ company_website <- div(
                                     color = "white"
                                 ),
                             argonLead(
+                                class = "pt-3 pb-5",
                                 "With High Quality, Quick Reference",
                                 br(),
                                 "Content for Students"
                             ) %>%
                                 argonTextColor(
                                     color = "body"
+                                ),
+                            div(
+                                actionButton(
+                                    inputId = "register_now",
+                                    label = "Register Now",
+                                    class = "mt-5 fw-bold",
+                                    width = "230px"
                                 )
+                            )
                         )
                     ),
                     argonColumn(
-                        width = 6,
+                        width = 8,
                         div(
-                            class = "mx-5",
+                            class = "d-flex justify-content-center",
                             argonImage(
-                                src = "inst/images/child_1.png",
+                                src = "inst/images/child_3.png",
                                 floating = TRUE,
-                                width = "400px"
-                            ) %>%
-                                argonBlur(
-                                    text = "Register and select your grade",
-                                    text_color = "white"
-                                )
+                                width = "779px"
+                            )
                         )
                     )
-                ),
-                actionButton(
-                    inputId = "register_now",
-                    label = "Register now",
-                    icon = argonIcon("bold-right"),
-                    class = "mt--200"
                 )
-            ) %>% argonPadding(
-                orientation = "x",
-                value = 0
             )
         )
     ),
-    div(
-        id = "home_section",
-        `data-aos` = "fade-up",
-        `data-aos-delay` = "100",
-        argonSection(
-            status = "white",
-            argonRow(
-                argonColumn(
-                    width = 6,
+    argonSection(
+        status = "white",
+        div(
+            id = "home_section",
+            `data-aos` = "fade-up",
+            `data-aos-delay` = "100",
+            fluidRow(
+                column(
+                    width = 5,
+                    class = "px-5",
                     div(
-                        class = "mt--100",
                         argonImage(
                             src = "inst/images/teacher_1.png",
                             floating = TRUE,
                             width = "500px"
-                        ) %>%
-                            argonBlur(
-                                text = "Send handwritten content via photo
-                          (WhatsApp or email)",
-                                text_color = "default"
-                            )
+                        )
                     )
                 ),
-                argonColumn(
-                    width = 6,
-                    class = "mx-xl-lg",
+                column(
+                    width = 7,
+                    class = "px-5 pt-5",
                     argonH1(
-                        display = 1,
+                        display = 5,
+                        class = "fw-bold",
                         "What is Keytabu?"
+                    ),
+                    argonLead(
+                        class = "pt-4",
+                        "Keytabu is an online learning platform that partners with teachers to create a
+                    digital library of revision materials. These include quick
+                    study guides, reference notes, and flashcards, all designed to enhance visual learning and aid retention."
                     ) %>%
                         argonTextColor(
-                            color = "default"
-                        ),
-                    argonLead("Keytabu is an online learning platform that partners with teachers to create a
-                    digital library of revision materials. These include quick
-                    study guides, reference notes, and ﬂashcards, all designed to enhance visual learning and aid retention.") %>%
-                        argonTextColor(
-                            color = "#414042"
+                            color = "black"
                         ),
                     br(),
                     argonLead("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics") %>%
                         argonTextColor(
-                            color = "#414042"
+                            color = "black"
                         ),
-                    argonColumn(
+                    column(
                         width = 6,
                         div(
-                            class = "position-absolute right-lg top-md",
+                            class = "position-absolute mx-5 pt-5 px-5",
                             argonImage(
                                 src = "inst/images/arrow_left.png",
                                 width = "100px"
@@ -121,448 +113,438 @@ company_website <- div(
                         )
                     ),
                     argonLead(
-                        class = "font-weight-900 pb-100 mt-4",
+                        class = "pb-5 mt-4 fw-semibold",
                         "Are you a teacher?"
                     ) %>%
                         argonTextColor(
-                            color = "default"
+                            color = "black"
                         ),
-                    argonColumn(
-                        width = 3,
+                    column(
+                        width = 6,
                         actionButton(
                             inputId = "lets_partner",
                             label = "Let's Partner",
-                            icon = icon("hand-pointer")
+                            class = "mt-5 fw-bold",
+                            width = "230px"
                         )
                     )
                 )
             )
         )
     ),
-    div(
-        id = "cards_page",
-        `data-aos` = "fade-up",
-        `data-aos-delay` = "100",
-        argonSection(
-            status = "secondary",
-            argonRow(
-                center = TRUE,
-                argonH1(
-                    display = 1,
-                    "Content Categories"
-                ) %>%
-                    argonTextColor(
-                        color = "default"
-                    )
-            ),
-            argonRow(
-                argonColumn(
-                    width = 4,
-                    argonCard(
-                        width = 12,
-                        shadow = TRUE,
-                        shadow_size = "sm",
-                        hover_lift = TRUE,
-                        hover_shadow = TRUE,
-                        argonRow(
-                            argonIconWrapper(
-                                iconTag = argonIcon(
-                                    name = "bullet-list-67",
-                                    color = "white"
-                                ),
-                                status = "default",
-                                shadow = TRUE,
-                                hover_shadow = TRUE
-                            ),
-                            argonColumn(
-                                p(
-                                    class = "font-weight-900",
-                                    "Subject Matter Review:"
-                                ) %>%
-                                    argonTextColor(
-                                        color = "default"
-                                    ),
-                                p(
-                                    "Condense summaries giving an overall view of subjects, highlighting main topics and concepts."
-                                ) %>%
-                                    argonTextColor(
-                                        color = "#414042"
-                                    )
-                            )
-                        )
+    argonSection(
+        status = "body-secondary",
+        div(
+            id = "cards_page",
+            `data-aos` = "fade-up",
+            `data-aos-delay` = "100",
+            div(
+                status = "secondary",
+                class = "pt-5 pb-5",
+                fluidRow(
+                    center = TRUE,
+                    argonH1(
+                        class = "d-flex justify-content-center fw-bold",
+                        display = 5,
+                        "Content Categories"
                     )
                 ),
-                argonColumn(
-                    width = 4,
-                    class = "card-deck",
-                    argonCard(
-                        width = 12,
-                        shadow = TRUE,
-                        shadow_size = "sm",
-                        hover_lift = TRUE,
-                        hover_shadow = TRUE,
-                        argonRow(
-                            argonIconWrapper(
-                                iconTag = argonIcon(
-                                    name = "like-2",
-                                    color = "white"
-                                ),
-                                status = "warning",
-                                shadow = TRUE,
-                                hover_shadow = TRUE
-                            ),
-                            argonColumn(
-                                p(
-                                    class = "font-weight-900",
-                                    "Topic Reviews:"
-                                ) %>%
-                                    argonTextColor(
-                                        color = "warning"
-                                    ),
-                                p(
-                                    "In-depth 2-3 page reviews of specific topics, like introductory algebra, to reinforce key concepts."
-                                ) %>%
-                                    argonTextColor(
-                                        color = "#414042"
-                                    )
-                            )
-                        )
-                    )
-                ),
-                argonColumn(
-                    width = 4,
-                    argonCard(
-                        width = 12,
-                        shadow = TRUE,
-                        shadow_size = "sm",
-                        hover_lift = TRUE,
-                        hover_shadow = TRUE,
-                        argonRow(
-                            argonIconWrapper(
-                                iconTag = argonIcon(
-                                    name = "check-bold",
-                                    color = "white"
-                                ),
-                                status = "primary",
-                                shadow = TRUE,
-                                hover_shadow = TRUE
-                            ),
-                            argonColumn(
-                                p(
-                                    class = "font-weight-900",
-                                    "Concept Checkers:"
-                                ) %>%
-                                    argonTextColor(
-                                        color = "primary"
-                                    ),
-                                p(
-                                    "Focused materials diving deep into specific concepts, such as adding decimals with different denominators."
-                                ) %>%
-                                    argonTextColor(
-                                        color = "#414042"
-                                    )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    ),
-    div(
-        id = "about_us_section",
-        `data-aos` = "fade-up",
-        `data-aos-delay` = "100",
-        argonSection(
-            status = "white",
-            argonRow(
-                argonColumn(
-                    width = 6,
-                    argonRow(
-                        argonH1(
-                            display = 1,
-                            "Our"
-                        ) %>%
-                            argonTextColor(
-                                color = "default"
-                            ),
-                        argonH1(
-                            class = "px-3",
-                            display = 1,
-                            "Mission"
-                        ) %>%
-                            argonTextColor(
-                                color = "warning"
-                            )
-                    ),
-                    argonRow(
-                        argonLead(
-                            "We aim to provide a comprehensive online resource of teacher-developed revision
-materials, accessible 24/7, to support both students and teachers in achieving
-their learning goals. Parents can also engage with their child's learning journey by
-accessing important study materials."
-                        ) %>%
-                            argonTextColor(
-                                color = "#414042"
-                            )
-                    ),
-                    argonRow(
+                fluidRow(
+                    class = "pt-4",
+                    column(
+                        width = 4,
                         div(
-                            class = "position-absolute right-0",
-                            argonImage(
-                                src = "inst/images/arrow_right.png",
-                                width = "100px"
+                            class = "card shadow h-100",
+                            style = "overflow: hidden;",
+                            fluidRow(
+                                column(
+                                    width = 1,
+                                    class = "mt-3 mx-3",
+                                    div(
+                                        class = "d-flex justify-content-center
+                                         align-items-center shadow bg-default
+                                          rounded-circle",
+                                        style = "width: 50px;
+                                         height: 50px;",
+                                        bsicons::bs_icon(
+                                            name = "list-check",
+                                            size = "24px",
+                                            class = "text-white"
+                                        )
+                                    )
+                                ),
+                                column(
+                                    width = 10,
+                                    div(
+                                        class = "mx-2 pt-4",
+                                        argonLead(
+                                            class = "fw-semibold text-body_1",
+                                            "Subject Matter Review:"
+                                        ),
+                                        p(
+                                            "Condense summaries giving an
+                                            overall view of subjects,
+                                            highlighting main topics and
+                                            concepts."
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    column(
+                        width = 4,
+                        div(
+                            class = "card shadow h-100",
+                            style = "overflow: hidden;",
+                            fluidRow(
+                                column(
+                                    width = 1,
+                                    class = "mt-3 mx-3",
+                                    div(
+                                        class = "d-flex justify-content-center
+                                         align-items-center shadow bg-orange_1
+                                         rounded-circle",
+                                        style = "width: 50px;
+                                         height: 50px;",
+                                        bsicons::bs_icon(
+                                            name = "file-earmark-fill",
+                                            size = "24px",
+                                            class = "text-white"
+                                        )
+                                    )
+                                ),
+                                column(
+                                    width = 10,
+                                    div(
+                                        class = "mx-2 pt-4",
+                                        argonLead(
+                                            class = "fw-semibold text-body",
+                                            "Topic Reviews:"
+                                        ),
+                                        p(
+                                            "In-depth 2-3 page reviews of
+                                            specific topics, like introductory
+                                            algebra, to reinforce key
+                                            concepts."
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    column(
+                        width = 4,
+                        div(
+                            class = "card shadow h-100",
+                            style = "overflow: hidden;",
+                            fluidRow(
+                                column(
+                                    width = 1,
+                                    class = "mt-3 mx-3",
+                                    div(
+                                        class = "d-flex justify-content-center
+                                         align-items-center shadow bg-secondary
+                                         rounded-circle",
+                                        style = "width: 50px;
+                                         height: 50px;",
+                                        bsicons::bs_icon(
+                                            name = "clipboard-check-fill",
+                                            size = "24px",
+                                            class = "text-white"
+                                        )
+                                    )
+                                ),
+                                column(
+                                    width = 10,
+                                    div(
+                                        class = "mx-2 pt-4",
+                                        argonLead(
+                                            class = "fw-semibold
+                                            text-body-secondary",
+                                            "Concept Checkers:"
+                                        ),
+                                        p(
+                                            "Focused materials diving deep into
+                                            specific concepts, such as adding
+                                            decimals with different
+                                            denominators."
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    ),
+    argonSection(
+        status = "white",
+        div(
+            id = "about_us_section",
+            `data-aos` = "fade-up",
+            `data-aos-delay` = "100",
+            div(
+                status = "white",
+                class = "pb-5",
+                fluidRow(
+                    column(
+                        width = 6,
+                        div(
+                            class = "d-flex pt-5",
+                            argonH1(
+                                class = "fw-bold",
+                                display = 5,
+                                "Our"
+                            ),
+                            argonH1(
+                                class = "fw-bold text-body px-3",
+                                display = 5,
+                                "Mission"
                             )
                         ),
-                        argonImage(
-                            src = "inst/images/parent_student.png",
-                            floating = TRUE,
-                            width = "500px"
-                        ) %>%
-                            argonBlur(
-                                text = "Monitor your child's progress",
-                                text_color = "default"
+                        fluidRow(
+                            argonLead(
+                                class = "text-black pt-3",
+                                "We aim to provide a comprehensive online
+                                resource of teacher-developed revision
+                                materials, accessible 24/7, to support both
+                                students and teachers in achieving
+                                their learning goals. Parents can also engage
+                                 with their child's learning journey by
+                                 accessing important study materials."
                             )
-                    )
-                ),
-                argonColumn(
-                    width = 6,
-                    class = "mx-xl-lg",
-                    argonRow(
+                        ),
                         div(
-                            class = "mt--200",
-                            argonImage(
-                                src = "inst/images/child_2.png",
-                                floating = TRUE,
-                                width = "400px"
-                            ) %>%
-                                argonBlur(
-                                    text = "Online classroom",
-                                    text_color = "default"
+                            class = "justify-content-end d-flex pt-5 ",
+                            div(
+                                argonImage(
+                                    src = "inst/images/parent_student.png",
+                                    floating = TRUE,
+                                    width = "700px"
                                 )
-                        )
-                    ),
-                    argonRow(
-                        argonH1(
-                            display = 1,
-                            class = "mt-5",
-                            "Our"
-                        ) %>%
-                            argonTextColor(
-                                color = "default"
                             ),
+                            div(
+                                class = "position-absolute",
+                                argonImage(
+                                    src = "inst/images/arrow_right.png",
+                                    width = "100px"
+                                )
+                            )
+                        )
+                    ),
+                    column(
+                        width = 6,
+                        class = "px-5",
+                        fluidRow(
+                            div(
+                                argonImage(
+                                    src = "inst/images/child_2.png",
+                                    floating = TRUE,
+                                    width = "400px"
+                                )
+                            )
+                        ),
+                        fluidRow(
+                            div(
+                                class = "d-flex pt-5",
+                                argonH1(
+                                    class = "fw-bold",
+                                    display = 5,
+                                    "Our"
+                                ),
+                                argonH1(
+                                    class = "fw-bold text-body px-3",
+                                    display = 5,
+                                    "Premise"
+                                )
+                            )
+                        ),
+                        fluidRow(
+                            argonLead(
+                                class = "text-black pt-3",
+                                "With limited classroom time and varying
+                                student learning speeds, traditional
+                                methods may not suit everyone.
+                                Keytabu offers additional, tailored
+                                learning materials that students can
+                                access anytime, bridging gaps and
+                                reinforcing classroom learning."
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    ),
+    argonSection(
+        status = "body-secondary",
+        div(
+            id = "partners_page",
+            `data-aos` = "fade-up",
+            `data-aos-delay` = "100",
+            div(
+                status = "secondary",
+                class = "pt-5 pb-5",
+                fluidRow(
+                    center = TRUE,
+                    argonH1(
+                        class = "d-flex justify-content-center fw-bold",
+                        display = 5,
+                        "Our Partners"
+                    )
+                ),
+                fluidRow(
+                    center = TRUE,
+                    div(
+                        class = "d-flex justify-content-center",
+                        argonImage(
+                            src = "inst/images/partners.png",
+                            floating = TRUE,
+                            width = "1000px"
+                        )
+                    )
+                )
+            )
+        )
+    ),
+    argonSection(
+        status = "white",
+        div(
+            id = "contact_us_section",
+            `data-aos` = "fade-up",
+            `data-aos-delay` = "100",
+            div(
+                status = "white",
+                fluidRow(
+                    class = "d-flex justify-content-end pt-5 pb-2",
+                    column(
+                        width = 3,
+                        center = TRUE,
                         argonH1(
-                            class = "px-3 mt-5",
+                            class = "fw-bold",
+                            display = 5,
+                            "5M+"
+                        ),
+                        argonLead(
+                            "Learners"
+                        )
+                    ),
+                    column(
+                        width = 3,
+                        center = TRUE,
+                        argonH1(
+                            class = "fw-bold",
+                            display = 5,
+                            "1000+"
+                        ),
+                        argonLead(
+                            "Schools"
+                        )
+                    ),
+                    column(
+                        width = 3,
+                        center = TRUE,
+                        argonH1(
+                            class = "fw-bold",
+                            display = 5,
+                            "20"
+                        ),
+                        argonLead(
+                            "Counties"
+                        )
+                    )
+                ),
+                fluidRow(
+                    center = TRUE,
+                    div(
+                        class = " d-flex justify-content-center pb-5",
+                        actionButton(
+                            inputId = "register_now_1",
+                            label = "Register Now",
+                            class = "mt-5 fw-bold",
+                            width = "230px"
+                        )
+                    )
+                )
+            )
+        )
+    ),
+    div(
+        class = "position-absolute bottom-0 end-0",
+        argonImage(
+            src = "inst/images/child_4.png",
+            floating = TRUE,
+            width = "500px"
+        )
+    ),
+    argonSection(
+        status = "default",
+        class = "pt-5",
+        div(
+            id = "footer_section",
+            div(
+                size = "lg",
+                status = "default",
+                fluidRow(
+                    class = "align-items-center",
+                    column(
+                        width = 6,
+                        tags$h1(
+                            class = "logo",
+                            tags$a(
+                                href = "",
+                                tags$img(
+                                    src = file.path("logo", "logo_white.svg"),
+                                    height = "180px"
+                                )
+                            )
+                        )
+                    ),
+                    column(
+                        width = 2,
+                        actionLink(
+                            inputId = "about_us_down",
+                            label = "About Us"
+                        )
+                    ),
+                    column(
+                        width = 2,
+                        actionLink(
+                            inputId = "contact_us",
+                            label = "Contact Us"
+                        )
+                    )
+                ),
+                tags$hr(
+                    class = "bg-white text-white"
+                ),
+                fluidRow(
+                    class = "align-items-center",
+                    column(
+                        width = 8,
+                        p(
                             display = 1,
-                            "Premise"
+                            "Copyright © 2024"
                         ) %>%
                             argonTextColor(
-                                color = "warning"
+                                color = "white"
                             )
                     ),
-                    argonRow(
-                        argonLead(
-                            "With limited classroom time and varying
-student learning speeds, traditional
-methods may not suit everyone.
-Keytabu offers additional, tailored
-learning materials that students can
-access anytime, bridging gaps and
-reinforcing classroom learning."
-                        ) %>%
-                            argonTextColor(
-                                color = "#414042"
-                            )
-                    )
-                )
-            )
-        )
-    ),
-    div(
-        id = "partners_page",
-        `data-aos` = "fade-up",
-        `data-aos-delay` = "100",
-        argonSection(
-            size = "lg",
-            status = "secondary",
-            cascade = TRUE,
-            argonH1(
-                display = 1,
-                "Our Partners"
-            ) %>%
-                argonPadding(orientation = "l", value = 5) %>%
-                argonPadding(orientation = "b", value = 5) %>%
-                argonTextColor(color = "default"),
-            argonCascade(
-                argonCascadeItem(
-                    name = "book-bookmark",
-                    src = "https://www.google.com"
-                ),
-                argonCascadeItem(
-                    name = "badge",
-                    size = "sm"
-                ),
-                argonCascadeItem(
-                    name = "bag-17",
-                    size = "sm"
-                ),
-                argonCascadeItem(
-                    name = "paper-diploma",
-                    size = "sm"
-                ),
-                argonCascadeItem(
-                    name = "bag-17",
-                    src = "https://www.google.com"
-                ),
-                argonCascadeItem(
-                    name = "books"
-                ),
-                argonCascadeItem(
-                    name = "hat-3"
-                ),
-                argonCascadeItem(
-                    name = "briefcase-24",
-                    size = "sm", "https://www.google.com"
-                ),
-                argonCascadeItem(
-                    name = "trophy",
-                    size = "sm"
-                ),
-                argonCascadeItem(
-                    name = "single-copy-04",
-                    size = "sm"
-                ),
-                argonCascadeItem(
-                    name = "collection"
-                ),
-                argonCascadeItem(
-                    name = "ungroup"
-                ),
-                argonCascadeItem(
-                    name = "chart-bar-32"
-                )
-            )
-        )
-    ),
-    div(
-        id = "contact_us_section",
-        `data-aos` = "fade-up",
-        `data-aos-delay` = "100",
-        argonSection(
-            status = "white",
-            argonRow(
-                class = "justify-content-around",
-                argonColumn(
-                    class = "border-right border-default",
-                    width = 3,
-                    center = TRUE,
-                    argonH1(
-                        display = 1,
-                        "5M+"
-                    ) %>%
-                        argonTextColor("default"),
-                    argonLead(
-                        "Learners"
-                    )
-                ),
-                argonColumn(
-                    class = "border-right border-default",
-                    width = 3,
-                    center = TRUE,
-                    argonH1(
-                        display = 1,
-                        "1000+"
-                    ) %>%
-                        argonTextColor("default"),
-                    argonLead(
-                        "Schools"
-                    )
-                ),
-                argonColumn(
-                    width = 3,
-                    center = TRUE,
-                    argonH1(
-                        display = 1,
-                        "20"
-                    ) %>%
-                        argonTextColor("default"),
-                    argonLead(
-                        "Counties"
-                    )
-                )
-            ),
-            argonRow(
-                center = TRUE,
-                class = "pt-5",
-                actionButton(
-                    inputId = "register_now_1",
-                    label = "Register Now",
-                    icon = argonIcon("bold-right")
-                )
-            )
-        )
-    ),
-    div(
-        id = "footer_section",
-        argonSection(
-            size = "lg",
-            status = "default",
-            argonRow(
-                class = "align-items-center",
-                argonColumn(
-                    width = 6,
-                    tags$h1(
-                        class = "logo",
-                        tags$a(
-                            href = "",
-                            tags$img(
-                                src = file.path("logo", "logo_white.svg"),
-                                height = "180px"
-                            )
+                    column(
+                        width = 2,
+                        actionLink(
+                            inputId = "tos",
+                            label = "Terms & service"
                         )
-                    )
-                ),
-                argonColumn(
-                    width = 2,
-                    actionLink(
-                        inputId = "about_us_down",
-                        label = "About Us"
-                    )
-                ),
-                argonColumn(
-                    width = 2,
-                    actionLink(
-                        inputId = "contact_us",
-                        label = "Contact Us"
-                    )
-                )
-            ),
-            tags$hr(
-                class = "bg-white"
-            ),
-            argonRow(
-                class = "align-items-center",
-                argonColumn(
-                    width = 8,
-                    p(
-                        display = 1,
-                        "Copyright © 2024"
-                    ) %>%
-                        argonTextColor(
-                            color = "white"
+                    ),
+                    column(
+                        width = 2,
+                        actionLink(
+                            inputId = "privacy_link",
+                            label = "Privacy Policy"
                         )
-                ),
-                argonColumn(
-                    width = 2,
-                    actionLink(
-                        inputId = "tos",
-                        label = "Terms & service"
-                    )
-                ),
-                argonColumn(
-                    width = 2,
-                    actionLink(
-                        inputId = "privacy_link",
-                        label = "Privacy Policy"
                     )
                 )
             )

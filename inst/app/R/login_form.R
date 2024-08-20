@@ -40,10 +40,10 @@ login_form <- \(ns) {
     submit_btn <- actionButton(
         inputId = submit_btn_id,
         label = "Login",
-        class = "btn btn-primary ",
         type = "submit",
         onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
-    )
+    ) |>
+        basic_primary_btn()
 
     tags$form(
         class = "pt-2",

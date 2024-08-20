@@ -1,10 +1,10 @@
 student_registration_tab <- div(
     id = "registration_form",
-
+    class = "pb-2 pt-3",
     create_card(
         title = "Welcome to Keytabu",
         title_icon = NULL,
-        class = "shadow text",
+        class = "container shadow text",
         tags$div(
             class = "d-flex justify-content-center",
             tags$img(
@@ -15,10 +15,9 @@ student_registration_tab <- div(
         div(
             id = "student_registration",
             p("Student Details"),
-
-            argonRow(
-                argonColumn(
-                    width = 4,
+            fluidRow(
+                column(
+                    width = 3,
                     shiny::textInput(
                         inputId = "student_username",
                         label = label_mandatory("Name:"),
@@ -26,8 +25,8 @@ student_registration_tab <- div(
                         placeholder = "Eg. Joseph Juma"
                     )
                 ),
-                argonColumn(
-                    width = 4,
+                column(
+                    width = 3,
                     shiny::selectizeInput(
                         inputId = "student_school",
                         label = label_mandatory("School:"),
@@ -35,69 +34,66 @@ student_registration_tab <- div(
                         choices = NULL
                     )
                 ),
-                argonColumn(
-                    width = 4,
+                column(
+                    width = 3,
                     shiny::selectizeInput(
                         inputId = "student_grade",
                         label = label_mandatory("Grade:"),
                         choices = setNames(1:12, paste("Grade", 1:12)),
                         options = list(maxOptions = 3)
                     )
-                )
-            ),
-            argonRow(
-                argonColumn(
-                    width = 4,
+                ),
+                column(
+                    width = 3,
                     autonumericInput(
-                        inputId = ("student_tel_number"),
+                        inputId = "student_tel_number",
                         label = label_mandatory("Phone:"),
                         value = 123456789,
                         currencySymbol = "254 ",
                         decimalPlaces = 0,
                         digitGroupSeparator = ""
                     )
-                ),
-                argonColumn(
-                    width = 4,
+                )
+            ),
+            fluidRow(
+                column(
+                    width = 3,
                     shiny::textInput(
                         inputId = "student_email",
                         label = label_mandatory("Email address"),
-                        placeholder = "johndoe@example.com",
-                        width = "400px"
+                        placeholder = "johndoe@example.com"
                     )
                 ),
-                argonColumn(
-                    width = 4,
+                column(
+                    width = 3,
                     shiny::passwordInput(
                         inputId = "student_password",
                         label = label_mandatory("Password"),
-                        placeholder = "Password",
-                        width = "400px"
+                        placeholder = "Password"
                     )
-                )
-            ),
-            argonRow(
-                argonColumn(
-                    width = 4,
+                ),
+                column(
+                    width = 3,
                     shiny::passwordInput(
                         inputId = "student_confirm_password",
                         label = label_mandatory("Confirm password"),
-                        placeholder = "Password",
-                        width = "400px"
+                        placeholder = "Password"
                     )
                 )
             ),
             privacy_tos_links,
-            argonRow(
+            fluidRow(
                 class = "mt-5",
-                center = TRUE,
-                shiny::actionButton(
-                    inputId = "submit_student_details",
-                    label = "Submit",
-                    icon = icon("arrow-right"),
-                    class = "px-5"
-                ) |>
-                    basic_primary_btn()
+                div(
+                    class = "d-flex justify-content-center",
+                    shiny::actionButton(
+                        inputId = "submit_student_details",
+                        label = "Submit",
+                        class = "px-5",
+                        width = "250px"
+                    ) |>
+                        basic_primary_btn()
+                )
             )
         )
     )

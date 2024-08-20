@@ -17,12 +17,12 @@ h4,
 h5,
 h6 {
   font-family: Montserrat !important;
-  color: #414042;
 }
 
 :root {
   --primary: #1D2856;
   --secondary: #E76A35;
+  --greyfont: #414042;
 }
 
 .bg-default {
@@ -35,6 +35,14 @@ h6 {
 
 header.header-global {
   display: none;
+}
+
+.text-body_1 {
+  color: #1D2856;
+}
+
+.bg-orange_1 {
+  background-color: #E76A35;
 }
 
 .modal-secondary .close>span:not(.sr-only) {
@@ -129,11 +137,6 @@ header.header-global {
 }
 
 
-.bootstrap-select .dropdown-toggle:focus,
-.bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
-  outline: 0px auto -webkit-focus-ring-color !important;
-}
-
 .btn-file {
   margin-bottom: -0.5rem !important;
   background-color: var(--primary);
@@ -227,9 +230,6 @@ body {
 
 }
 
-.selectize-input {
-  min-height: 40px;
-}
 
 a#auth-reset_password {
   background-color: transparent;
@@ -283,8 +283,26 @@ a#teachers_link,
 a#students_link,
 a#log_link {
   color: white;
+  text-decoration: none;
+  text-transform: uppercase;
   background-color: transparent;
   font-weight: 900;
+}
+
+a#contact_us,
+a#about_us_down,
+a#tos,
+a#privacy_link {
+  color: white;
+  text-decoration: none;
+  background-color: transparent;
+}
+
+a#contact_us:hover,
+a#about_us_down:hover,
+a#tos:hover,
+a#privacy_link:hover {
+  color: var(--secondary);
 }
 
 a#home_link:hover,
@@ -353,9 +371,6 @@ label {
   }
 }
 
-.input-error {
-  border: 2px solid red;
-}
 /*--------------------------------------------------------------
 # Header
 --------------------------------------------------------------*/
@@ -396,22 +411,20 @@ header .logo img {
 }
 
 button#register_now {
-  line-height: 2.0 !important;
-  font-size: large !important;
   color: var(--primary);
   background-color: white;
+  font-size: 18px;
+  border: 0;
+}
+
+button#register_now_1 {
+  font-size: 18px;
+  border: 0;
 }
 
 button#lets_partner {
   border: 0;
-  line-height: 2.0 !important;
-  font-size: large !important;
-}
-
-button#register_now_1 {
-  line-height: 2.0 !important;
-  font-size: large !important;
-  border: 0;
+  font-size: 18px;
 }
 
 button#register_now:hover,
@@ -778,3 +791,60 @@ Firebase UI
 /*--------------------------------------------------------------
 select dropdowns
 --------------------------------------------------------------*/
+h1.display-3.text-white.fw-bold {
+  text-shadow: 0px 0px 5px var(--secondary);
+}
+
+.selectize-dropdown .selected {
+  background-color: var(--primary);
+}
+
+.selectize-input.focus {
+  border-color: #777;
+  box-shadow: 0 0 3px #1d2856;
+}
+
+.hover-card {
+  position: relative;
+}
+
+.card-details {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  color: white;
+  line-height: 0.5;
+  font-size: small;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.hover-card:hover .card-details {
+  display: block;
+}
+
+.Reactable.ReactTable.rt-outlined.rt-borderless.rt-nowrap {
+  background-color: var(--primary);
+}
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  padding: 10px;
+}
+
+.user-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.user-icon {
+  font-size: 24px;
+  cursor: pointer;
+}
