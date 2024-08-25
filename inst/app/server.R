@@ -176,7 +176,11 @@ server <- function(input, output, session) {
 
         if (!is_match) {
             return(
-                alert_fail_ui(session = session, info = "Password do not match")
+                alert_fail_ui(
+                    session = session,
+                    info = "Password do not match",
+                    position = "bottom",
+                )
             )
         }
 
@@ -229,7 +233,10 @@ server <- function(input, output, session) {
             # add role to the user
             polished::add_user_role(user_uid = user_uid, role_name = "teacher")
         } else {
-            alert_fail_ui(info = "Name or email or phone already exists!", session = session)
+            alert_fail_ui(
+                info = "Name or email or phone already exists!",
+                 session = session
+                 )
         }
     })
 
@@ -1036,10 +1043,12 @@ server <- function(input, output, session) {
                 # Create a reactable with download and update features
                 output$table <- renderReactable({
                     reactable(
-                        data,
+                        data = data,
                         searchable = TRUE,
                         sortable = TRUE,
+                        resizable = TRUE,
                         defaultPageSize = 10,
+                        wrap = FALSE,
                         highlight = TRUE,
                         columns = list(
                             details = colDef(
@@ -1061,12 +1070,11 @@ server <- function(input, output, session) {
                             highlightColor = "#f0f0f0"
                         ),
                         onClick = JS("function(rowInfo, column) {
-    // Only handle click events on the 'details' column
-    if (column.id !== 'details') {
-      return
-    }
-      Shiny.setInputValue('show_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
-  }")
+                        if (column.id !== 'details') {
+                        return
+                         }
+                     Shiny.setInputValue('show_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                     }")
                     )
                 })
             } else {
@@ -1158,438 +1166,119 @@ server <- function(input, output, session) {
 
             # output table for entered data confirmation
             output$confirm_school_data <- renderUI({
-                argonTable(
-                    title = input$school_name,
-                    headTitles = c(
-                        "NAME",
-                        "LEVEL",
-                        "TYPE",
-                        "COUNTY",
-                        "EMAIL",
-                        "PRICE",
-                        "STATUS"
-                    ),
-                    argonTableItems(
-                        argonTableItem(
-                            stringr::str_to_sentence(input$school_name)
+                table_html <- reactable(
+                    data = data.frame(
+                        Input = c(
+                            "Name", "Level", "Type", "County",
+                            "Email", "Price", "Status"
                         ),
-                        argonTableItem(input$school_level),
-                        argonTableItem(input$school_type),
-                        argonTableItem(input$county),
-                        argonTableItem(tolower(input$school_email)),
-                        argonTableItem(
-                            dataCell = TRUE,
-                            argonBadge(
-                                text = paste("Ksh. ", input$doc_price),
-                                status = "primary"
-                            )
-                        ),
-                        argonTableItem(
-                            dataCell = TRUE,
-                            argonBadge(
-                                text = "Pending",
-                                status = "danger"
-                            )
+                        Value = stringr::str_trunc(
+                            c(
+                                stringr::str_to_sentence(input$school_name),
+                                input$school_level,
+                                input$school_type,
+                                input$county,
+                                tolower(input$school_email),
+                                paste("Ksh. ", input$doc_price),
+                                "Pending"
+                            ),
+                            width = 25
                         )
-                    )
+                    ),
+                    columns = list(
+                        Input = colDef(name = "Input"),
+                        Value = colDef(name = "Value")
+                    ),
+                    borderless = TRUE,
+                    bordered = FALSE,
+                    striped = FALSE,
+                    outlined = TRUE,
+                    wrap = FALSE,
+                    class = "text-body_1"
                 )
+                table_html
             })
         })
-
-        # Observe confirm button
-        observeEvent(input$confirmBtn, {
-            # Create data to append
-            school_data <- data.frame(
-                id = next_school_id("schools"),
-                school_name = stringr::str_to_sentence(input$school_name),
-                level = input$school_level,
-                type = input$school_type,
-                county = input$county,
-                email = tolower(input$school_email),
-                price = input$doc_price,
-                status = "Enabled",
-                stringsAsFactors = FALSE
-            )
-
-            # Call the register_new_school function
-            success <- register_new_school(
-                table_name = "schools",
-                data = school_data
-            )
-
-            if (success == 1) {
-                alert_success_ui(
-                    info = "New school created successfully!",
-                    session = session
-                )
-                # refresh added data
-                rvs$school_data <- refresh_table_data(table_name = "schools")
-            } else {
-                alert_fail_ui(info = "Name or email already exists!", session = session)
-            }
-        })
-
-
 
         # output table for already exisiting school data
         output$school_data <- renderUI({
             # get the school data
-            table_data <- rvs$school_data
+            table_data <- rvs$school_data |>
+                arrange(desc(time)) |>
+                mutate(details = NA)
+
             if (nrow(table_data) > 0) {
-                argonTable(
-                    headTitles = c("ID", "Name", "Type", "County", "Price", "Status", ""),
-                    lapply(1:nrow(table_data), function(i) {
-                        argonTableItems(
-                            argonTableItem(
-                                div(
-                                    class = "d-flex flex-column justify-content-center",
-                                    h6(class = "mb-0 text-xs", table_data$id[i]),
-                                    p(
-                                        class = "text-truncate w-50 text-xs text-default mb-0",
-                                        table_data$email[i]
-                                    )
-                                )
-                            ),
-                            argonTableItem(
-                                div(
-                                    p(
-                                        class = "text-xs font-weight-bold mb-0",
-                                        table_data$school_name[i]
-                                    ),
-                                    p(class = "text-xs text-default mb-0", table_data$level[i])
-                                )
-                            ),
-                            argonTableItem(table_data$type[i]),
-                            argonTableItem(table_data$county[i]),
-                            argonTableItem(
-                                dataCell = TRUE,
-                                argonBadge(
-                                    text = paste("Ksh. ", table_data$price[i]),
-                                    status = "primary"
-                                )
-                            ),
-                            argonTableItem(
-                                dataCell = TRUE,
-                                argonBadge(
-                                    text = table_data$status[i],
-                                    status = ifelse(table_data$status[i] == "Enabled", "success",
-                                        "primary"
-                                    )
-                                )
-                            ),
-                            argonTableItem(
-                                dropMenu(
-                                    class = "well",
-                                    actionButton(
-                                        inputId = paste0("btn_", i),
-                                        label = "",
-                                        icon = icon("ellipsis-v"),
-                                        size = "sm",
-                                        status = "secondary",
-                                        outline = TRUE,
-                                        flat = TRUE,
-                                        class = "btn-link bg-transparent border-0",
-                                        onclick = sprintf("Shiny.setInputValue('action_button',
-                  '%s');", i)
-                                    ),
+                # Set the column names
+                i <- 2
+                colnames(table_data) <- c("ID", "Name", "Level", "Type", "County", "Email", "Price", "Time", "Status", "details")
+
+                output$table1 <- renderReactable({
+                    reactable(
+                        data = table_data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        resizable = TRUE,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            ID = colDef(
+                                cell = function(value, index) {
+                                    name <- table_data$Name[index]
                                     div(
-                                        class = "pt-2",
-                                        h5(table_data$school_name[i]),
-                                        div(
-                                            class = "mb--4",
-                                            onclick = sprintf("Shiny.setInputValue('status_button',
-                    '%s');", i),
-                                            materialSwitch(
-                                                inputId = paste0("status_", i),
-                                                label = table_data$status[i],
-                                                value = ifelse(table_data$status[i] == "Enabled", TRUE,
-                                                    FALSE
-                                                ),
-                                                status = "success"
-                                            )
-                                        ),
-                                        actionButton(
-                                            inputId = paste0("del_btn_", i),
-                                            label = "Delete",
-                                            icon = icon("trash"),
-                                            status = "primary",
-                                            class = "btn-link bg-transparent mx--3 border-0",
-                                            onclick = sprintf(
-                                                "Shiny.setInputValue('del_button', '%s');", i
-                                            )
-                                        ),
-                                        actionButton(
-                                            inputId = paste0("view_btn_", i),
-                                            label = "Edit",
-                                            icon = icon("eye"),
-                                            status = "primary",
-                                            class = "btn-link bg-transparent mx--3 border-0",
-                                            onclick = sprintf(
-                                                "Shiny.setInputValue('view_button', '%s');", i
-                                            )
-                                        )
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), name)
                                     )
-                                )
+                                }
+                            ),
+                            Price = colDef(format = colFormat(
+                                prefix = "Ksh. ",
+                                separators = TRUE,
+                                digits = 2
+                            )),
+                            Time = colDef(
+                                minWidth = 150
+                            ),
+                            Level = colDef(
+                                cell = function(value, index) {
+                                    type <- table_data$Type[index]
+                                    div(
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), type)
+                                    )
+                                }
+                            ),
+                            Name = colDef(show = FALSE),
+                            Type = colDef(show = FALSE),
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        id = "",
+                                        class = "fa fa-ellipsis-v border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
                             )
-                        )
-                    })
-                )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('school_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+                    )
+                })
             } else {
                 # show empty status div
                 show_empty_state_ui
-            }
-        })
-
-
-        # change the school status - Enabled/Disabled
-        observeEvent(input$action_button, {
-            rvs$idx <- input$action_button
-        })
-
-        observeEvent(input$status_button, {
-            req(!is.null(rvs$idx))
-
-            table_data <- rvs$school_data
-            rvs$status <- input[[paste0("status_", rvs$idx)]]
-            rvs$message <- if (rvs$status) "disabled..." else "enabled..."
-            confirm_text <- if (rvs$status) "disable" else "enable"
-            id <- as.numeric(rvs$idx)
-
-            ask_confirmation(
-                session = session,
-                inputId = "confirm_status",
-                title = "Confirmation",
-                text = paste(
-                    "Are you sure you want to", confirm_text,
-                    table_data$school_name[id], "?"
-                ),
-                btn_labels = c("Cancel", "Yes")
-            )
-        })
-
-        observeEvent(input$confirm_status, {
-            action <- input$confirm_status
-
-            req(!is.null(action))
-            idx <- as.numeric(rvs$idx)
-            table_data <- rvs$school_data
-
-            if (action) {
-                # Update status
-                update_school_status(
-                    user_id = table_data$id[idx],
-                    new_status = rvs$message |>
-                        stringr::str_to_sentence() |>
-                        stringr::str_replace("\\.\\.\\.", "")
-                )
-                # Refresh data
-                rvs$school_data <- refresh_table_data(table_name = "schools")
-
-                alert_success_ui(
-                    position = "top-end",
-                    info = paste(table_data$school_name[idx], "has been", rvs$message),
-                    session = session
-                )
-            } else {
-                alert_warn_ui(
-                    position = "top-end",
-                    info = "Action has been cancelled!",
-                    session = session
-                )
-            }
-        })
-
-        # Delete a school record
-        observeEvent(input$del_button, {
-            rvs$idx <- input$del_button
-            table_data <- rvs$school_data
-            id <- as.numeric(rvs$idx)
-
-            ask_confirmation(
-                session = session,
-                inputId = "confirm_delete",
-                title = "Confirmation",
-                text = paste(
-                    "Are you sure you want to delete",
-                    table_data$school_name[id], "?"
-                ),
-                btn_labels = c("Cancel", "Yes")
-            )
-        })
-
-        # Edit button
-        observeEvent(input$view_button, {
-            rvs$idx <- input$view_button
-            idx <- as.numeric(rvs$idx)
-            table_data <- rvs$school_data
-
-            # Construct HTML content with normal shiny inputs
-            html_content <- div(
-                argonRow(
-                    argonColumn(
-                        width = 3,
-                        textInput(
-                            inputId = "edit_school_name",
-                            label_mandatory("Name:"),
-                            value = table_data$school_name[idx],
-                            placeholder = "Eg. Lenga Juu"
-                        )
-                    ),
-                    argonColumn(
-                        width = 3,
-                        pickerInput(
-                            inputId = "edit_school_level",
-                            label = label_mandatory("Level:"),
-                            options = list(
-                                style = "btn-outline-light",
-                                title = "Eg. Primary"
-                            ),
-                            choices = c(
-                                "Preparatory", "Primary", "Junior Secondary",
-                                "Senior Secondary", "University/College", "Other"
-                            ),
-                            selected = table_data$level[idx]
-                        )
-                    ),
-                    argonColumn(
-                        width = 3,
-                        pickerInput(
-                            inputId = "edit_school_type",
-                            label = label_mandatory("Type:"),
-                            options = list(
-                                style = "btn-outline-light",
-                                title = "Eg. Public"
-                            ),
-                            choices = c("Public", "Private", "Other"),
-                            selected = table_data$type[idx]
-                        )
-                    ),
-                    argonColumn(
-                        width = 3,
-                        pickerInput(
-                            inputId = "edit_county",
-                            label = label_mandatory("County:"),
-                            options = list(
-                                title = "Eg. Nairobi",
-                                style = "btn-outline-light",
-                                size = 5,
-                                `live-search` = TRUE,
-                                `live-search-placeholder` = "Search county"
-                            ),
-                            choices = kenyan_counties,
-                            selected = table_data$county[idx],
-                            autocomplete = TRUE
-                        )
-                    )
-                ),
-                argonRow(
-                    argonColumn(
-                        width = 3,
-                        textInput(
-                            inputId = "edit_school_email",
-                            label_mandatory("Email:"),
-                            value = table_data$email[idx],
-                            placeholder = "Eg. johnwekesa@gmail.com"
-                        )
-                    ),
-                    argonColumn(
-                        width = 3,
-                        autonumericInput(
-                            inputId = "edit_doc_price",
-                            label_mandatory("Price:"),
-                            value = table_data$price[idx],
-                            currencySymbol = "Ksh ",
-                            decimalPlaces = 0,
-                            minimumValue = 500
-                        )
-                    )
-                )
-            )
-
-            # Show the modal dialog with the HTML content
-            showModal(modalDialog(
-                title = table_data$school_name[idx],
-                html_content,
-                footer = tagList(
-                    modalButton("Cancel"),
-                    actionButton("save_changes", "Save changes")
-                )
-            ))
-        })
-
-        observeEvent(input$save_changes, {
-            # Show confirmation modal
-            ask_confirmation(
-                session = session,
-                inputId = "confirm_edit_details",
-                title = "Confirm edit",
-                text = "Are you sure you want to update the user details?",
-                btn_labels = c("Cancel", "Yes")
-            )
-        })
-
-        observeEvent(input$confirm_edit_details, {
-            action <- input$confirm_edit_details
-            idx <- as.numeric(rvs$idx)
-            table_data <- rvs$school_data
-            school_id <- table_data$id[idx]
-
-            if (action) {
-                new_values <- list(
-                    school_name = input$edit_school_name,
-                    level = input$edit_school_level,
-                    type = input$edit_school_type,
-                    county = input$edit_county,
-                    email = input$edit_school_email,
-                    price = input$edit_doc_price
-                )
-
-                # Run the update function
-                update_school_details(school_id, new_values)
-
-                # Close the confirmation modal
-                removeModal()
-
-                # Refresh data
-                rvs$school_data <- refresh_table_data(table_name = "schools")
-
-                # Show success message
-                alert_success_ui(info = "School details updated...", session = session)
-            } else {
-                alert_warn_ui(
-                    position = "top-end",
-                    info = "Action has been cancelled!",
-                    session = session
-                )
-            }
-        })
-
-
-        observeEvent(input$confirm_delete, {
-            action <- input$confirm_delete
-
-            req(!is.null(action))
-            idx <- as.numeric(rvs$idx)
-            table_data <- rvs$school_data
-            user_id <- table_data$id[idx]
-
-            if (action) {
-                # Dlete school records
-                delete_school_records(user_id = user_id)
-                # Refresh data
-                rvs$school_data <- refresh_table_data(table_name = "schools")
-
-                alert_success_ui(
-                    position = "top-end",
-                    info = paste(table_data$school_name[idx], "has been deleted..."),
-                    session = session
-                )
-            } else {
-                alert_warn_ui(
-                    position = "top-end",
-                    info = "Action has been cancelled!",
-                    session = session
-                )
             }
         })
 
@@ -2228,11 +1917,11 @@ server <- function(input, output, session) {
 
                 req_files <- list.files(
                     path = "www/requests",
-                    pattern = paste0("^",  input$doc_request, "-"),
+                    pattern = paste0("^", input$doc_request, "-"),
                     full.names = TRUE
                 )
                 file.remove(req_files)
-                
+
                 # Convert PDF to images
                 image_paths <- pdf_to_image(
                     pdf_path = pdf_path,
@@ -2256,5 +1945,352 @@ server <- function(input, output, session) {
             alert_warn_ui(info = "Details not confirmed...", session = session)
         }
         shinyjs::enable("upload_btn")
+    })
+
+    # Observe confirm button
+    observeEvent(input$confirmBtn, {
+        # Create data to append
+        school_data <- data.frame(
+            id = next_school_id("schools"),
+            school_name = stringr::str_to_sentence(input$school_name),
+            level = input$school_level,
+            type = input$school_type,
+            county = input$county,
+            email = tolower(input$school_email),
+            price = input$doc_price,
+            time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+            status = "Enabled",
+            stringsAsFactors = FALSE
+        )
+
+        # Call the register_new_school function
+        success <- register_new_school(
+            table_name = "schools",
+            data = school_data
+        )
+
+        if (success == 1) {
+            alert_success_ui(
+                info = "New school created successfully!",
+                session = session
+            )
+            # refresh added data
+            rvs$school_data <- refresh_table_data(table_name = "schools")
+        } else {
+            alert_fail_ui(
+                info = "Name or email already exists!",
+                session = session
+            )
+        }
+
+        shinyjs::hide("tab_2")
+        shinyjs::show("tab_1")
+        shinyjs::hide(
+            id = "confirmBtn"
+        )
+        shinyjs::hide(
+            id = "prevBtn"
+        )
+        shinyjs::show(
+            id = "nextBtn"
+        )
+    })
+
+    # change the school status - Enabled/Disabled
+    observeEvent(input$edit_school_status, {
+        details <- input$school_menu_details$info
+        old_status <- details$Status
+        new_status <- input$edit_school_status
+        valid <- (old_status == "Enabled" & new_status == FALSE) ||
+            (old_status == "Disabled" & new_status == TRUE)
+
+        req(!is.null(details))
+        req(valid)
+        confirm_text <- if (new_status) "enable" else "disable"
+        shinyalert::closeAlert()
+
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_status",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = NULL,
+            text = paste(
+                "Are you sure you want to",
+                confirm_text,
+                details$Name,
+                details$Level,
+                "?"
+            ),
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    observeEvent(input$confirm_status, {
+        action <- input$confirm_status
+
+        req(!is.null(action))
+        details <- input$school_menu_details$info
+
+
+        if (action) {
+            # Update status
+            new_status <- input$edit_school_status
+            update_school_status(
+                user_id = details$ID,
+                new_status = if (new_status) "Enabled" else "Disabled"
+            )
+            # Refresh data
+            rvs$school_data <- refresh_table_data(table_name = "schools")
+            confirm_message <- if (new_status) "enabled..." else "disabled..."
+
+            alert_success_ui(
+                position = "top-end",
+                info = paste(details$Name, "has been", confirm_message),
+                session = session
+            )
+        } else {
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+    # Delete a school record
+    observeEvent(input$delete_school_btn, {
+        details <- input$school_menu_details$info
+
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_delete",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = NULL,
+            text = paste(
+                "Are you sure you want to delete",
+                details$Name,
+                details$Level,
+                "?"
+            ),
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    # Edit button
+    observeEvent(input$edit_school_btn, {
+        details <- input$school_menu_details$info
+
+        # Edit modal content
+        html_content <- div(
+            fluidRow(
+                column(
+                    width = 3,
+                    textInput(
+                        inputId = "edit_school_name",
+                        label_mandatory("Name:"),
+                        value = details$Name,
+                        placeholder = "Eg. Lenga Juu"
+                    )
+                ),
+                column(
+                    width = 3,
+                    pickerInput(
+                        inputId = "edit_school_level",
+                        label = label_mandatory("Level:"),
+                        options = list(
+                            style = "btn-outline-light",
+                            title = "Eg. Primary"
+                        ),
+                        choices = c(
+                            "Preparatory", "Primary", "Junior Secondary",
+                            "Senior Secondary", "University/College", "Other"
+                        ),
+                        selected = details$Level
+                    )
+                ),
+                column(
+                    width = 3,
+                    pickerInput(
+                        inputId = "edit_school_type",
+                        label = label_mandatory("Type:"),
+                        options = list(
+                            style = "btn-outline-light",
+                            title = "Eg. Public"
+                        ),
+                        choices = c("Public", "Private", "Other"),
+                        selected = details$Type
+                    )
+                ),
+                column(
+                    width = 3,
+                    pickerInput(
+                        inputId = "edit_county",
+                        label = label_mandatory("County:"),
+                        options = list(
+                            title = "Eg. Nairobi",
+                            style = "btn-outline-light",
+                            size = 5,
+                            `live-search` = TRUE,
+                            `live-search-placeholder` = "Search county"
+                        ),
+                        choices = kenyan_counties,
+                        selected = details$County,
+                        autocomplete = TRUE
+                    )
+                )
+            ),
+            fluidRow(
+                column(
+                    width = 3,
+                    textInput(
+                        inputId = "edit_school_email",
+                        label_mandatory("Email:"),
+                        value = details$Email,
+                        placeholder = "Eg. johnwekesa@gmail.com"
+                    )
+                ),
+                column(
+                    width = 3,
+                    autonumericInput(
+                        inputId = "edit_doc_price",
+                        label_mandatory("Price:"),
+                        value = details$Price,
+                        currencySymbol = "Ksh ",
+                        decimalPlaces = 0,
+                        minimumValue = 500
+                    )
+                )
+            )
+        )
+
+        # Show the modal dialog with the HTML content
+        showModal(modalDialog(
+            title = details$ID,
+            size = "xl",
+            class = "shadow-lg",
+            html_content,
+            footer = tagList(
+                modalButton("Cancel"),
+                actionButton("save_changes", "Save changes")
+            )
+        ))
+    })
+
+    observeEvent(input$save_changes, {
+        # Show confirmation modal
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_edit_details",
+            title = "Confirm edit",
+            text = "Are you sure you want to update the school details?",
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    observeEvent(input$confirm_edit_details, {
+        action <- input$confirm_edit_details
+        details <- input$school_menu_details$info
+
+        if (action) {
+            new_values <- list(
+                school_name = input$edit_school_name,
+                level = input$edit_school_level,
+                type = input$edit_school_type,
+                county = input$edit_county,
+                email = input$edit_school_email,
+                price = input$edit_doc_price
+            )
+
+            # Run the update function
+            update_school_details(details$ID, new_values)
+
+            # Close the confirmation modal
+            removeModal()
+
+            # Refresh data
+            rvs$school_data <- refresh_table_data(table_name = "schools")
+
+            # Show success message
+            alert_success_ui(
+                info = "School details updated...",
+                session = session
+            )
+        } else {
+             removeModal()
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+
+    observeEvent(input$confirm_delete, {
+        action <- input$confirm_delete
+        details <- input$school_menu_details$info
+
+        req(!is.null(action))
+
+        if (action) {
+            # Dlete school records
+            delete_school_records(user_id = details$ID)
+            # Refresh data
+            rvs$school_data <- refresh_table_data(table_name = "schools")
+
+            alert_success_ui(
+                position = "top-end",
+                info = paste(details$Name, "has been deleted..."),
+                session = session
+            )
+        } else {
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+    observeEvent(input$school_menu_details, {
+        details <- input$school_menu_details$info
+        html_content <- div(
+            h5(paste(details$ID), ":", details$Name),
+            div(
+                class = "pt-4",
+                materialSwitch(
+                    inputId = "edit_school_status",
+                    label = details$Status,
+                    value = ifelse(
+                        details$Status == "Enabled", TRUE, FALSE
+                    ),
+                    status = "success",
+                    right = TRUE,
+                    inline = TRUE
+                ),
+                actionButton(
+                    inputId = paste0("delete_school_btn"),
+                    label = "Delete",
+                    class = "bg-default mt-0"
+                ),
+                actionButton(
+                    inputId = paste0("edit_school_btn"),
+                    label = "Edit",
+                    class = "bg-default mt-0"
+                )
+            )
+        )
+
+        shinyalert(
+            session = session,
+            inputId = "edit_school_details",
+            title = NULL,
+            text = tags$div(
+                html_content
+            ),
+            showCancelButton = TRUE,
+            showConfirmButton = FALSE,
+            html = TRUE
+        )
     })
 }
