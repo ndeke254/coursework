@@ -15,9 +15,9 @@ admin_registration_tab <- div(
       active = TRUE,
       fluidRow(
         center = TRUE,
-        div(
-          class = "card card-body p-4",
-          p("All fields are required", class = "mt-5"),
+        bslib::card(
+          p("Upload content", class = "mt-3 fw-semibold"),
+          p("All fields are required"),
           div(
             class = "d-flex justify-content-center",
             fileInput(
@@ -106,14 +106,12 @@ admin_registration_tab <- div(
     argonTab(
       tabName = "Registration",
       fluidRow(
-        center = TRUE,
         bslib::card(
-          h6("School Registration"),
+          h6("School Registration", class = "fw-semibold pt-3"),
           tags$head(
             tags$style(HTML(
               " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
-              height: 15px; width: 15px; margin: 0 10px;
-               background-color: #bbbbbb; border: 0.5px solid;
+              height: 15px; width: 15px; margin: 0 10px; border: 0.5px solid;
                border-radius: 50%;
                 display: inline-block; opacity: 0.5;
                 box-shadow: 0px 0px 10px 0px #0000003b;
@@ -121,26 +119,27 @@ admin_registration_tab <- div(
                    #line, #lineu, #lineu1 {
                      box-shadow: 0px 0px 10px 0px #0000003b;
                       height: 2px; background-color: #bbbbbb;
-                       margin: 0 5px; flex-grow: 1;
+                       margin: 0 5px; flex-grow: 0.5;
                        }
                         "
             ))
           ),
           div(
             id = "reg_form",
-            p("All fields are required", class = "mt--2"),
+            p("All fields are required"),
             div(
-              class = "align-items-center d-flex m-auto mt-2 w-75",
+              class = "align-items-center
+               justify-content-center d-flex",
               span(id = "step_1"),
               span(id = "line"),
               span(id = "step_2")
             ),
             div(
-              class = "m-auto pb-3 w-75",
+              class = "d-flex pb-3 justify-content-center",
               div(
-                class = "d-flex justify-content-between pt-2",
-                p("Details"),
-                p("Confirm")
+                class = "w-50 d-flex justify-content-between pt-2",
+                p("Details", class = "fw-semibold"),
+                p("Confirm", class = "fw-semibold"),
               )
             ),
             div(
@@ -148,7 +147,7 @@ admin_registration_tab <- div(
               h6("Details:", class = "mt--3 mb-3"),
               fluidRow(
                 column(
-                  width = 4,
+                  width = 3,
                   shiny::textInput(
                     inputId = "school_name",
                     label_mandatory("Name:"),
@@ -157,7 +156,7 @@ admin_registration_tab <- div(
                   )
                 ),
                 column(
-                  width = 4,
+                  width = 3,
                   shiny::selectizeInput(
                     inputId = "school_level",
                     label = label_mandatory("Level:"),
@@ -168,26 +167,26 @@ admin_registration_tab <- div(
                   )
                 ),
                 column(
-                  width = 4,
+                  width = 3,
                   shiny::selectizeInput(
                     inputId = "school_type",
                     label = label_mandatory("Type:"),
                     choices = c("Public", "Private", "Other")
                   )
-                )
-              ),
-              fluidRow(
+                ),
                 column(
-                  width = 4,
+                  width = 3,
                   shiny::selectizeInput(
                     inputId = "county",
                     label = label_mandatory("County:"),
                     choices = kenyan_counties,
                     options = list(maxOptions = 5)
                   )
-                ),
+                )
+              ),
+              fluidRow(
                 column(
-                  width = 4,
+                  width = 3,
                   shiny::textInput(
                     inputId = "school_email",
                     label_mandatory("Email:"),
@@ -196,7 +195,7 @@ admin_registration_tab <- div(
                   )
                 ),
                 column(
-                  width = 4,
+                  width = 3,
                   autonumericInput(
                     inputId = "doc_price",
                     label_mandatory("Price:"),
@@ -208,12 +207,11 @@ admin_registration_tab <- div(
                 )
               )
             ),
-            div(
-              id = "tab_2",
-              column(
-                width = 12,
-                p("Confirm school details", class = "mt-3"),
-                uiOutput("confirm_school_data")
+            shinyjs::hidden(
+              div(
+                id = "tab_2",
+                  p("Confirm school details", class = "mt-3"),
+                  uiOutput("confirm_school_data")
               )
             ),
             div(
@@ -271,7 +269,7 @@ admin_registration_tab <- div(
             argonTab(
               tabName = "School",
               active = TRUE,
-              p("Existing schools data", class = "mt-5"),
+              p("Existing schools data", class = " fw-semibold mt-3"),
               uiOutput("school_data")
             ),
             argonTab(

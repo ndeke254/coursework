@@ -825,6 +825,19 @@ h1.display-3.text-white.fw-bold {
   font-size: 24px;
   cursor: pointer;
 }
+
 .card-details {
   color: #1D2856;
+}
+
+.sweet-alert button.cancel {
+  background-color: var(--secondary);
+}
+
+.filter-option-inner-inner {
+  color: black;
+}
+
+.btn-outline-light {
+  --bs-btn-border-color: #979797;
 }
