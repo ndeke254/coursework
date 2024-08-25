@@ -10,6 +10,7 @@ server <- function(input, output, session) {
     ivs <- InputValidator$new()
     ivt <- InputValidator$new()
     ivp <- InputValidator$new()
+    ivr <- InputValidator$new()
 
     # Initialize reactive values
     rv <- reactiveValues(
@@ -28,10 +29,15 @@ server <- function(input, output, session) {
         teachers_data = dbReadTable(conn, "teachers"),
         students_data = dbReadTable(conn, "students"),
         payments_data = dbReadTable(conn, "payments"),
+        requests_data = dbReadTable(conn, "requests"),
         idx = NULL,
         status = NULL
     )
+
+    uploaded_request_files <- reactiveVal(list())
+
     on.exit(DBI::dbDisconnect(conn), add = TRUE)
+
 
     user_details <- mod_auth_server("auth")
 
@@ -362,8 +368,12 @@ server <- function(input, output, session) {
     })
 
     # now output signed user
-
     observe({
+        updateSelectInput(
+            inputId = "teacher_school",
+            choices = rvs$school_data$school_name
+        )
+
         if (isTruthy(user_details$email)) {
             # get signed user details
             signed_email <- user_details$email
@@ -381,21 +391,7 @@ server <- function(input, output, session) {
             signed_user <- get_signed_user(signed_email, user_role)
             user_status <- signed_user$status
             user_name <- signed_user$user_name
-            table <- data.frame(
-                ID = signed_user$id,
-                SCHOOL = signed_user$school_name,
-                EMAIL = signed_user$email,
-                PHONE = signed_user$phone
-            )
-            output$signed <- renderUI({
-                reactable(
-                    table,
-                    borderless = TRUE,
-                    bordered = FALSE,
-                    striped = FALSE,
-                    outlined = TRUE
-                )
-            })
+
 
             # show the user on profile
             output$signed_user <- renderText({
@@ -417,37 +413,19 @@ server <- function(input, output, session) {
                         inputId = "app_pages",
                         selected = "admin_page"
                     )
-                    shinyjs::show("admin_page", anim = TRUE, animType = "fade")
-                    return()
                 } else if (user_role == "student") {
                     updateTabsetPanel(
                         inputId = "app_pages",
                         selected = "student_content"
                     )
-                    shinyjs::show("published_pdfs", anim = TRUE, animType = "fade")
-                    shinyjs::show("filters", anim = TRUE, animType = "fade")
                 } else if (user_role == "teacher") {
                     updateTabsetPanel(
                         inputId = "app_pages",
                         selected = "teacher_content"
                     )
-                    return()
                 } else {
                     return()
                 }
-            })
-
-
-            # Load existing PDFs and their cover images from the "pdf" folder on app initialization
-            observe({
-                pdf_files <- list.files("www/pdf", pattern = "\\.pdf$", full.names = TRUE)
-                rv$pdf_paths <- lapply(pdf_files, function(pdf) {
-                    cover_image <- file.path(
-                        "www/images",
-                        paste0(fs::path_ext_remove(basename(pdf)), "_page_1.png")
-                    )
-                    list(pdf = pdf, cover = cover_image)
-                })
             })
 
             # Show the dashboard page if conditions are met
@@ -459,13 +437,27 @@ server <- function(input, output, session) {
                         inputId = "app_pages",
                         selected = "admin_page"
                     )
-                    shinyjs::show("admin_page", anim = TRUE, animType = "fade")
                 } else if (user_role == "student") {
                     updateTabsetPanel(
                         inputId = "app_pages",
                         selected = "student_content"
                     )
-
+                    table <- data.frame(
+                        ID = signed_user$id,
+                        SCHOOL = signed_user$school_name,
+                        GRADE = signed_user$grade,
+                        EMAIL = signed_user$email,
+                        PHONE = signed_user$phone
+                    )
+                    output$signed <- renderUI({
+                        reactable(
+                            table,
+                            borderless = TRUE,
+                            bordered = FALSE,
+                            striped = FALSE,
+                            outlined = TRUE
+                        )
+                    })
                     # Filter the student content based on the signed-in user's grade and school
                     student_content <- rvs$pdf_data %>%
                         filter(grade == signed_user$grade &
@@ -715,26 +707,135 @@ server <- function(input, output, session) {
                         inputId = "app_pages",
                         selected = "teacher_content"
                     )
-                    grade <- strsplit(signed_user$grade, ", ")[[1]] |>
+                    table <- data.frame(
+                        ID = signed_user$id,
+                        SCHOOL = signed_user$school_name,
+                        GRADE = signed_user$grade,
+                        EMAIL = signed_user$email,
+                        PHONE = signed_user$phone,
+                        VIEWS = signed_user$views,
+                        EARNINGS = paste("Ksh.", 0)
+                    )
+                    output$signed_teacher <- renderUI({
+                        reactable(
+                            table,
+                            borderless = TRUE,
+                            bordered = FALSE,
+                            striped = FALSE,
+                            outlined = TRUE
+                        )
+                    })
+                    grades <- strsplit(signed_user$grade, ", ")[[1]] |>
                         as.numeric()
                     updateSelectizeInput(
                         session = session,
                         inputId = "request_grade",
-                        choices = setNames(grade, paste("Grade", grade))
+                        choices = setNames(grades, paste("Grade", grades))
                     )
                     updateSelectizeInput(
                         session = session,
                         inputId = "request_learning_area",
-                        choices = c(
-                            pre_primary,
-                            lower_primary,
-                            upper_primary,
-                            junior_secondary
-                        )
+                        choices = learning_areas
                     )
 
+                    # add validation rules
+                    ivr <- InputValidator$new()
+                    ivr$add_rule("photo_file", sv_required())
+                    ivr$add_rule("request_grade", sv_required())
+                    ivr$add_rule("request_learning_area", sv_required())
+                    ivr$add_rule("request_topic", sv_required())
+                    ivr$add_rule("request_sub_topic", sv_required())
+
+                    output$teacher_requests <- renderReactable({
+                        # Filter and arrange the data as needed
+                        data <- rvs$requests_data |>
+                            filter(teacher_id == signed_user$id) |>
+                            select(-teacher_id) |>
+                            arrange(desc(time))
+
+                        # Set the column names
+                        colnames(data) <- c("ID", "No. photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status")
+
+                        # Create a reactable with customization
+                        reactable(
+                            data,
+                            searchable = TRUE,
+                            sortable = TRUE,
+                            defaultPageSize = 10,
+                            highlight = TRUE,
+                            wrap = FALSE,
+                            resizable = TRUE,
+                            bordered = TRUE,
+                            columns = list(
+                                Status = colDef(
+                                    style = function(status) {
+                                        ifelse(status == "PENDING" ||
+                                            status == "CANCELLED",
+                                        color <- "#e00000",
+                                        color <- "#008000"
+                                        )
+                                        list(color = color, fontWeight = "bold")
+                                    },
+                                )
+                            ),
+                            theme = reactableTheme(
+                                borderColor = "#ddd",
+                                cellPadding = "8px",
+                                borderWidth = "1px",
+                                highlightColor = "#f0f0f0"
+                            )
+                        )
+                    })
+
+                    output$teacher_students <- renderReactable({
+                        # Filter and arrange the data as needed
+                        data <- rvs$students_data |>
+                            filter(school_name == signed_user$school_name &
+                                grade %in% grades) |>
+                            select(id, user_name, grade, paid)
+
+                        # Set the column names
+                        colnames(data) <- c("ID", "Name", "Grade", "Paid")
+
+                        # Create a reactable with customization
+                        reactable(
+                            data,
+                            searchable = TRUE,
+                            defaultPageSize = 10,
+                            wrap = FALSE,
+                            highlight = TRUE,
+                            borderless = TRUE,
+                            columns = list(
+                                Paid = colDef(
+                                    cell = function(value) {
+                                        if (value == "0") "\u274c" else "\u2714\ufe0f"
+                                    }
+                                )
+                            ),
+                            theme = reactableTheme(
+                                borderColor = "#ddd",
+                                cellPadding = "8px",
+                                borderWidth = "1px",
+                                highlightColor = "#f0f0f0"
+                            ),
+                            groupBy = "Grade",
+                            onClick = "expand",
+                            rowStyle = list(cursor = "pointer")
+                        )
+                    })
+
                     observeEvent(input$request_btn, {
-                        photos <- input$photo_file
+                        ivr$enable() # enable validation check
+                        req(ivr$is_valid()) # ensure checks are valid)
+                        photos <- uploaded_request_files()
+                        if (length(photos) == 0) {
+                            alert_fail_ui(
+                                info = "Upload photos...",
+                                session = session
+                            )
+                            return()
+                        }
+                        req(length(photos) > 0)
                         table_html <- reactable(
                             data = data.frame(
                                 Input = c(
@@ -742,7 +843,7 @@ server <- function(input, output, session) {
                                 ),
                                 Value = stringr::str_trunc(
                                     c(
-                                        nrow(photos),
+                                        length(photos),
                                         input$request_grade,
                                         input$request_learning_area,
                                         input$request_topic,
@@ -771,9 +872,73 @@ server <- function(input, output, session) {
                             text = tags$div(
                                 table_html
                             ),
-                            #              btn_labels = c("Cancel", "Yes"),
+                            showCancelButton = TRUE,
                             html = TRUE
                         )
+                    })
+
+                    observeEvent(input$confirm_request_details, {
+                        shinybusy::show_spinner()
+                        shinyjs::disable("request_btn")
+                        photos <- uploaded_request_files()
+                        # if has confirmed details
+                        if (input$confirm_request_details) {
+                            if (!dir.exists("www/requests")) {
+                                dir.create("www/requests", recursive = TRUE)
+                            }
+                            data <- data.frame(
+                                id = next_request_id("requests"),
+                                teacher_id = signed_user$id,
+                                photos = length(photos),
+                                grade = input$request_grade,
+                                learning_area = input$request_learning_area,
+                                topic = input$request_topic,
+                                sub_topic = input$request_sub_topic,
+                                time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                                status = "PENDING"
+                            )
+
+                            success <- add_new_request(
+                                table_name = "requests",
+                                data = data
+                            )
+
+                            # show alert after completing upload
+                            if (success == 1) {
+                                requests_datapaths <- sapply(
+                                    photos,
+                                    function(file) file$datapath
+                                )
+
+                                # copy pdf to directory
+                                process_uploaded_photos(
+                                    photos = requests_datapaths,
+                                    dest_dir = "www/requests",
+                                    base_id = data$id
+                                )
+
+                                alert_success_ui(
+                                    info = "Request created successfully!",
+                                    session = session
+                                )
+                                # Clear the list after processing
+                                uploaded_request_files(list())
+
+                                # refresh added data
+                                rvs$requests_data <- refresh_table_data(
+                                    table_name = "requests"
+                                )
+                            } else {
+                                alert_fail_ui(
+                                    info = "Details match found...",
+                                    session = session
+                                )
+                            }
+                        } else {
+                            # if has declined to confirm
+                            alert_warn_ui(info = "Details not confirmed...", session = session)
+                        }
+                        shinyjs::enable("request_btn")
                     })
                 } else if (user_role == "developer") {
                 } else {
@@ -801,8 +966,8 @@ server <- function(input, output, session) {
             return(NULL) # Return NULL if validation passes
         })
 
-        ivs$add_rule("doc_school", sv_required())
-        ivs$add_rule("doc_teacher", sv_required())
+        ivs$add_rule("doc_request", sv_required())
+        ivs$add_rule("doc_teacher_id", sv_required())
         ivs$add_rule("doc_grade", sv_required())
         ivs$add_rule("doc_learning_area", sv_required())
         ivs$add_rule("doc_topic", sv_required())
@@ -811,31 +976,15 @@ server <- function(input, output, session) {
         # Update field choices
         observe({
             if (nrow(rvs$school_data) > 0) {
+                requests <- rvs$requests_data |>
+                    filter(status == "PENDING") |>
+                    select(id) |>
+                    unlist() |>
+                    as.vector()
                 updateSelectizeInput(
                     session = session,
-                    inputId = "doc_school",
-                    choices = unique(rvs$school_data$school_name)
-                )
-                updateSelectizeInput(
-                    session = session,
-                    inputId = "student_school",
-                    choices = unique(rvs$school_data$school_name)
-                )
-                updateSelectizeInput(
-                    session = session,
-                    inputId = "teacher_school",
-                    choices = unique(rvs$school_data$school_name)
-                )
-
-                updateSelectizeInput(
-                    session = session,
-                    inputId = "doc_learning_area",
-                    choices = c(
-                        pre_primary,
-                        lower_primary,
-                        upper_primary,
-                        junior_secondary
-                    )
+                    inputId = "doc_request",
+                    choices = requests
                 )
 
                 # hide card sidebar content to allow click first
@@ -843,251 +992,88 @@ server <- function(input, output, session) {
             }
         })
 
-        # observe upload button click
-        observeEvent(input$upload_btn, {
-            ivs$enable() # enable validation check
-            req(ivs$is_valid()) # ensure checks are valid
-
-            # Create a reactable table with the input values
-            table_html <- reactable(
-                data = data.frame(
-                    Input = c(
-                        "PDF File", "School", "Teacher", "Grade",
-                        "Learning Area", "Topic", "Sub Topic"
-                    ),
-                    Value = stringr::str_trunc(
-                        c(
-                            stringr::str_to_title(input$pdfFile$name),
-                            input$doc_school,
-                            input$doc_teacher,
-                            input$doc_grade,
-                            input$doc_learning_area,
-                            input$doc_topic,
-                            input$doc_sub_topic
-                        ),
-                        width = 25
-                    )
-                ),
-                columns = list(
-                    Input = colDef(name = "Input"),
-                    Value = colDef(name = "Value")
-                ),
-                borderless = TRUE,
-                bordered = FALSE,
-                striped = FALSE,
-                outlined = TRUE,
-                wrap = FALSE,
-                resizable = TRUE
-            )
-
-            # Show confirmation dialog with reactable table
-            shinyalert(
+        observeEvent(input$doc_request, {
+            request <- rvs$requests_data |>
+                filter(id == input$doc_request)
+            updateTextInput(
                 session = session,
-                inputId = "confirm_pdf_details",
-                title = NULL,
-                text = tags$div(
-                    table_html
-                ),
-                #              btn_labels = c("Cancel", "Yes"),
-                html = TRUE
+                inputId = "doc_topic",
+                value = request$topic
+            )
+            updateTextInput(
+                session = session,
+                inputId = "doc_learning_area",
+                value = request$learning_area
+            )
+
+            updateTextInput(
+                session = session,
+                inputId = "doc_grade",
+                value = request$grade
+            )
+            updateTextInput(
+                session = session,
+                inputId = "doc_sub_topic",
+                value = request$sub_topic
+            )
+            updateTextInput(
+                session = session,
+                inputId = "doc_teacher_id",
+                value = unique(request$teacher_id)
             )
         })
 
-        # Observe file upload and save the PDF
-        observeEvent(input$confirm_pdf_details, {
-            shinybusy::show_spinner()
-            shinyjs::disable("upload_btn")
-            # if has confirmed details
-            if (input$confirm_pdf_details) {
-                if (!dir.exists("www/pdf")) dir.create("www/pdf", recursive = TRUE)
-                if (!dir.exists("www/images")) dir.create("www/images", recursive = TRUE)
-                pdf_path <- file.path("www/pdf", input$pdfFile$name)
+        output$requests_data <- renderUI({
+            # Filter and arrange the data as needed
+            data <- rvs$requests_data |>
+                filter(teacher_id == signed_user$id) |>
+                arrange(desc(time))
 
-                data <- data.frame(
-                    id = next_pdf_id("content"),
-                    school_name = input$doc_school,
-                    pdf_name = input$pdfFile$name,
-                    teacher = input$doc_teacher,
-                    grade = input$doc_grade,
-                    learning_area = input$doc_learning_area,
-                    topic = input$doc_topic,
-                    sub_topic = input$doc_sub_topic,
-                    time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
-                    views = 0
-                )
+            if (nrow(data) > 0) {
+                # Set the column names
+                colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "details")
 
-                success <- add_new_pdf(table_name = "content", data = data)
-
-                # show alert after completing adding PDF
-                if (success == 1) {
-                    # copy pdf to directory
-                    file.copy(input$pdfFile$datapath, pdf_path)
-
-                    # Convert PDF to images
-                    image_paths <- pdf_to_image(
-                        pdf_path = pdf_path,
-                        file_name = input$pdfFile$name,
-                        output_dir = "www/images"
-                    )
-
-                    # Update reactive pdf paths
-                    rv$pdf_paths <- c(
-                        list(
-                            list(
-                                pdf = pdf_path,
-                                cover = image_paths[[1]]
+                # Create a reactable with download and update features
+                output$table <- renderReactable({
+                    reactable(
+                        data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        highlight = TRUE,
+                        columns = list(
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        "",
+                                        class = "fa fa-chevron-right border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
                             )
                         ),
-                        rv$pdf_paths
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+    // Only handle click events on the 'details' column
+    if (column.id !== 'details') {
+      return
+    }
+      Shiny.setInputValue('show_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+  }")
                     )
-
-                    alert_success_ui(
-                        info = "New PDF uploaded successfully!", session = session
-                    )
-
-                    # refresh added data
-                    rvs$pdf_data <- refresh_table_data(table_name = "content")
-                } else {
-                    alert_fail_ui(info = "PDF Details already exist!", session = session)
-                }
-            } else {
-                # if has declined to confirm
-                alert_warn_ui(info = "Details not confirmed...", session = session)
-            }
-            shinyjs::enable("upload_btn")
-        })
-
-        # output uploaded pdf files in a table
-        output$pdf_data <- renderUI({
-            # get the school data
-            pdf_data <- rvs$pdf_data
-            if (nrow(pdf_data) > 0 & length(rv$pdf_paths) > 0) {
-                argonTable(
-                    headTitles = c(
-                        "ID", "Teacher", "Grade", "Learning Area", "Sub Topic",
-                        "Time", ""
-                    ),
-                    lapply(1:nrow(pdf_data), function(i) {
-                        file_info <- rv$pdf_paths[[i]]
-                        argonTableItems(
-                            argonTableItem(
-                                div(
-                                    class = "d-flex",
-                                    argonAvatar(
-                                        size = "sm",
-                                        src = sub("^www/", "", file_info$cover)
-                                    ),
-                                    div(
-                                        class = "d-flex flex-column justify-content-center px-2",
-                                        h6(class = "mb-0 text-xs", pdf_data$id[i]),
-                                        p(
-                                            class = "text-truncate w-75 text-xs text-default mb-0",
-                                            pdf_data$pdf_name[i]
-                                        )
-                                    )
-                                )
-                            ),
-                            argonTableItem(
-                                div(
-                                    p(class = "text-xs font-weight-bold mb-0", pdf_data$teacher[i]),
-                                    p(class = "text-xs text-default mb-0", pdf_data$school_name[i])
-                                )
-                            ),
-                            argonTableItem(pdf_data$grade[i]),
-                            argonTableItem(
-                                div(
-                                    h6(
-                                        class = "text-xs mb-0 text-truncate w-75",
-                                        pdf_data$learning_area[i]
-                                    ),
-                                    p(class = "text-xs mb-0", pdf_data$topic[i])
-                                )
-                            ),
-                            argonTableItem(pdf_data$sub_topic[i]),
-                            argonTableItem(pdf_data$time[i]),
-                            argonTableItem(
-                                actionButton(
-                                    inputId = paste0("pdf_btn_", i),
-                                    label = "",
-                                    icon = argonIcon("bold-right"),
-                                    size = "sm",
-                                    status = "secondary",
-                                    outline = TRUE,
-                                    flat = TRUE,
-                                    class = "btn-link bg-transparent border-0",
-                                    onclick = sprintf("Shiny.setInputValue('pdf_button', '%s');", i)
-                                )
-                            )
-                        )
-                    })
-                )
+                })
             } else {
                 # show empty status div
                 show_empty_state_ui
             }
         })
-
-        # Observe actions on the PDF table
-        observeEvent(input$pdf_button, {
-            idx <- as.numeric(input$pdf_button)
-            rvs$idx <- idx
-            bslib::toggle_sidebar(id = "card_sidebar", open = TRUE, session = session)
-
-            shinyjs::show("card_sidebar")
-
-            table_data <- rvs$pdf_data
-
-            output$sidebar_content <- renderUI({
-                div(
-                    h4(paste("Details for", table_data$id[idx])),
-                    p(paste("Viewed:", sample(550:1200, 1))),
-                    p(paste("Bought:", sample(100:400, 1))),
-                    p(paste("Cart:", sample(15:100, 1))),
-                    p(paste("Income: Ksh.", sample(2708:5047, 1))),
-                    p(paste("Trend:", "Increasing traffic")),
-                    div(
-                        id = "buttons_pdf",
-                        class = "d-flex justify-content-between",
-                        actionButton("edit_btn", "", icon = icon("pencil")) |>
-                            basic_primary_btn(),
-                        actionButton("delete_btn", "", icon = icon("trash")) |>
-                            basic_primary_btn()
-                    )
-                )
-            })
-        })
-
-        # observe edit button - change price
-        observeEvent(input$edit_btn, {
-            insertUI(
-                ui = div(
-                    class = "pt-3",
-                    knobInput(
-                        inputId = "my_knob",
-                        label = "Adjust %  price:",
-                        value = 0,
-                        min = -99,
-                        displayPrevious = TRUE,
-                        bgColor = "#428BCA",
-                        post = " %",
-                        fontSize = "20px",
-                        inputColor = "#428BCA"
-                    ),
-                    textOutput("new_price")
-                ),
-                selector = "#sidebar_content",
-                where = "beforeEnd"
-            )
-        })
-
-        # output new price
-        # output$new_price <- renderText({
-        # table_data <- rvs$pdf_data
-        # price <- as.numeric(table_data$price[rvs$idx]) +
-        # (input$my_knob / 100) * as.numeric(table_data$price[rvs$idx])
-        # return(paste("Ksh. ", price))
-        # })
-
 
         ## ---- ADMIN REGISTRATION TAB ----
 
@@ -1833,24 +1819,6 @@ server <- function(input, output, session) {
             )
         })
 
-        # monitor network connectivity
-        observeEvent(input$network_status, {
-            if (input$network_status == "offline") {
-                alert_warn_ui(
-                    info = "Oops! You are disconnected...",
-                    session = session,
-                    timer = 0
-                )
-            } else {
-                alert_success_ui(
-                    info = "You are now connected...",
-                    session = session,
-                    timer = 0
-                )
-            }
-        })
-
-
         # show user payments status
         output$payments_data <- renderUI({
             # get the payments data
@@ -2010,5 +1978,283 @@ server <- function(input, output, session) {
             sign_out_from_shiny()
             session$reload()
         })
+    })
+
+    #---- TEACHER REQUESTS ----
+
+    observeEvent(input$photo_file, {
+        req(input$photo_file)
+        new_file <- list(
+            name = input$photo_file$name,
+            datapath = input$photo_file$datapath
+        )
+        current_files <- uploaded_request_files()
+        uploaded_request_files(c(current_files, list(new_file)))
+    })
+
+    output$file_list_ui <- renderUI({
+        files <- uploaded_request_files()
+        if (length(files) == 0) {
+            return(NULL)
+        }
+
+        file_ui <- lapply(seq_along(files), function(i) {
+            file <- files[[i]]
+            # Create a unique ID for each remove button
+            div(
+                class = "d-flex justify-content-center",
+                column(4, p(file$name)),
+                column(2, tags$button(
+                    id = paste0("remove_", i),
+                    class = "btn-danger",
+                    style = "border: none; background: transparent;",
+                    onclick = sprintf("Shiny.setInputValue('delete_file', %d, {priority: 'event'});", i),
+                    icon("trash")
+                ))
+            )
+        })
+
+        do.call(tagList, file_ui)
+    })
+
+    observeEvent(input$delete_file, {
+        file_to_remove <- as.numeric(input$delete_file)
+        if (!is.na(file_to_remove)) {
+            files <- uploaded_request_files()
+            if (file_to_remove <= length(files)) {
+                files <- files[-file_to_remove]
+                uploaded_request_files(files)
+            }
+        }
+    })
+
+    observeEvent(input$show_details, {
+        details <- input$show_details$info
+
+        req_files <- list.files(
+            path = "www/requests",
+            pattern = paste0("^", details$ID, "-"),
+            full.names = TRUE
+        )
+
+        download_buttons <- lapply(seq_along(req_files), function(i) {
+            file_name <- basename(req_files[i])
+            downloadButton(
+                outputId = paste0("download_", i),
+                label = file_name,
+                class = "mb-2 text-white bg-default"
+            ) |>
+                download_btn()
+        })
+
+        showModal(modalDialog(
+            easyClose = TRUE,
+            title = paste("Details for", details$ID),
+            footer = NULL,
+            div(
+                class = "pb-3",
+                tags$p("Download images:"),
+                div(
+                    class = "pb-3",
+                    download_buttons
+                ),
+                div(
+                    class = "d-flex align-items-center
+                    justify-content-evenly",
+                    selectInput(
+                        inputId = "edit_request_status",
+                        label = "Change request status",
+                        choices = c("PROCESSING", "CANCELLED")
+                    ),
+                    actionButton(
+                        inputId = "change_request_status",
+                        label = "",
+                        icon = icon("check"),
+                        class = "btn-circle bg-default mt-3"
+                    )
+                )
+            )
+        ))
+
+        if (details$details != "PENDING") {
+            shinyjs::disable("edit_request_status")
+            shinyjs::disable("change_request_status")
+        }
+
+        lapply(seq_along(req_files), function(i) {
+            local({
+                my_i <- i
+                my_file <- req_files[my_i]
+                output[[paste0("download_", my_i)]] <- downloadHandler(
+                    filename = function() {
+                        basename(my_file)
+                    },
+                    content = function(file) {
+                        file.copy(my_file, file)
+                    }
+                )
+            })
+        })
+    })
+    observeEvent(input$change_request_status, {
+        details <- input$show_details$info
+
+        update <- update_request_status(
+            request_id = details$ID,
+            new_status = input$edit_request_status
+        )
+        if (update) {
+            alert_success_ui(
+                info = "Status updated...",
+                session = session
+            )
+            rvs$requests_data <- refresh_table_data("requests")
+        } else {
+            alert_fail_ui(
+                info = "An error occured...",
+                session = session
+            )
+        }
+        removeModal()
+    })
+
+
+    # monitor network connectivity
+    observeEvent(input$network_status, {
+        if (input$network_status == "offline") {
+            alert_warn_ui(
+                info = "Oops! You are disconnected...",
+                session = session,
+                timer = 0
+            )
+        } else {
+            alert_success_ui(
+                info = "You are now connected...",
+                session = session,
+                timer = 0
+            )
+        }
+    })
+
+    # observe upload button click
+    observeEvent(input$upload_btn, {
+        ivs$enable() # enable validation check
+        req(ivs$is_valid()) # ensure checks are valid
+
+        # Create a reactable table with the input values
+        table_html <- reactable(
+            data = data.frame(
+                Input = c(
+                    "PDF File", "Teacher", "Grade",
+                    "Learning Area", "Topic", "Sub Topic"
+                ),
+                Value = stringr::str_trunc(
+                    c(
+                        stringr::str_to_title(input$pdfFile$name),
+                        input$doc_teacher_id,
+                        input$doc_grade,
+                        input$doc_learning_area,
+                        input$doc_topic,
+                        input$doc_sub_topic
+                    ),
+                    width = 25
+                )
+            ),
+            columns = list(
+                Input = colDef(name = "Input"),
+                Value = colDef(name = "Value")
+            ),
+            borderless = TRUE,
+            bordered = FALSE,
+            striped = FALSE,
+            outlined = TRUE,
+            wrap = FALSE,
+            resizable = ,
+            class = "text-body_1"
+        )
+
+        # Show confirmation dialog with reactable table
+        shinyalert(
+            session = session,
+            inputId = "confirm_pdf_details",
+            title = NULL,
+            text = tags$div(
+                table_html
+            ),
+            showCancelButton = TRUE,
+            confirmButtonCol = "#1D2856",
+            html = TRUE
+        )
+    })
+
+    # Observe file upload and save the PDF
+    observeEvent(input$confirm_pdf_details, {
+        shinybusy::show_spinner()
+        shinyjs::disable("upload_btn")
+        # if has confirmed details
+        if (input$confirm_pdf_details) {
+            if (!dir.exists("www/pdf")) dir.create("www/pdf", recursive = TRUE)
+            if (!dir.exists("www/images")) dir.create("www/images", recursive = TRUE)
+            pdf_path <- file.path("www/pdf", input$pdfFile$name)
+
+            teacher_name <- rvs$teachers_data |>
+                filter(id == input$doc_teacher_id) |>
+                select(user_name) |>
+                unlist() |>
+                as.vector()
+
+            data <- data.frame(
+                id = next_pdf_id("content"),
+                pdf_name = stringr::str_to_title(input$pdfFile$name),
+                teacher = teacher_name,
+                grade = input$doc_grade,
+                learning_area = input$doc_learning_area,
+                topic = input$doc_topic,
+                sub_topic = input$doc_sub_topic,
+                time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                views = 0
+            )
+
+            success <- add_new_pdf(table_name = "content", data = data)
+
+            # show alert after completing adding PDF
+            if (success == 1) {
+                # copy pdf to directory
+                file.copy(input$pdfFile$datapath, pdf_path)
+                update_request_status(
+                    request_id = input$doc_request,
+                    new_status = "APPROVED"
+                )
+
+                req_files <- list.files(
+                    path = "www/requests",
+                    pattern = paste0("^",  input$doc_request, "-"),
+                    full.names = TRUE
+                )
+                file.remove(req_files)
+                
+                # Convert PDF to images
+                image_paths <- pdf_to_image(
+                    pdf_path = pdf_path,
+                    file_name = input$pdfFile$name,
+                    output_dir = "www/images"
+                )
+
+                alert_success_ui(
+                    info = "New PDF uploaded successfully!",
+                    session = session
+                )
+
+                # refresh added data
+                rvs$pdf_data <- refresh_table_data(table_name = "content")
+                rvs$requests_data <- refresh_table_data(table_name = "requests")
+            } else {
+                alert_fail_ui(info = "PDF Details already exist!", session = session)
+            }
+        } else {
+            # if has declined to confirm
+            alert_warn_ui(info = "Details not confirmed...", session = session)
+        }
+        shinyjs::enable("upload_btn")
     })
 }

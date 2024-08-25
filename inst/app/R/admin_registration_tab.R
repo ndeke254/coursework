@@ -1,4 +1,5 @@
 admin_registration_tab <- div(
+  class = "container mt-5 mb-5",
   argonTabSet(
     id = "registration_tabset",
     horizontal = TRUE,
@@ -12,120 +13,102 @@ admin_registration_tab <- div(
     argonTab(
       tabName = "Upload",
       active = TRUE,
-      argonRow(
+      fluidRow(
         center = TRUE,
-        argonR::argonCard(
-          title = h6("Upload PDF"),
-          shadow = TRUE,
-          border_level = 5,
-          icon = icon("upload", class = "default"),
-          status = "default",
-          width = 12,
-          argonTabSet(
-            id = "upload_tabset",
-            circle = TRUE,
-            horizontal = TRUE,
-            width = 12,
-            iconList = list(
-              argonIcon("books", color = "body"),
-              argonIcon("ungroup", color = "body")
-            ),
-            argonTab(
-              tabName = "Content",
-              active = TRUE,
-              p("All fields are required", class = "mt-5"),
-              div(
-                class = "d-flex justify-content-center",
-                fileInput(
-                  inputId = "pdfFile",
-                  label = "Select a PDF",
-                  width = 500,
-                  accept = c(".pdf")
-                )
-              ),
-              argonRow(
-                argonColumn(
-                  width = 4,
-               shiny::selectizeInput(
-                 inputId = "doc_school",
-                 label = label_mandatory("School:"),
-                 options = list(maxOptions = 3),
-                 choices = NULL
-               )
-                ),
-                argonColumn(
-                  width = 4,
-                  shiny::selectizeInput(
-                    inputId = "doc_teacher",
-                    label = label_mandatory("Teacher:"),
-                    choices = NULL,
-                    options = list(maxOptions = 5)
-                  )
-                ),
-                argonColumn(
-                  width = 4,
-                  shiny::selectizeInput(
-                    inputId = "doc_grade",
-                    label = label_mandatory("Grade:"),
-                    choices = NULL,
-                    options = list(maxOptions = 5)
-                  )
-                )
-              ),
-              argonRow(
-                argonColumn(
-                  width = 4,
-                  shiny::selectizeInput(
-                    inputId = "doc_learning_area",
-                    label = label_mandatory("Learning Area:"),
-                    choices = NULL,
-                    options = list(maxOptions = 5)
-                  )
-                ),
-                argonColumn(
-                  width = 4,
-                  shiny::textInput(
-                    inputId = "doc_topic",
-                    label = label_mandatory("Topic:"),
-                    placeholder = "Eg. Addition"
-                  )
-                ),
-                argonColumn(
-                  width = 4,
-                  shiny::textInput(
-                    inputId = "doc_sub_topic",
-                    label_mandatory("Sub-topic:"),
-                    value = "",
-                    placeholder = "Eg. Long division method"
-                  )
-                )
-              ),
-              actionButton(
-                inputId = "upload_btn",
-                label = "Publish PDF",
-                class = "mt-2 mb-2 float-right"
-              ) |>
-                basic_primary_btn()
-            ),
-            argonTab(
-              tabName = "General",
-              p("All fields are required", class = "mt-5")
+        div(
+          class = "card card-body p-4",
+          p("All fields are required", class = "mt-5"),
+          div(
+            class = "d-flex justify-content-center",
+            fileInput(
+              inputId = "pdfFile",
+              label = "Select a PDF",
+              width = 500,
+              accept = c(".pdf")
             )
+          ),
+          fluidRow(
+            column(
+              width = 3,
+              shiny::selectizeInput(
+                inputId = "doc_request",
+                label = label_mandatory("Request ID:"),
+                options = list(maxOptions = 3),
+                choices = NULL
+              )
+            ),
+            column(
+              width = 3,
+              disabled(
+                shiny::textInput(
+                  inputId = "doc_teacher_id",
+                  label = label_mandatory("Teacher:"),
+                  placeholder = "Eg. John Kamau"
+                )
+              )
+            ),
+            column(
+              width = 3,
+              disabled(
+                shiny::textInput(
+                  inputId = "doc_grade",
+                  label = label_mandatory("Grade:"),
+                  placeholder = "Eg. Grade 6"
+                )
+              )
+            ),
+            column(
+              width = 3,
+              disabled(
+                shiny::textInput(
+                  inputId = "doc_learning_area",
+                  label = label_mandatory("Learning Area:"),
+                  placeholder = "Eg. Mathematics"
+                )
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              width = 3,
+              disabled(
+                shiny::textInput(
+                  inputId = "doc_topic",
+                  label = label_mandatory("Topic:"),
+                  placeholder = "Eg. Addition"
+                )
+              )
+            ),
+            column(
+              width = 3,
+              disabled(
+                shiny::textInput(
+                  inputId = "doc_sub_topic",
+                  label_mandatory("Sub-topic:"),
+                  value = "",
+                  placeholder = "Eg. Long division method"
+                )
+              )
+            )
+          ),
+          div(
+            class = "d-flex justify-content-center",
+            actionButton(
+              inputId = "upload_btn",
+              label = "Publish PDF",
+              class = "mt-2 mb-2 float-right"
+            ) |>
+              basic_primary_btn()
           )
         )
       )
     ),
     argonTab(
       tabName = "Registration",
-      argonRow(
+      fluidRow(
         center = TRUE,
-        argonCard(
-          title = h6("School Registration"),
-          status = "default",
-          border_level = 5,
-          shadow = TRUE,
-          icon = icon("address-card"),
-          width = 12,
+        bslib::card(
+          h6("School Registration"),
           tags$head(
             tags$style(HTML(
               " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
@@ -163,8 +146,8 @@ admin_registration_tab <- div(
             div(
               id = "tab_1",
               h6("Details:", class = "mt--3 mb-3"),
-              argonRow(
-                argonColumn(
+              fluidRow(
+                column(
                   width = 4,
                   shiny::textInput(
                     inputId = "school_name",
@@ -173,7 +156,7 @@ admin_registration_tab <- div(
                     placeholder = "Eg. Lenga Juu"
                   )
                 ),
-                argonColumn(
+                column(
                   width = 4,
                   shiny::selectizeInput(
                     inputId = "school_level",
@@ -184,7 +167,7 @@ admin_registration_tab <- div(
                     )
                   )
                 ),
-                argonColumn(
+                column(
                   width = 4,
                   shiny::selectizeInput(
                     inputId = "school_type",
@@ -193,8 +176,8 @@ admin_registration_tab <- div(
                   )
                 )
               ),
-              argonRow(
-                argonColumn(
+              fluidRow(
+                column(
                   width = 4,
                   shiny::selectizeInput(
                     inputId = "county",
@@ -203,7 +186,7 @@ admin_registration_tab <- div(
                     options = list(maxOptions = 5)
                   )
                 ),
-                argonColumn(
+                column(
                   width = 4,
                   shiny::textInput(
                     inputId = "school_email",
@@ -212,7 +195,7 @@ admin_registration_tab <- div(
                     placeholder = "Eg. johnwekesa@gmail.com"
                   )
                 ),
-                argonColumn(
+                column(
                   width = 4,
                   autonumericInput(
                     inputId = "doc_price",
@@ -227,7 +210,7 @@ admin_registration_tab <- div(
             ),
             div(
               id = "tab_2",
-              argonColumn(
+              column(
                 width = 12,
                 p("Confirm school details", class = "mt-3"),
                 uiOutput("confirm_school_data")
@@ -271,15 +254,9 @@ admin_registration_tab <- div(
     ),
     argonTab(
       tabName = "Manage",
-      argonRow(
+      fluidRow(
         center = TRUE,
-        argonCard(
-          title = h6("Records"),
-          status = "default",
-          border_level = 5,
-          shadow = TRUE,
-          icon = argonIcon("key-25"),
-          width = 12,
+        bslib::card(
           argonTabSet(
             id = "users",
             circle = TRUE,
@@ -288,7 +265,8 @@ admin_registration_tab <- div(
               icon = icon("school"),
               icon = icon("chalkboard-user"),
               icon = icon("children"),
-              argonIcon("collection", color = "body")
+              icon = icon("clock"),
+              icon = icon("file-pdf")
             ),
             argonTab(
               tabName = "School",
@@ -307,17 +285,25 @@ admin_registration_tab <- div(
               uiOutput("students_data")
             ),
             argonTab(
-              tabName = "Content",
-              p("Existing PDFs", class = "mt-5"),
+              tabName = "Requests",
+              p("Pending requests:", class = "mt-5"),
               bslib::card(
                 id = "pdf_card",
+                uiOutput("requests_data")
+              )
+            ),
+            argonTab(
+              tabName = "Content",
+              p("Published content:", class = "mt-5"),
+              bslib::card(
+                id = "pdf_card",
+                sidebar = bslib::sidebar(
+                  id = "card_sidebar",
+                  position = "right",
+                  open = FALSE,
+                  uiOutput("sidebar_content")
+                ),
                 bslib::layout_sidebar(
-                  sidebar = bslib::sidebar(
-                    id = "card_sidebar",
-                    position = "right",
-                    open = FALSE,
-                    uiOutput("sidebar_content")
-                  ),
                   uiOutput("pdf_data")
                 )
               )

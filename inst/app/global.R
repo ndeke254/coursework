@@ -23,7 +23,6 @@ library(stringr)
 library(magrittr)
 
 
-
 # counties in Kenya
 # used as a choices input in school registration tab
 kenyan_counties <- c(
@@ -39,46 +38,29 @@ kenyan_counties <- c(
   "Vihiga", "Wajir", "West Pokot"
 )
 
-# Learning areas in various school levels
-lower_primary <- c(
-  "Indigenous Language",
-  "Kiswahili",
-  "Mathematics",
-  "English",
-  "Religious Education",
-  "Environmental(Hygiene/Nutrition) activities",
-  "Creative activities"
-)
-upper_primary <- c(
-  "English",
-  "Mathematics",
-  "Kiswahili",
-  "Religious Education",
-  "Agriculture and Nutrition Activities",
-  "Social studies",
-  "Creative Arts",
-  "Science and Technology"
-)
-pre_primary <- c(
-  "Language Activities",
-  "Mathematics Activities",
-  "Creative Activities",
-  "Environmental Activities",
-  "Religious Activities",
-  "Pastoral Programme of Instruction (PPI)"
-)
-junior_secondary <- c(
-  "Social Studies and Life Skills",
-  "Agriculture and Home Science",
-  "Integrated Science and Health Education",
-  "Pre Technical Studies, Computer Studies and Business Studies",
-  "Visual Arts, Performing Arts, Sports and PE",
-  "Mathematics",
-  "English",
-  "Kiswahili",
-  "Religious Education"
-)
-
+# Learning areas
+learning_areas <- c(
+   "Indigenous Language",
+   "Kiswahili",
+   "Mathematics",
+   "English",
+   "Religious Education",
+   "Environmental(Hygiene/Nutrition) activities",
+   "Agriculture and Nutrition Activities",
+   "Social studies",
+   "Creative Arts",
+   "Science and Technology",
+   "Language Activities",
+   "Creative Activities",
+   "Environmental Activities",
+   "Religious Activities",
+   "Pastoral Programme of Instruction (PPI)",
+   "Social Studies and Life Skills",
+   "Agriculture and Home Science",
+   "Integrated Science and Health Education",
+   "Pre Technical Studies, Computer Studies and Business Studies",
+   "Visual Arts, Performing Arts, Sports and PE"
+ )
 
 # Retrieve credentials
 app_name <- Sys.getenv("POLISHED_APP_NAME")
@@ -120,5 +102,8 @@ basic_primary_btn <- function(btn) {
   return(html_tag_q$allTags())
 }
 
-
-
+download_btn <- function(btn) {
+  html_tag_q <- htmltools::tagQuery(btn)
+  html_tag_q$removeClass("disabled")
+  return(html_tag_q$allTags())
+}

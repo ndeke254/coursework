@@ -12,3 +12,4 @@ basic_primary_btn <- function(btn) {
   html_tag_q$removeClass("btn-default")
   return(html_tag_q$allTags())
 }
+
