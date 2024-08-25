@@ -1,12 +1,12 @@
-#' Add a new PDF details into the DB.
+#' Add a new request into the DB.
 #'
 #' @param table_name Name of the table to add a record to.
 #' @param data A data.frame of the data to be added.
-#' @return double `1` if school was created. `0` otherwise.
+#' @return double `1` if the request was created, `0` otherwise.
 #' @import prodlim
 #' @import dplyr
 #' @export
-add_new_pdf <- function(table_name, data) {
+add_new_request <- function(table_name, data) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
 
@@ -17,18 +17,20 @@ add_new_pdf <- function(table_name, data) {
   # Read the DB table
   table_data <- DBI::dbReadTable(conn, table_name)
 
-  # Check if the school name or email already exists
-  available <- table_data |>
-    select(pdf_name, teacher, grade)
-  new_data <- c(data$pdf_name, data$teacher, data$grade)
+  # Check if the request already exists (e.g., by request ID or other unique identifier)
+  available <- table_data |> 
+  select(teacher_id, grade, learning_area, topic, sub_topic)
+  new_data <- data |> 
+  select(teacher_id, grade, learning_area, topic, sub_topic)
 
-  # check for a row with match
+  # check for a row with a matching request ID
   match <- prodlim::row.match(new_data, available)
 
   if (is.na(match)) {
+    # Append the new request to the table
     DBI::dbAppendTable(conn = conn, name = table_name, value = data)
-    return(1) # School successfully added
+    return(1) # Request successfully added
   } else {
-    return(0) # School already exists
+    return(0) # Request already exists
   }
 }

@@ -44,9 +44,6 @@ ui <- bslib::page(
     src = file.path("js", "landing-page.js")
   ),
   tags$script(
-    src = file.path("js", "main.js")
-  ),
-  tags$script(
     src = file.path("js", "script.js")
   ),
   shinybusy::add_busy_spinner(

@@ -803,9 +803,6 @@ h1.display-3.text-white.fw-bold {
   display: block;
 }
 
-.Reactable.ReactTable.rt-outlined.rt-borderless.rt-nowrap {
-  background-color: var(--primary);
-}
 .user-dropdown {
   position: relative;
   display: inline-block;
@@ -827,4 +824,7 @@ h1.display-3.text-white.fw-bold {
 .user-icon {
   font-size: 24px;
   cursor: pointer;
+}
+.card-details {
+  color: #1D2856;
 }
