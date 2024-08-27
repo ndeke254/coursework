@@ -1,5 +1,24 @@
 admin_registration_tab <- div(
   class = "container mt-5 mb-5",
+  fluidRow(
+    textInput(
+      inputId = "term_label",
+      label = "Term label:",
+      placeholder = "Enter term label"
+    ),
+    airDatepickerInput(
+      inputId = "term_end_date",
+      label = "Current Term End Date:",
+      value = Sys.Date(),
+      autoClose = TRUE
+    )
+  ),
+  fluidRow(
+    actionButton(
+      inputId = "set_term_end",
+      label = "Set"
+    )
+  ),
   argonTabSet(
     id = "registration_tabset",
     horizontal = TRUE,
@@ -210,8 +229,8 @@ admin_registration_tab <- div(
             shinyjs::hidden(
               div(
                 id = "tab_2",
-                  p("Confirm school details", class = "mt-3"),
-                  uiOutput("confirm_school_data")
+                p("Confirm school details", class = "mt-3"),
+                uiOutput("confirm_school_data")
               )
             ),
             div(
@@ -264,27 +283,37 @@ admin_registration_tab <- div(
               icon = icon("chalkboard-user"),
               icon = icon("children"),
               icon = icon("clock"),
+              icon = icon("file-pdf"),
               icon = icon("file-pdf")
             ),
             argonTab(
               tabName = "School",
               active = TRUE,
               p("Existing schools data", class = " fw-semibold mt-3"),
-              uiOutput("school_data")
+              bslib::card(
+                id = "pdf_card",
+                uiOutput("school_data")
+              )
             ),
             argonTab(
               tabName = "Teacher",
-              p("Existing teachers data", class = "mt-5"),
-              uiOutput("teachers_data")
+              p("Existing teachers data", class = " fw-semibold mt-3"),
+              bslib::card(
+                id = "pdf_card",
+                uiOutput("teachers_data")
+              )
             ),
             argonTab(
               tabName = "Student",
-              p("Existing students data", class = "mt-5"),
-              uiOutput("students_data")
+              p("Existing students data", class = " fw-semibold mt-3"),
+              bslib::card(
+                id = "pdf_card",
+                uiOutput("students_data")
+              )
             ),
             argonTab(
               tabName = "Requests",
-              p("Pending requests:", class = "mt-5"),
+              p("Pending requests:", class = " fw-semibold mt-3"),
               bslib::card(
                 id = "pdf_card",
                 uiOutput("requests_data")
@@ -292,18 +321,26 @@ admin_registration_tab <- div(
             ),
             argonTab(
               tabName = "Content",
-              p("Published content:", class = "mt-5"),
+              p("Published content:", class = " fw-semibold mt-3"),
               bslib::card(
                 id = "pdf_card",
-                sidebar = bslib::sidebar(
-                  id = "card_sidebar",
-                  position = "right",
-                  open = FALSE,
-                  uiOutput("sidebar_content")
-                ),
                 bslib::layout_sidebar(
+                  sidebar = bslib::sidebar(
+                    id = "card_sidebar",
+                    position = "right",
+                    open = FALSE,
+                    uiOutput("sidebar_content")
+                  ),
                   uiOutput("pdf_data")
                 )
+              )
+            ),
+            argonTab(
+              tabName = "Payments",
+              p("Payments records:", class = " fw-semibold mt-3"),
+              bslib::card(
+                id = "pdf_card",
+                uiOutput("payments_data")
               )
             )
           )

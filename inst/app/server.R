@@ -235,8 +235,8 @@ server <- function(input, output, session) {
         } else {
             alert_fail_ui(
                 info = "Name or email or phone already exists!",
-                 session = session
-                 )
+                session = session
+            )
         }
     })
 
@@ -466,9 +466,14 @@ server <- function(input, output, session) {
                         )
                     })
                     # Filter the student content based on the signed-in user's grade and school
+                    signed_student_teachers <- rvs$teachers_data |>
+                        filter(school_name == signed_user$school_name) |>
+                        select(user_name) |>
+                        unlist() |>
+                        as.vector()
                     student_content <- rvs$pdf_data %>%
                         filter(grade == signed_user$grade &
-                            school_name == signed_user$school_name)
+                            teacher %in% signed_student_teachers)
 
                     # Initialize reactive values
                     rvts <- reactiveValues(data = student_content)
@@ -1054,6 +1059,7 @@ server <- function(input, output, session) {
                             details = colDef(
                                 name = "",
                                 sortable = FALSE,
+                                align = "center",
                                 cell = function() {
                                     htmltools::tags$button(
                                         "",
@@ -1083,6 +1089,59 @@ server <- function(input, output, session) {
             }
         })
 
+        output$payments_data <- renderUI({
+            # Filter and arrange the data as needed
+            data <- rvs$payments_data |>
+                filter(teacher_id == signed_user$id) |>
+                arrange(desc(time))
+
+            if (nrow(data) > 0) {
+                # Set the column names
+                colnames(data) <- c("Serial", "ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "details")
+
+                # Create a reactable with download and update features
+                output$table <- renderReactable({
+                    reactable(
+                        data = data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        resizable = TRUE,
+                        defaultPageSize = 10,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                align = "center",
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        "",
+                                        class = "fa fa-chevron-right border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
+                            )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                        if (column.id !== 'details') {
+                        return
+                         }
+                     Shiny.setInputValue('show_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                     }")
+                    )
+                })
+            } else {
+                # show empty status div
+                show_empty_state_ui
+            }
+        })
         ## ---- ADMIN REGISTRATION TAB ----
 
         # add validation rules
@@ -1209,7 +1268,7 @@ server <- function(input, output, session) {
 
             if (nrow(table_data) > 0) {
                 # Set the column names
-                i <- 2
+
                 colnames(table_data) <- c("ID", "Name", "Level", "Type", "County", "Email", "Price", "Time", "Status", "details")
 
                 output$table1 <- renderReactable({
@@ -1253,10 +1312,11 @@ server <- function(input, output, session) {
                             details = colDef(
                                 name = "",
                                 sortable = FALSE,
+                                align = "center",
                                 cell = function() {
                                     htmltools::tags$button(
                                         id = "",
-                                        class = "fa fa-ellipsis-v border-0 bg-transparent mt-3",
+                                        class = "bi bi-three-dots-vertical border-0 bg-transparent mt-3",
                                         `aria-hidden` = "true"
                                     )
                                 }
@@ -1285,88 +1345,79 @@ server <- function(input, output, session) {
         # output table for already exisiting teacher data
         output$teachers_data <- renderUI({
             # get the teachers data
-            teachers_data <- rvs$teachers_data
+            teachers_data <- rvs$teachers_data |>
+                arrange(desc(time)) |>
+                mutate(details = NA)
+
+            colnames(teachers_data) <- c(
+                "ID", "Name", "School", "Grade", "Phone",
+                "Email", "Time", "Status", "Views", "details"
+            )
+
             if (nrow(teachers_data) > 0) {
-                argonTable(
-                    headTitles = c("ID", "School", "Grade", "Type", "Phone", "Status", ""),
-                    lapply(1:nrow(teachers_data), function(i) {
-                        argonTableItems(
-                            argonTableItem(
-                                div(
-                                    class = "d-flex flex-column justify-content-center",
-                                    h6(class = "mb-0 text-xs", teachers_data$user_name[i]),
-                                    p(class = "text-xs text-default mb-0", teachers_data$id[i])
-                                )
-                            ),
-                            argonTableItem(
-                                div(
-                                    p(
-                                        class = "text-xs font-weight-bold mb-0",
-                                        teachers_data$school_name[i]
-                                    ),
-                                    p(
-                                        class = "text-truncate w-50 text-xs text-default mb-0",
-                                        teachers_data$email[i]
-                                    )
-                                )
-                            ),
-                            argonTableItem(teachers_data$grade[i]),
-                            argonTableItem(paste("+254", teachers_data$phone[i])),
-                            argonTableItem(
-                                dataCell = TRUE,
-                                argonBadge(
-                                    text = teachers_data$status[i],
-                                    status = ifelse(teachers_data$status[i] == "Enabled", "success",
-                                        "primary"
-                                    )
-                                )
-                            ),
-                            argonTableItem(
-                                dropMenu(
-                                    class = "well",
-                                    actionButton(
-                                        inputId = paste0("btn_", i),
-                                        label = "",
-                                        icon = icon("ellipsis-v"),
-                                        size = "sm",
-                                        status = "secondary",
-                                        outline = TRUE,
-                                        flat = TRUE,
-                                        class = "btn-link bg-transparent border-0",
-                                        onclick = sprintf("Shiny.setInputValue('action_button',
-                  '%s');", i)
-                                    ),
+                output$table2 <- renderReactable({
+                    reactable(
+                        data = teachers_data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        resizable = TRUE,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            ID = colDef(
+                                cell = function(value, index) {
+                                    name <- teachers_data$Name[index]
                                     div(
-                                        class = "pt-2",
-                                        h5(teachers_data$school_name[i]),
-                                        div(
-                                            class = "mb--4",
-                                            onclick = sprintf("Shiny.setInputValue('status_button',
-                    '%s');", i),
-                                            materialSwitch(
-                                                inputId = paste0("status_", i),
-                                                label = teachers_data$status[i],
-                                                value = ifelse(teachers_data$status[i] == "Enabled", TRUE,
-                                                    FALSE
-                                                ),
-                                                status = "success"
-                                            )
-                                        ),
-                                        actionButton(
-                                            inputId = paste0("del_btn_", i),
-                                            label = "Delete",
-                                            icon = icon("trash"),
-                                            status = "primary",
-                                            class = "btn-link bg-transparent mx--3 border-0",
-                                            onclick = sprintf("Shiny.setInputValue('del_button',
-                    '%s');", i)
-                                        )
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), name)
                                     )
-                                )
+                                }
+                            ),
+                            Phone = colDef(format = colFormat(
+                                prefix = "+254"
+                            )),
+                            Time = colDef(
+                                minWidth = 150
+                            ),
+                            School = colDef(
+                                cell = function(value, index) {
+                                    grade <- teachers_data$Grade[index]
+                                    div(
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), grade)
+                                    )
+                                }
+                            ),
+                            Name = colDef(show = FALSE),
+                            Grade = colDef(show = FALSE),
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                align = "center",
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        id = "",
+                                        class = "bi bi-three-dots-vertical border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
                             )
-                        )
-                    })
-                )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('teacher_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+                    )
+                })
             } else {
                 # show empty status div
                 show_empty_state_ui
@@ -1376,88 +1427,79 @@ server <- function(input, output, session) {
         # output table for already exisiting students data
         output$students_data <- renderUI({
             # get the student data
-            students_data <- rvs$students_data
+            students_data <- rvs$students_data |>
+                arrange(desc(time)) |>
+                mutate(details = NA)
+
+            colnames(students_data) <- c(
+                "ID", "Name", "School", "Grade", "Phone",
+                "Email", "Time", "Status", "Paid", "details"
+            )
+
             if (nrow(students_data) > 0) {
-                argonTable(
-                    headTitles = c("ID", "School", "Grade", "Phone", "Status", ""),
-                    lapply(1:nrow(students_data), function(i) {
-                        argonTableItems(
-                            argonTableItem(
-                                div(
-                                    class = "d-flex flex-column justify-content-center",
-                                    h6(class = "mb-0 text-xs", students_data$user_name[i]),
-                                    p(class = "text-xs text-default mb-0", students_data$id[i])
-                                )
-                            ),
-                            argonTableItem(
-                                div(
-                                    p(
-                                        class = "text-xs font-weight-bold mb-0",
-                                        students_data$school_name[i]
-                                    ),
-                                    p(
-                                        class = "text-truncate w-50 text-xs text-default mb-0",
-                                        students_data$email[i]
-                                    )
-                                )
-                            ),
-                            argonTableItem(students_data$grade[i]),
-                            argonTableItem(paste("+254", students_data$phone[i])),
-                            argonTableItem(
-                                dataCell = TRUE,
-                                argonBadge(
-                                    text = students_data$status[i],
-                                    status = ifelse(students_data$status[i] == "Enabled", "success",
-                                        "primary"
-                                    )
-                                )
-                            ),
-                            argonTableItem(
-                                dropMenu(
-                                    class = "well",
-                                    actionButton(
-                                        inputId = paste0("btn_", i),
-                                        label = "",
-                                        icon = icon("ellipsis-v"),
-                                        size = "sm",
-                                        status = "secondary",
-                                        outline = TRUE,
-                                        flat = TRUE,
-                                        class = "btn-link bg-transparent border-0",
-                                        onclick = sprintf("Shiny.setInputValue('action_button',
-                  '%s');", i)
-                                    ),
+                output$table3 <- renderReactable({
+                    reactable(
+                        data = students_data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        resizable = TRUE,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            ID = colDef(
+                                cell = function(value, index) {
+                                    name <- students_data$Name[index]
                                     div(
-                                        class = "pt-2",
-                                        h5(students_data$school_name[i]),
-                                        div(
-                                            class = "mb--4",
-                                            onclick = sprintf("Shiny.setInputValue('status_button',
-                    '%s');", i),
-                                            materialSwitch(
-                                                inputId = paste0("status_", i),
-                                                label = students_data$status[i],
-                                                value = ifelse(students_data$status[i] == "Enabled", TRUE,
-                                                    FALSE
-                                                ),
-                                                status = "success"
-                                            )
-                                        ),
-                                        actionButton(
-                                            inputId = paste0("del_btn_", i),
-                                            label = "Delete",
-                                            icon = icon("trash"),
-                                            status = "primary",
-                                            class = "btn-link bg-transparent mx--3 border-0",
-                                            onclick = sprintf("Shiny.setInputValue('del_button',
-                    '%s');", i)
-                                        )
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), name)
                                     )
-                                )
+                                }
+                            ),
+                            Phone = colDef(format = colFormat(
+                                prefix = "+254"
+                            )),
+                            Time = colDef(
+                                minWidth = 150
+                            ),
+                            School = colDef(
+                                cell = function(value, index) {
+                                    grade <- students_data$Grade[index]
+                                    div(
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), grade)
+                                    )
+                                }
+                            ),
+                            Name = colDef(show = FALSE),
+                            Grade = colDef(show = FALSE),
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                align = "center",
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        id = "",
+                                        class = "bi bi-three-dots-vertical border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
                             )
-                        )
-                    })
-                )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('student_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+                    )
+                })
             } else {
                 # show empty status div
                 show_empty_state_ui
@@ -1508,39 +1550,141 @@ server <- function(input, output, session) {
             )
         })
 
+
+        output$pdf_data <- renderUI({
+            # get the teachers data
+            pdf_data <- rvs$pdf_data |>
+                arrange(desc(time)) |>
+                mutate(details = NA)
+
+            colnames(pdf_data) <- c(
+                "ID", "Name", "Teacher", "Grade", "Learning Area",
+                "Topic", "Sub Topic", "Time", "Views", "details"
+            )
+
+            if (nrow(pdf_data) > 0) {
+                output$table4 <- renderReactable({
+                    reactable(
+                        data = pdf_data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        resizable = TRUE,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            ID = colDef(
+                                cell = function(value, index) {
+                                    name <- pdf_data$Name[index]
+                                    div(
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), name)
+                                    )
+                                }
+                            ),
+                            Time = colDef(
+                                minWidth = 150
+                            ),
+                            Teacher = colDef(
+                                cell = function(value, index) {
+                                    grade <- pdf_data$Grade[index]
+                                    div(
+                                        div(value),
+                                        div(style = list(fontSize = "0.75rem"), grade)
+                                    )
+                                }
+                            ),
+                            Name = colDef(show = FALSE),
+                            Grade = colDef(show = FALSE),
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                align = "center",
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        id = "",
+                                        class = "bi bi-chevron-right border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
+                                    )
+                                }
+                            )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('teacher_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+                    )
+                })
+            } else {
+                # show empty status div
+                show_empty_state_ui
+            }
+        })
+
         # show user payments status
         output$payments_data <- renderUI({
             # get the payments data
             payments_data <- rvs$payments_data |>
-                filter(
-                    user_email == email
-                )
+                arrange(desc(time)) |>
+                mutate(details = NA)
+
+            colnames(payments_data) <- c(
+                "ID", "Code", "Amount", "Number", "Time",
+                "Term", "Status", "details"
+            )
+
             if (nrow(payments_data) > 0) {
-                argonTable(
-                    headTitles = c(
-                        "Transaction Code", "Amount", "Number",
-                        "Time", "Year", "Status"
-                    ),
-                    lapply(1:nrow(payments_data), function(i) {
-                        argonTableItems(
-                            argonTableItem(stringr::str_to_upper(payments_data$code[i])),
-                            argonTableItem(payments_data$amount[i]),
-                            argonTableItem(payments_data$number[i]),
-                            argonTableItem(payments_data$time[i]),
-                            argonTableItem(payments_data$year[i]),
-                            argonTableItem(
-                                dataCell = TRUE,
-                                argonBadge(
-                                    text = payments_data$status[i],
-                                    status = ifelse(
-                                        payments_data$status[i] == "Approved", "success",
-                                        "danger"
+                output$table5 <- renderReactable({
+                    reactable(
+                        data = payments_data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        resizable = TRUE,
+                        wrap = FALSE,
+                        highlight = TRUE,
+                        columns = list(
+                            Number = colDef(format = colFormat(
+                                prefix = "+254"
+                            )),
+                            Time = colDef(
+                                minWidth = 150
+                            ),
+                            details = colDef(
+                                name = "",
+                                sortable = FALSE,
+                                align = "center",
+                                cell = function() {
+                                    htmltools::tags$button(
+                                        id = "",
+                                        class = "bi bi-three-dots-vertical border-0 bg-transparent mt-3",
+                                        `aria-hidden` = "true"
                                     )
-                                )
+                                }
                             )
-                        )
-                    })
-                )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        ),
+                        onClick = JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('student_payments_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+                    )
+                })
             } else {
                 # show empty status div
                 show_empty_state_ui
@@ -1549,7 +1693,7 @@ server <- function(input, output, session) {
 
         # create validations
         ivp$add_rule("transaction_code", sv_required())
-        ivp$add_rule("tel_number", sv_required())
+        ivp$add_rule("payment_tel_number", sv_required())
         ivp$add_rule("amount", sv_required())
         ivp$add_rule("payment_time", sv_required())
 
@@ -1620,7 +1764,8 @@ server <- function(input, output, session) {
             if (input$confirm_ticket_details) {
                 # Create data to append
                 payment_data <- data.frame(
-                    user_email = email,
+                    ticket_id = substr(uuid::UUIDgenerate(), 1, 5),
+                    user_id = signed_user$id,
                     code = input$transaction_code,
                     amount = input$amount,
                     number = input$tel_number,
@@ -1661,6 +1806,51 @@ server <- function(input, output, session) {
             shinyjs::enable("create_ticket")
         })
 
+        output$payments_tickets_data <- renderUI({
+            # Filter and arrange the data as needed
+            data <- rvs$payments_data |>
+                filter(user_id == signed_user$id & term == current_term) |>
+                arrange(desc(time))
+
+            # Set the column names
+            colnames(data) <- c("Ticket", "Code", " Amount", "Number", "Time", "Time", "Status")
+            if (nrow(data) > 0) {
+                # Create a reactable with customization
+                output$table <- renderReactable({
+                    reactable(
+                        data,
+                        searchable = TRUE,
+                        sortable = TRUE,
+                        defaultPageSize = 10,
+                        highlight = TRUE,
+                        wrap = FALSE,
+                        resizable = TRUE,
+                        bordered = TRUE,
+                        columns = list(
+                            Status = colDef(
+                                style = function(status) {
+                                    ifelse(status == "PENDING" ||
+                                        status == "CANCELLED",
+                                    color <- "#e00000",
+                                    color <- "#008000"
+                                    )
+                                    list(color = color, fontWeight = "bold")
+                                },
+                            )
+                        ),
+                        theme = reactableTheme(
+                            borderColor = "#ddd",
+                            cellPadding = "8px",
+                            borderWidth = "1px",
+                            highlightColor = "#f0f0f0"
+                        )
+                    )
+                })
+            } else {
+                show_empty_state_ui
+            }
+        })
+        
         # Actions for logout button
         observeEvent(input$log_out_session, {
             # Sign user out
@@ -2035,8 +2225,9 @@ server <- function(input, output, session) {
         if (action) {
             # Update status
             new_status <- input$edit_school_status
-            update_school_status(
+            update_user_status(
                 user_id = details$ID,
+                table_name = "schools",
                 new_status = if (new_status) "Enabled" else "Disabled"
             )
             # Refresh data
@@ -2216,7 +2407,7 @@ server <- function(input, output, session) {
                 session = session
             )
         } else {
-             removeModal()
+            removeModal()
             alert_warn_ui(
                 position = "top-end",
                 info = "Action has been cancelled!",
@@ -2292,5 +2483,262 @@ server <- function(input, output, session) {
             showConfirmButton = FALSE,
             html = TRUE
         )
+    })
+
+    observeEvent(input$teacher_menu_details, {
+        details <- input$teacher_menu_details$info
+        html_content <- div(
+            h5(paste(details$ID), ":", details$Name),
+            div(
+                class = "pt-4",
+                materialSwitch(
+                    inputId = "edit_teacher_status",
+                    label = details$Status,
+                    value = ifelse(
+                        details$Status == "Enabled", TRUE, FALSE
+                    ),
+                    status = "success",
+                    right = TRUE,
+                    inline = TRUE
+                )
+            )
+        )
+
+        shinyalert(
+            session = session,
+            inputId = "edit_teacher_details",
+            title = NULL,
+            text = tags$div(
+                html_content
+            ),
+            showCancelButton = TRUE,
+            showConfirmButton = FALSE,
+            html = TRUE
+        )
+    })
+
+    # change teacher status - Enabled/Disabled
+    observeEvent(input$edit_teacher_status, {
+        details <- input$teacher_menu_details$info
+        old_status <- details$Status
+        new_status <- input$edit_teacher_status
+        valid <- (old_status == "Enabled" & new_status == FALSE) ||
+            (old_status == "Disabled" & new_status == TRUE)
+
+        req(!is.null(details))
+        req(valid)
+        confirm_text <- if (new_status) "enable" else "disable"
+        shinyalert::closeAlert()
+
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_teacher_status",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = NULL,
+            text = paste(
+                "Are you sure you want to",
+                confirm_text,
+                details$Name,
+                "?"
+            ),
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    observeEvent(input$confirm_teacher_status, {
+        action <- input$confirm_teacher_status
+
+        req(!is.null(action))
+        details <- input$teacher_menu_details$info
+
+
+        if (action) {
+            # Update status
+            new_status <- input$edit_teacher_status
+            update_user_status(
+                table_name = "teachers",
+                user_id = details$ID,
+                new_status = if (new_status) "Enabled" else "Disabled"
+            )
+            # Refresh data
+            rvs$teachers_data <- refresh_table_data(table_name = "teachers")
+            confirm_message <- if (new_status) "enabled..." else "disabled..."
+
+            alert_success_ui(
+                position = "top-end",
+                info = paste(details$Name, "has been", confirm_message),
+                session = session
+            )
+        } else {
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+    observeEvent(input$student_menu_details, {
+        details <- input$student_menu_details$info
+        html_content <- div(
+            h5(paste(details$ID), ":", details$Name),
+            div(
+                class = "pt-4",
+                materialSwitch(
+                    inputId = "edit_student_status",
+                    label = details$Status,
+                    value = ifelse(
+                        details$Status == "Enabled", TRUE, FALSE
+                    ),
+                    status = "success",
+                    right = TRUE,
+                    inline = TRUE
+                )
+            )
+        )
+
+        shinyalert(
+            session = session,
+            inputId = "edit_student_details",
+            title = NULL,
+            text = tags$div(
+                html_content
+            ),
+            showCancelButton = TRUE,
+            showConfirmButton = FALSE,
+            html = TRUE
+        )
+    })
+
+    # change student status - Enabled/Disabled
+    observeEvent(input$edit_student_status, {
+        details <- input$student_menu_details$info
+        old_status <- details$Status
+        new_status <- input$edit_student_status
+        valid <- (old_status == "Enabled" & new_status == FALSE) ||
+            (old_status == "Disabled" & new_status == TRUE)
+
+        req(!is.null(details))
+        req(valid)
+        confirm_text <- if (new_status) "enable" else "disable"
+        shinyalert::closeAlert()
+
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_student_status",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = NULL,
+            text = paste(
+                "Are you sure you want to",
+                confirm_text,
+                details$Name,
+                "?"
+            ),
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    observeEvent(input$confirm_student_status, {
+        action <- input$confirm_student_status
+
+        req(!is.null(action))
+        details <- input$student_menu_details$info
+
+
+        if (action) {
+            # Update status
+            new_status <- input$edit_student_status
+            update_user_status(
+                table_name = "students",
+                user_id = details$ID,
+                new_status = if (new_status) "Enabled" else "Disabled"
+            )
+            # Refresh data
+            rvs$students_data <- refresh_table_data(table_name = "students")
+            confirm_message <- if (new_status) "enabled..." else "disabled..."
+
+            alert_success_ui(
+                position = "top-end",
+                info = paste(details$Name, "has been", confirm_message),
+                session = session
+            )
+        } else {
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+
+    observeEvent(input$student_payments_details, {
+        details <- input$student_payments_details$info
+
+        showModal(modalDialog(
+            easyClose = TRUE,
+            title = paste("Details for", details$ID, ":", details$Number),
+            footer = NULL,
+            div(
+                class = "pb-3",
+                div(
+                    class = "d-flex align-items-center
+                    justify-content-evenly",
+                    selectInput(
+                        inputId = "edit_payment_status",
+                        label = "Change payment status",
+                        choices = c("APPROVED", "DECLINED")
+                    ),
+                    actionButton(
+                        inputId = "change_payment_status",
+                        label = "",
+                        icon = icon("check"),
+                        class = "btn-circle bg-default mt-3"
+                    )
+                )
+            )
+        ))
+
+        if (details$Status != "PENDING") {
+            shinyjs::disable("edit_payment_status")
+            shinyjs::disable("change_payment_status")
+        }
+    })
+
+    observeEvent(input$change_payment_status, {
+        details <- input$student_payments_details$info
+
+        update <- update_ticket_status(
+            ticket_id = details$ID,
+            new_status = input$edit_payment_status
+        )
+        if (update) {
+            alert_success_ui(
+                info = "Status updated...",
+                session = session
+            )
+            rvs$payments_data <- refresh_table_data("payments")
+        } else {
+            alert_fail_ui(
+                info = "An error occured...",
+                session = session
+            )
+        }
+        removeModal()
+    })
+
+    iva <- InputValidator$new()
+    iva$add_rule("term_label", sv_required())
+    iva$add_rule("term_end_date", sv_required())
+
+    observeEvent(input$set_term_end, {
+    iva$enable() # enable validation check
+    req(iva$is_valid()) # ensure checks are valid
+    
+    add_term_end(
+        input = "term_label",
+        value = input$term_label,
+    )
+
     })
 }
