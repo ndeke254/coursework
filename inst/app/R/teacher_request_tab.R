@@ -22,7 +22,7 @@ teacher_request_tab <- div(
           class = "d-flex justify-content-center",
           fileInput(
             inputId = "photo_file",
-            label = "Select a jpg/jpeg",
+            label = "You can upload multiple jpg/jpeg/png files:",
             width = 500,
             accept = c(".jpeg", ".jpg", "png")
           )

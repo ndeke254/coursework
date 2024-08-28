@@ -85,5 +85,28 @@ ui <- bslib::page(
       value = "student_content",
       student_content_tab
     )
+  ),
+  shinyjs::hidden(
+    div(
+      id = "company_copyright",
+      class = "mt-5",
+      p(
+        HTML(
+          '
+                Copyright &copy;<span id = "year"></span>
+                KEYTABU LTD.
+                '
+        ),
+        style = "text-align: center;"
+      ),
+      p(
+        "All Rights Reserved.",
+        style = "text-align: center;"
+      ),
+      tags$script(
+        'document.getElementById("year").innerHTML =
+              new Date().getFullYear();'
+      )
+    )
   )
 )

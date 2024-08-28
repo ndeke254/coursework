@@ -17,7 +17,7 @@ add_term_end <- \(term_end_date) {
   result_end_date <- dbExecute(
     conn,
     query_end_date,
-    params = list(new_end_date = term_end_date)
+    params = list(new_end_date = as.character(term_end_date))
   )
 
   # Update the value for "term_label"
