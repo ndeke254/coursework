@@ -30,6 +30,7 @@ server <- function(input, output, session) {
         students_data = dbReadTable(conn, "students"),
         payments_data = dbReadTable(conn, "payments"),
         requests_data = dbReadTable(conn, "requests"),
+        administrator_data = dbReadTable(conn, "administrator"),
         idx = NULL,
         status = NULL
     )
@@ -184,60 +185,134 @@ server <- function(input, output, session) {
             )
         }
 
-        # Convert the vector of grades to a single string
         grades <- paste(input$teacher_grades, collapse = ", ")
 
-        # get the available data
-        available_data <- refresh_table_data(table_name = "teachers")
-
-        # Create data to append
-        new_user <- data.frame(
-            id = next_user_id("teachers", "teacher"),
-            user_name = stringr::str_to_title(input$teacher_username),
-            school_name = input$teacher_school,
-            grade = grades,
-            phone = input$teacher_tel_number,
-            email = input$teacher_email,
-            status = "Enabled",
-            views = 0
+        table_html <- reactable(
+            data = data.frame(
+                Input = c(
+                    "Name", "School", "Grades",
+                    "Contact", "Email"
+                ),
+                Value = stringr::str_trunc(
+                    c(
+                        stringr::str_to_title(input$teacher_username),
+                        input$teacher_school,
+                        grades,
+                        input$teacher_tel_number,
+                        input$teacher_email
+                    ),
+                    width = 25
+                )
+            ),
+            columns = list(
+                Input = colDef(name = "Input"),
+                Value = colDef(name = "Value")
+            ),
+            borderless = TRUE,
+            bordered = FALSE,
+            striped = FALSE,
+            outlined = TRUE,
+            wrap = FALSE,
+            resizable = FALSE
         )
 
-        # Call the register_new_user function
-        success <- register_new_user(table_name = "teachers", data = new_user)
-        if (success == 1) {
-            updateTabsetPanel(
-                inputId = "app_pages",
-                selected = "auth_page"
-            )
-            name <- stringr::word(input$teacher_username, 1)
-            shinyalert(
-                title = paste0(name, ", Welcome to Keytabu"),
-                text = "You can now log in",
-                type = "",
-                inputId = "roles_alert",
-                imageUrl = "logo/logo.png",
-                imageWidth = 180,
-                session = session,
-                confirmButtonText = "OK",
-                confirmButtonCol = "#1D2856"
+        # Show confirmation dialog with reactable table
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_teacher_details",
+            title = NULL,
+            text = tags$div(
+                table_html
+            ),
+            btn_labels = c("Cancel", "Yes"),
+            html = TRUE
+        )
+    })
+
+
+    observeEvent(input$confirm_teacher_details, {
+        disable("confirm_teacher_details")
+        # if has confirmed details
+        if (input$confirm_teacher_details) {
+            # Convert the vector of grades to a single string
+            grades <- paste(input$teacher_grades, collapse = ", ")
+
+            # get the available data
+            available_data <- refresh_table_data(table_name = "teachers")
+
+            # Create data to append
+            new_user <- data.frame(
+                id = next_user_id("teachers", "teacher"),
+                user_name = stringr::str_to_title(input$teacher_username),
+                school_name = input$teacher_school,
+                grade = grades,
+                phone = input$teacher_tel_number,
+                email = input$teacher_email,
+                time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                status = "Enabled",
+                views = 0
             )
 
-            # add user to firebase
-            frbs::frbs_sign_up(input$teacher_email, input$teacher_password)
-            # add user to polished
-            polished::add_app_user(app_uid = app_uid, email = input$teacher_email)
-            # get user details
-            get_new_user <- polished::get_users(email = input$teacher_email)
-            user_uid <- get_new_user$content$uid
+            # Call the register_new_user function
+            success <- register_new_user(table_name = "teachers", data = new_user)
+            if (success == 1) {
+                updateTabsetPanel(
+                    inputId = "app_pages",
+                    selected = "auth_page"
+                )
 
-            # add role to the user
-            polished::add_user_role(user_uid = user_uid, role_name = "teacher")
+                name <- stringr::word(input$teacher_username, 1)
+
+                # add user to firebase
+                user <- frbs::frbs_sign_up(
+                    input$teacher_email,
+                    input$teacher_password
+                )
+                id_token <- user$idToken
+                frbs::frbs_send_email_verification(
+                    id_token = id_token
+                )
+
+                # add user to polished
+                polished::add_app_user(
+                    app_uid = app_uid,
+                    email = input$teacher_email
+                )
+                # get user details
+                get_new_user <- polished::get_users(email = input$teacher_email)
+                user_uid <- get_new_user$content$uid
+
+                # add role to the user
+                polished::add_user_role(user_uid = user_uid, role_name = "teacher")
+                shinyalert(
+                    title = paste0(name, ", Welcome to Keytabu"),
+                    text = paste0(
+                        "Click the link we just sent to ",
+                        input$teacher_email,
+                        " to verify your email address, then log in."
+                    ),
+                    type = "",
+                    inputId = "roles_alert",
+                    imageUrl = "logo/logo.png",
+                    imageWidth = 180,
+                    session = session,
+                    confirmButtonText = "OK",
+                    confirmButtonCol = "#1D2856"
+                )
+            } else {
+                alert_fail_ui(
+                    info = "Name or email or phone already exists!",
+                    session = session
+                )
+            }
         } else {
-            alert_fail_ui(
-                info = "Name or email or phone already exists!",
+            # if has declined to confirm
+            alert_warn_ui(
+                info = "Details not confirmed...",
                 session = session
             )
         }
+        enable("confirm_teacher_details")
     })
 
     # Register a new student
@@ -309,69 +384,135 @@ server <- function(input, output, session) {
                 alert_fail_ui(session = session, info = "Password do not match")
             )
         }
-        # Convert the vector of grades to a single string
-        grades <- paste(input$student_grade, collapse = ", ")
-
-        # get the available data
-        available_data <- refresh_table_data(table_name = "students")
-
-        # Create data to append
-        new_user <- data.frame(
-            id = next_user_id("students", "student"),
-            user_name = stringr::str_to_title(input$student_username),
-            school_name = input$student_school,
-            grade = grades,
-            phone = input$student_tel_number,
-            email = input$student_email,
-            status = "Enabled",
-            paid = 0
+        table_html <- reactable(
+            data = data.frame(
+                Input = c(
+                    "Name", "School", "Grade",
+                    "Contact", "Email"
+                ),
+                Value = stringr::str_trunc(
+                    c(
+                        stringr::str_to_title(input$student_username),
+                        input$student_school,
+                        input$student_grade,
+                        input$student_tel_number,
+                        input$student_email
+                    ),
+                    width = 25
+                )
+            ),
+            columns = list(
+                Input = colDef(name = "Input"),
+                Value = colDef(name = "Value")
+            ),
+            borderless = TRUE,
+            bordered = FALSE,
+            striped = FALSE,
+            outlined = TRUE,
+            wrap = FALSE,
+            resizable = FALSE
         )
 
-        # Call the register_new_user function
-        success <- register_new_user(
-            table_name = "students",
-            data = new_user
+        # Show confirmation dialog with reactable table
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_student_details",
+            title = NULL,
+            text = tags$div(
+                table_html
+            ),
+            btn_labels = c("Cancel", "Yes"),
+            html = TRUE
         )
-        if (success == 1) {
-            name <- stringr::word(input$student_username, 1)
-            updateTabsetPanel(
-                inputId = "app_pages",
-                selected = "auth_page"
-            )
-            shinyalert(
-                title = paste0(name, ", Welcome to Keytabu"),
-                text = "You can now log in",
-                type = "",
-                inputId = "roles_alert",
-                imageUrl = "logo/logo.png",
-                imageWidth = 180,
-                session = session,
-                confirmButtonText = "OK",
-                confirmButtonCol = "#1D2856"
+    })
+
+    observeEvent(input$confirm_student_details, {
+        disable("submit_student_details")
+        # if has confirmed details
+        if (input$confirm_student_details) {
+            # Convert the vector of grades to a single string
+            grades <- paste(input$student_grade, collapse = ", ")
+
+            # get the available data
+            available_data <- refresh_table_data(table_name = "students")
+
+            # Create data to append
+            new_user <- data.frame(
+                id = next_user_id("students", "student"),
+                user_name = stringr::str_to_title(input$student_username),
+                school_name = input$student_school,
+                grade = grades,
+                phone = input$student_tel_number,
+                email = input$student_email,
+                time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                status = "Enabled",
+                paid = 0
             )
 
-            # add user to firebase
-            frbs::frbs_sign_up(input$student_email, input$student_password)
-            # add user to polished
-            polished::add_app_user(
-                app_uid = app_uid,
-                email = input$student_email
+            # Call the register_new_user function
+            success <- register_new_user(
+                table_name = "students",
+                data = new_user
             )
-            # get user details
-            get_new_user <- polished::get_users(email = input$student_email)
-            user_uid <- get_new_user$content$uid
+            if (success == 1) {
+                name <- stringr::word(input$student_username, 1)
+                updateTabsetPanel(
+                    inputId = "app_pages",
+                    selected = "auth_page"
+                )
 
-            # add role to the user
-            polished::add_user_role(
-                user_uid = user_uid,
-                role_name = "student"
-            )
+                # add user to firebase
+                user <- frbs::frbs_sign_up(
+                    input$student_email,
+                    input$student_password
+                )
+                # add user to polished
+                polished::add_app_user(
+                    app_uid = app_uid,
+                    email = input$student_email
+                )
+                id_token <- user$idToken
+                frbs::frbs_send_email_verification(
+                    id_token = id_token
+                )
+                # get user details
+                get_new_user <- polished::get_users(email = input$student_email)
+                user_uid <- get_new_user$content$uid
+
+                # add role to the user
+                polished::add_user_role(
+                    user_uid = user_uid,
+                    role_name = "student"
+                )
+                shinyalert(
+                    title = paste0(name, ", Welcome to Keytabu"),
+                    text = paste0(
+                        "Click the link we just sent to ",
+                        input$student_email,
+                        " to verify your email address, then Log in."
+                    ),
+                    type = "",
+                    inputId = "roles_alert",
+                    imageUrl = "logo/logo.png",
+                    imageWidth = 180,
+                    session = session,
+                    confirmButtonText = "OK",
+                    confirmButtonCol = "#1D2856"
+                )
+            } else {
+                alert_fail_ui(
+                    info = "Name or email or phone already exists!",
+                    session = session
+                )
+            }
         } else {
-            alert_fail_ui(
-                info = "Name or email or phone already exists!",
+            # if has declined to confirm
+            alert_warn_ui(
+                info = "Details not confirmed...",
                 session = session
             )
         }
+        enable("submit_student_details")
     })
 
     # now output signed user
@@ -380,8 +521,13 @@ server <- function(input, output, session) {
             inputId = "teacher_school",
             choices = rvs$school_data$school_name
         )
+        updateSelectInput(
+            inputId = "student_school",
+            choices = rvs$school_data$school_name
+        )
 
         if (isTruthy(user_details$email)) {
+            shinyjs::show("company_copyright")
             # get signed user details
             signed_email <- user_details$email
 
@@ -778,6 +924,7 @@ server <- function(input, output, session) {
                             wrap = FALSE,
                             resizable = TRUE,
                             bordered = TRUE,
+                            class = "mb-5",
                             columns = list(
                                 Status = colDef(
                                     style = function(status) {
@@ -1038,12 +1185,13 @@ server <- function(input, output, session) {
         output$requests_data <- renderUI({
             # Filter and arrange the data as needed
             data <- rvs$requests_data |>
-                filter(teacher_id == signed_user$id) |>
-                arrange(desc(time))
-
+            arrange(desc(time)) |>
+mutate(details = NA)
+ 
+  # Set the column names
+  colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status", "details")
+  
             if (nrow(data) > 0) {
-                # Set the column names
-                colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "details")
 
                 # Create a reactable with download and update features
                 output$table <- renderReactable({
@@ -1069,6 +1217,7 @@ server <- function(input, output, session) {
                                 }
                             )
                         ),
+                        
                         theme = reactableTheme(
                             borderColor = "#ddd",
                             cellPadding = "8px",
@@ -1809,7 +1958,7 @@ server <- function(input, output, session) {
         output$payments_tickets_data <- renderUI({
             # Filter and arrange the data as needed
             data <- rvs$payments_data |>
-                filter(user_id == signed_user$id & term == current_term) |>
+                filter(user_id == signed_user$id) |>
                 arrange(desc(time))
 
             # Set the column names
@@ -1850,7 +1999,7 @@ server <- function(input, output, session) {
                 show_empty_state_ui
             }
         })
-        
+
         # Actions for logout button
         observeEvent(input$log_out_session, {
             # Sign user out
@@ -2732,13 +2881,64 @@ server <- function(input, output, session) {
     iva$add_rule("term_end_date", sv_required())
 
     observeEvent(input$set_term_end, {
-    iva$enable() # enable validation check
-    req(iva$is_valid()) # ensure checks are valid
-    
-    add_term_end(
-        input = "term_label",
-        value = input$term_label,
-    )
+        iva$enable() # enable validation check
+        req(iva$is_valid()) # ensure checks are valid
 
+        added <- add_term_end(
+            term_end_date = input$term_end_date
+        )
+        if (added == 2) {
+            alert_success_ui(
+                session = session,
+                info = "Term end date updated"
+            )
+            data <- refresh_table_data("administrator")
+            values <- data |>
+                select(value) |>
+                as.vector()
+
+            output$term_end_table <- renderUI({
+                p(
+                    paste("Current term", values$value[2], "ends on", values$value[1]),
+                    class = "fw-semibold mb-5 mt-5"
+                )
+            })
+        } else {
+            alert_fail_ui(
+                session = session,
+                info = "An error occured..."
+            )
+        }
+    })
+
+    output$term_end_table <- renderUI({
+        data <- rvs$administrator_data
+        values <- data |>
+            select(value) |>
+            as.vector()
+
+        if (is.na(values$value[1]) || is.na(values$value[2])) {
+            p("Welcome Administrator. Create your first term",
+                class = "fw-semibold mb-5 mt-5"
+            )
+        } else {
+            p(
+                paste("Current term", values$value[2], "ends on", values$value[1]),
+                class = "fw-semibold mb-5 mt-5"
+            )
+        }
+    })
+
+    observeEvent(input$term_end_date, {
+        term_end_date <- input$term_end_date
+        current_month <- toupper(format(Sys.Date(), "%b"))
+        end_month <- toupper(format(as.Date(term_end_date), "%b"))
+        current_year <- format(as.Date(term_end_date), "%Y")
+        term_label <- paste(current_month, end_month, current_year, sep = "-")
+
+        updateTextInput(
+            inputId = "term_label",
+            value = term_label
+        )
     })
 }

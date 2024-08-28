@@ -1,23 +1,30 @@
 admin_registration_tab <- div(
   class = "container mt-5 mb-5",
   fluidRow(
-    textInput(
-      inputId = "term_label",
-      label = "Term label:",
-      placeholder = "Enter term label"
-    ),
     airDatepickerInput(
       inputId = "term_end_date",
       label = "Current Term End Date:",
       value = Sys.Date(),
       autoClose = TRUE
-    )
+    ),
+    shinyjs::disabled(
+      textInput(
+        inputId = "term_label",
+        label = "Term label:",
+        placeholder = "Enter term label"
+      )
+    ),
   ),
   fluidRow(
     actionButton(
       inputId = "set_term_end",
-      label = "Set"
+      label = "Set",
+      width = "250px",
+      class = "mb-3"
     )
+  ),
+  fluidRow(
+    uiOutput("term_end_table")
   ),
   argonTabSet(
     id = "registration_tabset",
