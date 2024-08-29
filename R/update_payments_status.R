@@ -9,10 +9,16 @@
 #' @examples
 #' \dontrun{
 #' # Example usage:
-#' update_request_status("TICK-007", "APPROVED")
-#' update_request_status("TICK-008", "CANCELLED")
+#' update_payments_status("TICK-007", "APPROVED")
+#' update_payments_status("TICK-008", "CANCELLED")
 #' }
-update_ticket_status <- function(ticket_id, new_status) {
+update_payments_status <- \(
+  ticket_id,
+  new_status,
+  balance,
+  total,
+  paid
+) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
 
@@ -24,12 +30,20 @@ update_ticket_status <- function(ticket_id, new_status) {
   res <- dbSendQuery(
     conn,
     "UPDATE payments
-    SET status = :new_status
-    WHERE id = :ticket_id"
+    SET status = :new_status,
+    balance = :balance,
+    total = :total,
+    paid = :paid
+    WHERE ticket_id = :ticket_id"
   )
   dbBind(
     res,
-    params = list(new_status = new_status, ticket_id = ticket_id)
+    params = list(
+      new_status = new_status,
+      ticket_id = ticket_id,
+      balance = balance,
+      total = total
+    )
   )
 
   dbClearResult(res)

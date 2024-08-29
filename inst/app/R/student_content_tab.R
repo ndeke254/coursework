@@ -4,6 +4,7 @@ student_content_tab <- div(
     class = "mb-5",
     uiOutput("signed"),
   ),
+  uiOutput("term_end_student_table"),
   argonTabSet(
     id = "student_content_tabset",
     horizontal = TRUE,
@@ -22,8 +23,9 @@ student_content_tab <- div(
     ),
     argonTab(
       tabName = "Payments",
-      p("Payments status:", class = " fw-semibold mt-3"),
+      p("Create a payment ticket:", class = " fw-semibold mt-3"),
       fluidRow(
+        class = "container",
         column(
           width = 3,
           shiny::textInput(
@@ -49,10 +51,10 @@ student_content_tab <- div(
           autonumericInput(
             inputId = "amount",
             label_mandatory("Amount paid:"),
-            value = 1000,
+            value = 500,
             currencySymbol = "Ksh ",
             decimalPlaces = 0,
-            minimumValue = 500
+            minimumValue = 1
           )
         ),
         airDatepickerInput(
@@ -61,7 +63,7 @@ student_content_tab <- div(
           timepicker = TRUE,
           timepickerOpts = list(
             hoursStep = 1,
-            minutesStep = 5,
+            minutesStep = 1,
             seconds = FALSE
           ),
           value = Sys.time(),
@@ -70,17 +72,30 @@ student_content_tab <- div(
       ),
       fluidRow(
         column(
+          class = "d-flex justify-content-end",
           width = 12,
           actionButton(
             inputId = "create_ticket",
             label = "Add payment",
-            class = "mt-3"
+            class = "mt-3 mb-3"
           )
         )
       ),
-      fluidRow(
-        uiOutput(outputId = "payments_tickets_data")
+      column(
+        width = 6,
+        class = "mb-3",
+        textOutput("school_ticket"), br(),
+        textOutput("paid_amount"), br(),
+        textOutput("balance"), br(),
+      p("Payment progress", class = "fw-semibold"),
+      progressBar(
+        value = 0,
+        display_pct = TRUE,
+        title = "Payments:",
+        id = "payment_progress"
       )
+      ),
+      uiOutput(outputId = "payments_tickets_data")
     )
   )
 )

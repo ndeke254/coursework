@@ -34,7 +34,8 @@ admin_registration_tab <- div(
     iconList = list(
       icon = argonIcon("cloud-upload-96", color = "body"),
       icon = argonIcon("caps-small", color = "body"),
-      icon = argonIcon("settings", color = "body")
+      icon = argonIcon("settings", color = "body"),
+      icon = argonIcon("books", color = "body")
     ),
     argonTab(
       tabName = "Upload",
@@ -321,6 +322,12 @@ admin_registration_tab <- div(
             argonTab(
               tabName = "Requests",
               p("Pending requests:", class = " fw-semibold mt-3"),
+              actionButton(
+                inputId = "refresh_requests",
+                label = "Refresh",
+                icon = icon("refresh"),
+                class = "mb-3"
+              ),
               bslib::card(
                 id = "pdf_card",
                 uiOutput("requests_data")
@@ -335,6 +342,7 @@ admin_registration_tab <- div(
                   sidebar = bslib::sidebar(
                     id = "card_sidebar",
                     position = "right",
+                    title = "PDF DETAILS",
                     open = FALSE,
                     uiOutput("sidebar_content")
                   ),
@@ -345,6 +353,12 @@ admin_registration_tab <- div(
             argonTab(
               tabName = "Payments",
               p("Payments records:", class = " fw-semibold mt-3"),
+              actionButton(
+                inputId = "refresh_payments",
+                label = "Refresh",
+                icon = icon("refresh"),
+                class = "mb-3"
+              ),
               bslib::card(
                 id = "pdf_card",
                 uiOutput("payments_data")
@@ -352,6 +366,12 @@ admin_registration_tab <- div(
             )
           )
         )
+      )
+    ),
+    argonTab(
+      tabName = "Timeline",
+      fluidRow(
+        center = TRUE
       )
     )
   )
