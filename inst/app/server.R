@@ -611,15 +611,78 @@ server <- function(input, output, session) {
                             outlined = TRUE
                         )
                     })
+
+                    output$term_end_student_table <- renderUI({
+                        data <- rvs$administrator_data
+                        values <- data |>
+                            select(value) |>
+                            as.vector()
+
+                        if (is.na(values$value[1]) || is.na(values$value[2])) {
+                            p("Welcome Administrator. Create your first term",
+                                class = "fw-semibold mb-5 mt-5"
+                            )
+                        } else {
+                            p(
+                                paste("Current term", values$value[2], "ends on", values$value[1]),
+                                class = "fw-semibold mb-5 mt-5"
+                            )
+                        }
+                    })
+
+                    price <- rvs$school_data |>
+                        filter(school_name == signed_user$school_name) |>
+                        select(price) |>
+                        as.numeric()
+
+                    paid_amount <- rvs$payments_data |>
+                        filter(status == "APPROVED" &
+                            user_id == signed_user$id) |>
+                        select(amount) |>
+                        unlist() |>
+                        as.numeric() |>
+                        sum()
+
+
+                    balance <- price - paid_amount
+
+                    progress_value <- (paid_amount / price) * 100
+
+                    updateProgressBar(
+                        session = session,
+                        "payment_progress",
+                        value = progress_value
+                    )
+
+                    output$school_ticket <- renderText(
+                        paste(
+                            "Your Invoice: Ksh.",
+                            prettyNum(price, big.mark = ",")
+                        )
+                    )
+                    output$paid_amount <- renderText(
+                        paste(
+                            "You have paid: Ksh.",
+                            prettyNum(paid_amount, big.mark = ",")
+                        )
+                    )
+                    output$balance <- renderText(
+                        paste(
+                            "Your Balance: Ksh.",
+                            prettyNum(balance, big.mark = ",")
+                        )
+                    )
                     # Filter the student content based on the signed-in user's grade and school
                     signed_student_teachers <- rvs$teachers_data |>
                         filter(school_name == signed_user$school_name) |>
                         select(user_name) |>
                         unlist() |>
                         as.vector()
+
                     student_content <- rvs$pdf_data %>%
                         filter(grade == signed_user$grade &
-                            teacher %in% signed_student_teachers)
+                            teacher %in% signed_student_teachers &
+                            status == "Available")
 
                     # Initialize reactive values
                     rvts <- reactiveValues(data = student_content)
@@ -928,13 +991,14 @@ server <- function(input, output, session) {
                             columns = list(
                                 Status = colDef(
                                     style = function(status) {
-                                        ifelse(status == "PENDING" ||
-                                            status == "CANCELLED",
-                                        color <- "#e00000",
-                                        color <- "#008000"
+                                        color <- case_when(
+                                            status == "DECLINED" ~ "#e00000",
+                                            status == "PENDING", "#E76A35",
+                                            status == "APPROVED", "#008000",
+                                            ~"#1D2856"
                                         )
                                         list(color = color, fontWeight = "bold")
-                                    },
+                                    }
                                 )
                             ),
                             theme = reactableTheme(
@@ -1136,7 +1200,7 @@ server <- function(input, output, session) {
         observe({
             if (nrow(rvs$school_data) > 0) {
                 requests <- rvs$requests_data |>
-                    filter(status == "PENDING") |>
+                    filter(status == "PROCESSING") |>
                     select(id) |>
                     unlist() |>
                     as.vector()
@@ -1185,14 +1249,13 @@ server <- function(input, output, session) {
         output$requests_data <- renderUI({
             # Filter and arrange the data as needed
             data <- rvs$requests_data |>
-            arrange(desc(time)) |>
-mutate(details = NA)
- 
-  # Set the column names
-  colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status", "details")
-  
-            if (nrow(data) > 0) {
+                arrange(desc(time)) |>
+                mutate(details = NA)
 
+            # Set the column names
+            colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status", "details")
+
+            if (nrow(data) > 0) {
                 # Create a reactable with download and update features
                 output$table <- renderReactable({
                     reactable(
@@ -1215,62 +1278,18 @@ mutate(details = NA)
                                         `aria-hidden` = "true"
                                     )
                                 }
-                            )
-                        ),
-                        
-                        theme = reactableTheme(
-                            borderColor = "#ddd",
-                            cellPadding = "8px",
-                            borderWidth = "1px",
-                            highlightColor = "#f0f0f0"
-                        ),
-                        onClick = JS("function(rowInfo, column) {
-                        if (column.id !== 'details') {
-                        return
-                         }
-                     Shiny.setInputValue('show_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
-                     }")
-                    )
-                })
-            } else {
-                # show empty status div
-                show_empty_state_ui
-            }
-        })
-
-        output$payments_data <- renderUI({
-            # Filter and arrange the data as needed
-            data <- rvs$payments_data |>
-                filter(teacher_id == signed_user$id) |>
-                arrange(desc(time))
-
-            if (nrow(data) > 0) {
-                # Set the column names
-                colnames(data) <- c("Serial", "ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "details")
-
-                # Create a reactable with download and update features
-                output$table <- renderReactable({
-                    reactable(
-                        data = data,
-                        searchable = TRUE,
-                        sortable = TRUE,
-                        resizable = TRUE,
-                        defaultPageSize = 10,
-                        wrap = FALSE,
-                        highlight = TRUE,
-                        columns = list(
-                            details = colDef(
-                                name = "",
-                                sortable = FALSE,
-                                align = "center",
-                                cell = function() {
-                                    htmltools::tags$button(
-                                        "",
-                                        class = "fa fa-chevron-right border-0 bg-transparent mt-3",
-                                        `aria-hidden` = "true"
+                            ),
+                            Status = colDef(
+                                style = function(status) {
+                                    color <- case_when(
+                                        status == "CANCELLED" ~ "#e00000",
+                                        status == "PENDING" ~ "#E76A35",
+                                        status == "APPROVED" ~ "#008000",
+                                        .default = "#1D2856"
                                     )
+                                    list(color = color, fontWeight = "bold")
                                 }
-                            )
+                            ),
                         ),
                         theme = reactableTheme(
                             borderColor = "#ddd",
@@ -1291,6 +1310,8 @@ mutate(details = NA)
                 show_empty_state_ui
             }
         })
+
+
         ## ---- ADMIN REGISTRATION TAB ----
 
         # add validation rules
@@ -1708,7 +1729,7 @@ mutate(details = NA)
 
             colnames(pdf_data) <- c(
                 "ID", "Name", "Teacher", "Grade", "Learning Area",
-                "Topic", "Sub Topic", "Time", "Views", "details"
+                "Topic", "Sub Topic", "Time", "Status", "Views", "details"
             )
 
             if (nrow(pdf_data) > 0) {
@@ -1733,6 +1754,12 @@ mutate(details = NA)
                             ),
                             Time = colDef(
                                 minWidth = 150
+                            ),
+                            Status = colDef(
+                                align = "center",
+                                cell = function(value) {
+                                    if (value == "Available") "\U1F7E2" else "\U1F534"
+                                }
                             ),
                             Teacher = colDef(
                                 cell = function(value, index) {
@@ -1768,7 +1795,7 @@ mutate(details = NA)
                      if (column.id !== 'details') {
                      return
                          }
-                      Shiny.setInputValue('teacher_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      Shiny.setInputValue('pdf_menu_details', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
                       }")
                     )
                 })
@@ -1786,8 +1813,9 @@ mutate(details = NA)
                 mutate(details = NA)
 
             colnames(payments_data) <- c(
-                "ID", "Code", "Amount", "Number", "Time",
-                "Term", "Status", "details"
+                "Ticket ID", "Student ID", "Code", "Amount",
+                "Balance", "Total paid", "Number", "Time", "Term",
+                "Status", "details"
             )
 
             if (nrow(payments_data) > 0) {
@@ -1806,6 +1834,17 @@ mutate(details = NA)
                             )),
                             Time = colDef(
                                 minWidth = 150
+                            ),
+                            Status = colDef(
+                                style = function(status) {
+                                    color <- case_when(
+                                        status == "DECLINED" ~ "#e00000",
+                                        status == "PENDING" ~ "#E76A35",
+                                        status == "APPROVED" ~ "#008000",
+                                        .default = "#1D2856"
+                                    )
+                                    list(color = color, fontWeight = "bold")
+                                }
                             ),
                             details = colDef(
                                 name = "",
@@ -1847,7 +1886,7 @@ mutate(details = NA)
         ivp$add_rule("payment_time", sv_required())
 
         # add rule on mobile number
-        ivp$add_rule("tel_number", function(value) {
+        ivp$add_rule("payment_tel_number", function(value) {
             phone_number <- gsub("\\D", "", value) # Remove non-digit characters
             if (nchar(phone_number) != 9) {
                 return("Phone number must be 9 digits")
@@ -1862,107 +1901,17 @@ mutate(details = NA)
             return(NULL) # Return NULL if validation passes
         })
 
-        observeEvent(input$create_ticket, {
-            ivp$enable() # enable validation check
-            req(ivp$is_valid()) # ensure checks are valid
-
-            # Create a reactable table with the input values
-            table_html <- reactable(
-                data.frame(
-                    Input = c("Transaction Code", "Amount", "Number", "Time"),
-                    Value = c(
-                        stringr::str_to_upper(input$transaction_code),
-                        input$amount,
-                        input$tel_number,
-                        format(
-                            lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
-                        )
-                    )
-                ),
-                columns = list(
-                    Input = colDef(name = "Input"),
-                    Value = colDef(name = "Value")
-                ),
-                borderless = TRUE,
-                bordered = FALSE,
-                striped = FALSE,
-                outlined = TRUE,
-                wrap = FALSE,
-                resizable = TRUE
-            )
-
-            # Show confirmation dialog with reactable table
-            ask_confirmation(
-                session = session,
-                inputId = "confirm_ticket_details",
-                title = NULL,
-                text = tags$div(
-                    table_html
-                ),
-                btn_labels = c("Cancel", "Yes"),
-                html = TRUE
-            )
-        })
-
-
-        # Observe ticket confirmation
-        observeEvent(input$confirm_ticket_details, {
-            shinybusy::show_spinner()
-            shinyjs::disable("create_ticket")
-            # if has confirmed details
-            if (input$confirm_ticket_details) {
-                # Create data to append
-                payment_data <- data.frame(
-                    ticket_id = substr(uuid::UUIDgenerate(), 1, 5),
-                    user_id = signed_user$id,
-                    code = input$transaction_code,
-                    amount = input$amount,
-                    number = input$tel_number,
-                    time = format(
-                        lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
-                    ),
-                    status = "Pending",
-                    stringsAsFactors = FALSE
-                )
-
-                # Call the register_new_school function
-                success <- create_payment_ticket(
-                    table_name = "payments",
-                    data = payment_data
-                )
-
-                if (success == 1) {
-                    alert_success_ui(
-                        info = "Payment ticket created successfully!",
-                        session = session
-                    )
-                    # refresh added data
-                    rvs$payments_data <- refresh_table_data(
-                        table_name = "payments"
-                    )
-                } else {
-                    alert_fail_ui(
-                        info = "Ticket already existing...", session = session
-                    )
-                }
-            } else {
-                # if has declined to confirm
-                alert_warn_ui(
-                    info = "Details not confirmed...",
-                    session = session
-                )
-            }
-            shinyjs::enable("create_ticket")
-        })
-
         output$payments_tickets_data <- renderUI({
             # Filter and arrange the data as needed
             data <- rvs$payments_data |>
                 filter(user_id == signed_user$id) |>
+                select(-c(user_id, amount, balance)) |>
                 arrange(desc(time))
 
             # Set the column names
-            colnames(data) <- c("Ticket", "Code", " Amount", "Number", "Time", "Time", "Status")
+            colnames(data) <- c(
+                "Ticket ID", "Code", " Amount", "Number", "Time", "Term", "Status"
+            )
             if (nrow(data) > 0) {
                 # Create a reactable with customization
                 output$table <- renderReactable({
@@ -1978,14 +1927,15 @@ mutate(details = NA)
                         columns = list(
                             Status = colDef(
                                 style = function(status) {
-                                    ifelse(status == "PENDING" ||
-                                        status == "CANCELLED",
-                                    color <- "#e00000",
-                                    color <- "#008000"
+                                    color <- case_when(
+                                        status == "DECLINED" ~ "#e00000",
+                                        status == "PENDING" ~ "#E76A35",
+                                        status == "APPROVED" ~ "#008000",
+                                        .default = "#1D2856"
                                     )
                                     list(color = color, fontWeight = "bold")
-                                },
-                            )
+                                }
+                            ),
                         ),
                         theme = reactableTheme(
                             borderColor = "#ddd",
@@ -2104,7 +2054,7 @@ mutate(details = NA)
             )
         ))
 
-        if (details$details != "PENDING") {
+        if (details$Status != "PENDING") {
             shinyjs::disable("edit_request_status")
             shinyjs::disable("change_request_status")
         }
@@ -2137,6 +2087,14 @@ mutate(details = NA)
                 session = session
             )
             rvs$requests_data <- refresh_table_data("requests")
+            record_admin_action(
+                user = user_details$email,
+                action = "UPDATE",
+                description = paste(
+                    "Updated", details$ID, "status to",
+                    input$edit_request_status
+                )
+            )
         } else {
             alert_fail_ui(
                 info = "An error occured...",
@@ -2240,6 +2198,7 @@ mutate(details = NA)
                 topic = input$doc_topic,
                 sub_topic = input$doc_sub_topic,
                 time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                status = "Available",
                 views = 0
             )
 
@@ -2276,6 +2235,11 @@ mutate(details = NA)
                 # refresh added data
                 rvs$pdf_data <- refresh_table_data(table_name = "content")
                 rvs$requests_data <- refresh_table_data(table_name = "requests")
+                record_admin_action(
+                    user = user_details$email,
+                    action = "UPLOAD",
+                    description = paste("Uploaded a new PDF:", data$id)
+                )
             } else {
                 alert_fail_ui(info = "PDF Details already exist!", session = session)
             }
@@ -2315,6 +2279,11 @@ mutate(details = NA)
             )
             # refresh added data
             rvs$school_data <- refresh_table_data(table_name = "schools")
+            record_admin_action(
+                user = user_details$email,
+                action = "CREATE",
+                description = paste("Created a new school:", school_data$id)
+            )
         } else {
             alert_fail_ui(
                 info = "Name or email already exists!",
@@ -2387,6 +2356,14 @@ mutate(details = NA)
                 position = "top-end",
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
+            )
+            record_admin_action(
+                user = user_details$email,
+                action = "UPDATE",
+                description = paste(
+                    "Updated", details$ID, "status to",
+                    new_status
+                )
             )
         } else {
             alert_warn_ui(
@@ -2555,6 +2532,13 @@ mutate(details = NA)
                 info = "School details updated...",
                 session = session
             )
+            record_admin_action(
+                user = user_details$email,
+                action = "UPDATE",
+                description = paste(
+                    "Updated", details$ID, "details."
+                )
+            )
         } else {
             removeModal()
             alert_warn_ui(
@@ -2582,6 +2566,13 @@ mutate(details = NA)
                 position = "top-end",
                 info = paste(details$Name, "has been deleted..."),
                 session = session
+            )
+            record_admin_action(
+                user = user_details$email,
+                action = "DELETE",
+                description = paste(
+                    "Deleted", details$ID, "details."
+                )
             )
         } else {
             alert_warn_ui(
@@ -2718,6 +2709,13 @@ mutate(details = NA)
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
             )
+            record_admin_action(
+                user = user_details$email,
+                action = "UPDATE",
+                description = paste(
+                    "Updated", details$ID, "status to", new_status
+                )
+            )
         } else {
             alert_warn_ui(
                 position = "top-end",
@@ -2811,6 +2809,13 @@ mutate(details = NA)
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
             )
+            record_admin_action(
+                user = user_details$email,
+                action = "UPDATE",
+                description = paste(
+                    "Updated", details$ID, "status to", new_status
+                )
+            )
         } else {
             alert_warn_ui(
                 position = "top-end",
@@ -2818,62 +2823,6 @@ mutate(details = NA)
                 session = session
             )
         }
-    })
-
-
-    observeEvent(input$student_payments_details, {
-        details <- input$student_payments_details$info
-
-        showModal(modalDialog(
-            easyClose = TRUE,
-            title = paste("Details for", details$ID, ":", details$Number),
-            footer = NULL,
-            div(
-                class = "pb-3",
-                div(
-                    class = "d-flex align-items-center
-                    justify-content-evenly",
-                    selectInput(
-                        inputId = "edit_payment_status",
-                        label = "Change payment status",
-                        choices = c("APPROVED", "DECLINED")
-                    ),
-                    actionButton(
-                        inputId = "change_payment_status",
-                        label = "",
-                        icon = icon("check"),
-                        class = "btn-circle bg-default mt-3"
-                    )
-                )
-            )
-        ))
-
-        if (details$Status != "PENDING") {
-            shinyjs::disable("edit_payment_status")
-            shinyjs::disable("change_payment_status")
-        }
-    })
-
-    observeEvent(input$change_payment_status, {
-        details <- input$student_payments_details$info
-
-        update <- update_ticket_status(
-            ticket_id = details$ID,
-            new_status = input$edit_payment_status
-        )
-        if (update) {
-            alert_success_ui(
-                info = "Status updated...",
-                session = session
-            )
-            rvs$payments_data <- refresh_table_data("payments")
-        } else {
-            alert_fail_ui(
-                info = "An error occured...",
-                session = session
-            )
-        }
-        removeModal()
     })
 
     iva <- InputValidator$new()
@@ -2939,6 +2888,506 @@ mutate(details = NA)
         updateTextInput(
             inputId = "term_label",
             value = term_label
+        )
+    })
+
+    observeEvent(input$pdf_menu_details, {
+        details <- input$pdf_menu_details$info
+        bslib::toggle_sidebar(
+            id = "card_sidebar",
+            session = session
+        )
+
+        status <- details$Status
+        label <- ifelse(status == "Available", "Flag", "Unflag")
+
+        shinyjs::show("card_sidebar")
+
+        output$sidebar_content <- renderUI({
+            div(
+                p(
+                    class = "fw-semibold",
+                    paste(details$ID, details$Name)
+                ),
+                div(
+                    class = "d-flex justify-content-between
+                 align-items-center",
+                    actionButton(
+                        inputId = "flag_pdf",
+                        label = label
+                    ),
+                    actionButton(
+                        inputId = "edit_content_details",
+                        label = "Edit"
+                    )
+                )
+            )
+        })
+    })
+
+    observeEvent(input$flag_pdf, {
+        details <- input$pdf_menu_details$info
+
+        status <- details$Status
+        label <- ifelse(status == "Available", "Flag", "Unflag")
+
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_flag_action",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = NULL,
+            text = paste(
+                "Are you sure you want to",
+                tolower(label),
+                details$ID, ":",
+                details$Name,
+                "?"
+            ),
+            btn_labels = c("Cancel", "Yes")
+        )
+    })
+
+    observeEvent(input$confirm_flag_action, {
+        action <- input$confirm_flag_action
+
+        req(!is.null(action))
+        details <- input$pdf_menu_details$info
+        status <- details$Status
+
+        if (action) {
+            # Update status
+            new_status <- ifelse(status == "Available", "Flagged", "Available")
+            update_user_status(
+                user_id = details$ID,
+                table_name = "content",
+                new_status = new_status
+            )
+            # Refresh data
+            rvs$pdf_data <- refresh_table_data(table_name = "content")
+            message <- ifelse(status == "Available", "flagged", "unflagged")
+
+            alert_success_ui(
+                position = "top-end",
+                info = paste(details$Name, "has been", message),
+                session = session
+            )
+            record_admin_action(
+                user = user_details$email,
+                action = "FLAG",
+                description = paste(
+                    "Flagged", details$ID, "status to", new_status
+                )
+            )
+        } else {
+            alert_warn_ui(
+                position = "top-end",
+                info = "Action has been cancelled!",
+                session = session
+            )
+        }
+    })
+
+
+    observeEvent(input$edit_content_details, {
+        details <- input$pdf_menu_details$info
+        teacher_name <- details$Teacher
+
+        teacher_grades <- rvs$teachers_data |>
+            filter(user_name == teacher_name) |>
+            select(grade) |>
+            unlist() |>
+            as.vector()
+
+        grades <- strsplit(teacher_grades, ", ")[[1]] |> as.numeric()
+
+        # Show the modal with the current details prefilled
+        showModal(
+            modalDialog(
+                size = "xl",
+                fluidRow(
+                    column(
+                        width = 3,
+                        shiny::selectizeInput(
+                            inputId = "edit_pdf_grade",
+                            label = label_mandatory("Grade:"),
+                            choices = setNames(grades, paste("Grade", grades)),
+                            selected = details$Grade,
+                            options = list(maxOptions = 5)
+                        )
+                    ),
+                    column(
+                        width = 3,
+                        shiny::selectizeInput(
+                            inputId = "edit_learning_area",
+                            label = label_mandatory("Search a Learning Area:"),
+                            choices = learning_areas,
+                            selected = details$`Learning Area`,
+                            options = list(maxOptions = 5)
+                        )
+                    ),
+                    column(
+                        width = 3,
+                        shiny::textInput(
+                            inputId = "edit_pdf_topic",
+                            label = label_mandatory("Topic:"),
+                            value = details$Topic,
+                            placeholder = "Eg. Addition"
+                        )
+                    ),
+                    column(
+                        width = 3,
+                        shiny::textInput(
+                            inputId = "edit_pdf_sub_topic",
+                            label = label_mandatory("Sub-topic:"),
+                            value = details$`Sub Topic`,
+                            placeholder = "Eg. Long division method"
+                        )
+                    )
+                ),
+                footer = tagList(
+                    modalButton("Cancel"),
+                    actionButton("save_content_changes", "Save Changes")
+                )
+            )
+        )
+    })
+
+    # add validation rules
+    ivpe <- InputValidator$new()
+    ivpe$add_rule("edit_pdf_grade", sv_required())
+    ivpe$add_rule("edit_learning_area", sv_required())
+    ivpe$add_rule("edit_pdf_sub_topic", sv_required())
+    ivpe$add_rule("edit_pdf_topic", sv_required())
+
+    observeEvent(input$save_content_changes, {
+        ivpe$enable() # enable validation check
+        req(ivpe$is_valid()) # ensure checks are valid
+
+        table_html <- reactable(
+            data = data.frame(
+                Input = c(
+                    "Grade", "Learning Area", "Topic",
+                    "Sub Topic"
+                ),
+                Value = stringr::str_trunc(
+                    c(
+                        input$edit_pdf_grade,
+                        input$edit_learning_area,
+                        stringr::str_to_sentence(
+                            input$edit_pdf_topic
+                        ),
+                        stringr::str_to_sentence(
+                            input$edit_pdf_sub_topic
+                        )
+                    ),
+                    width = 25
+                )
+            ),
+            columns = list(
+                Input = colDef(name = "Input"),
+                Value = colDef(name = "Value")
+            ),
+            borderless = TRUE,
+            bordered = FALSE,
+            striped = FALSE,
+            outlined = TRUE,
+            wrap = FALSE,
+            resizable = FALSE
+        )
+        # Show confirmation modal
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_edit_pdf_details",
+            title = "Confirm edit",
+            text = tags$div(
+                table_html
+            ),
+            btn_labels = c("Cancel", "Yes"),
+            html = TRUE
+        )
+    })
+
+    observeEvent(input$confirm_edit_pdf_details, {
+        details <- input$pdf_menu_details$info
+
+        if (input$confirm_edit_pdf_details) {
+            update <- update_pdf_details(
+                pdf_id = details$ID,
+                grade = input$edit_pdf_grade,
+                learning_area = input$edit_learning_area,
+                topic = input$edit_pdf_topic,
+                sub_topic = input$edit_pdf_sub_topic
+            )
+
+            if (update) {
+                alert_success_ui(
+                    info = "PDF details updated...",
+                    session = session
+                )
+
+                rvs$pdf_data <- refresh_table_data("content")
+                record_admin_action(
+                    user = user_details$email,
+                    action = "UPDATE",
+                    description = paste(
+                        "Updated", details$ID, "details"
+                    )
+                )
+            } else {
+                alert_fail_ui(
+                    info = "An error occured...",
+                    session = session
+                )
+            }
+            removeModal()
+        } else {
+            # if has declined to confirm
+            alert_warn_ui(
+                info = "Details not confirmed...",
+                session = session
+            )
+        }
+    })
+
+    observeEvent(input$create_ticket, {
+        ivp$enable() # enable validation check
+        req(ivp$is_valid()) # ensure checks are valid
+
+        # Create a reactable table with the input values
+        table_html <- reactable(
+            data.frame(
+                Input = c("Transaction Code", "Amount", "Number", "Time"),
+                Value = c(
+                    stringr::str_to_upper(input$transaction_code),
+                    input$amount,
+                    input$payment_tel_number,
+                    format(
+                        lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
+                    )
+                )
+            ),
+            columns = list(
+                Input = colDef(name = "Input"),
+                Value = colDef(name = "Value")
+            ),
+            borderless = TRUE,
+            bordered = FALSE,
+            striped = FALSE,
+            outlined = TRUE,
+            wrap = FALSE,
+            resizable = TRUE
+        )
+
+        # Show confirmation dialog with reactable table
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_ticket_details",
+            title = "Confirm your payment details",
+            text = tags$div(
+                table_html
+            ),
+            btn_labels = c("Cancel", "Yes"),
+            html = TRUE
+        )
+    })
+
+
+    # Observe ticket confirmation
+    observeEvent(input$confirm_ticket_details, {
+        shinybusy::show_spinner()
+        shinyjs::disable("create_ticket")
+        # if has confirmed details
+        signed_email <- user_details$email
+        student_data <- rvs$students_data |>
+            filter(email == signed_email)
+
+        if (input$confirm_ticket_details) {
+            data <- rvs$administrator_data
+            values <- data |>
+                select(value) |>
+                as.vector()
+
+            unique_ticket_id <- paste0(
+                "#",
+                toupper(
+                    substr(uuid::UUIDgenerate(), 1, 8)
+                )
+            )
+
+
+            # Create data to append
+            payment_data <- data.frame(
+                ticket_id = unique_ticket_id,
+                user_id = student_data$id,
+                code = stringr::str_to_upper(input$transaction_code),
+                amount = input$amount,
+                balance = 0,
+                total = 0,
+                number = input$payment_tel_number,
+                time = format(
+                    lubridate::as_datetime(input$payment_time), "%-d/%-m/%y %-I:%M %p"
+                ),
+                term = values$value[2],
+                status = "PENDING",
+                stringsAsFactors = FALSE
+            )
+
+            # Call the register_new_school function
+            success <- create_payment_ticket(
+                table_name = "payments",
+                data = payment_data
+            )
+
+            if (success == 1) {
+                alert_success_ui(
+                    info = "Payment ticket created successfully!",
+                    session = session
+                )
+                # refresh added data
+                rvs$payments_data <- refresh_table_data(
+                    table_name = "payments"
+                )
+            } else {
+                alert_fail_ui(
+                    info = "Ticket already existing...", session = session
+                )
+            }
+        } else {
+            # if has declined to confirm
+            alert_warn_ui(
+                info = "Details not confirmed...",
+                session = session
+            )
+        }
+        shinyjs::enable("create_ticket")
+    })
+
+    observeEvent(input$student_payments_details, {
+        details <- input$student_payments_details$info
+
+        showModal(modalDialog(
+            easyClose = TRUE,
+            title = paste("Approval for ticket", details$Code),
+            footer = NULL,
+            div(
+                class = "pb-3",
+                div(
+                    class = "d-flex align-items-center
+                    justify-content-evenly",
+                    selectInput(
+                        inputId = "edit_payment_status",
+                        label = "Change payment status",
+                        choices = c("APPROVED", "DECLINED")
+                    ),
+                    actionButton(
+                        inputId = "change_payment_status",
+                        label = "",
+                        icon = icon("check"),
+                        class = "btn-circle bg-default mt-3"
+                    )
+                )
+            )
+        ))
+
+        if (details$Status != "PENDING") {
+            shinyjs::disable("edit_payment_status")
+            shinyjs::disable("change_payment_status")
+        }
+    })
+
+    observeEvent(input$change_payment_status, {
+        details <- input$student_payments_details$info
+        earlier_pending_tickets <- rvs$payments_data |>
+            filter(status == "PENDING" &
+                user_id == details$`Student ID` &
+                time < details$Time)
+        if (nrow(earlier_pending_tickets) > 0) {
+            alert_warn_ui(
+                timer = 0,
+                session = session,
+                info = paste(
+                    "Approve earlier tickets first:",
+                    paste(as.vector(earlier_pending_tickets$ticket_id), collapse = ", ")
+                )
+            )
+        } else {
+            if (input$edit_payment_status == "APPROVED") {
+                student_data <- rvs$students_data |>
+                    filter(id == details$`Student ID`)
+
+                price <- rvs$school_data |>
+                    filter(school_name == student_data$school_name) |>
+                    select(price) |>
+                    as.numeric()
+
+                paid_amount <- rvs$payments_data |>
+                    filter(status == "APPROVED" &
+                        user_id == details$`Student ID`) |>
+                    select(amount) |>
+                    unlist() |>
+                    as.numeric() |>
+                    sum()
+
+                total_paid <- paid_amount + as.numeric(details$Amount)
+
+                balance <- price - total_paid
+                paid <- ifelse(balance <= 0, 1, 0)
+
+                update <- update_payments_status(
+                    ticket_id = details$`Ticket ID`,
+                    new_status = input$edit_payment_status,
+                    balance = balance,
+                    total = total_paid,
+                    paid = paid
+                )
+                update
+            } else {
+                update <- update_payments_status(
+                    ticket_id = details$`Ticket ID`,
+                    new_status = input$edit_payment_status,
+                    balance = 0,
+                    total = 0
+                )
+                update
+            }
+
+            if (update) {
+                alert_success_ui(
+                    info = "Status updated...",
+                    session = session
+                )
+                rvs$payments_data <- refresh_table_data("payments")
+                record_admin_action(
+                    user = user_details$email,
+                    action = "UPDATE",
+                    description = paste(
+                        "Updated", details$`Ticket ID`, "status to", input$edit_payment_status
+                    )
+                )
+            } else {
+                alert_fail_ui(
+                    info = "An error occured...",
+                    session = session
+                )
+            }
+        }
+
+        removeModal()
+    })
+
+    observeEvent(input$refresh_payments, {
+        rvs$payments_data <- refresh_table_data("payments")
+        alert_success_ui(
+            info = "Records updated...",
+            session = session
+        )
+    })
+
+    observeEvent(input$refresh_requests, {
+        rvs$requests_data <- refresh_table_data("requests")
+        alert_success_ui(
+            info = "Records updated...",
+            session = session
         )
     })
 }
