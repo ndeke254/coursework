@@ -5,6 +5,7 @@ admin_registration_tab <- div(
       inputId = "term_end_date",
       label = "Current Term End Date:",
       value = Sys.Date(),
+      minDate = lubridate::today(),
       autoClose = TRUE
     ),
     shinyjs::disabled(
@@ -328,6 +329,10 @@ admin_registration_tab <- div(
                 icon = icon("refresh"),
                 class = "mb-3"
               ),
+              p(
+                class = "text-body-tertiary mb-2",
+                textOutput("requests_refresh_time")
+              ),
               bslib::card(
                 id = "pdf_card",
                 uiOutput("requests_data")
@@ -359,6 +364,10 @@ admin_registration_tab <- div(
                 icon = icon("refresh"),
                 class = "mb-3"
               ),
+              p(
+                class = "text-body-tertiary mb-2",
+                textOutput("payments_refresh_time")
+              ),
               bslib::card(
                 id = "pdf_card",
                 uiOutput("payments_data")
@@ -370,8 +379,26 @@ admin_registration_tab <- div(
     ),
     argonTab(
       tabName = "Timeline",
-      fluidRow(
-        center = TRUE
+      class = "card card-body shadow-sm",
+      p("Administrator actions:", class = "fw-semibold text-center mx-auto
+       pt-2"),
+      actionButton(
+        inputId = "refresh_timeline",
+        label = "Refresh",
+        icon = icon("refresh"),
+        class = "mb-3"
+      ),
+      p(
+        class = "text-body-tertiary mb-2",
+        textOutput("timeline_refresh_time")
+      ),
+      div(id = "end"),
+      div(class = "loader", uiOutput("loader")),
+      shinyjs::hidden(
+        div(
+          id = "empty",
+          "No more records..."
+        )
       )
     )
   )

@@ -12,7 +12,7 @@ add_term_end <- \(term_end_date) {
   # Update the value for "term_end_date"
   query_end_date <- "UPDATE administrator
                      SET value = :new_end_date
-                     WHERE input = 'term_end_date'"
+                     WHERE input_col = 'term_end_date'"
 
   result_end_date <- dbExecute(
     conn,
@@ -23,7 +23,7 @@ add_term_end <- \(term_end_date) {
   # Update the value for "term_label"
   query_term_label <- "UPDATE administrator
                        SET value = :new_term_label
-                       WHERE input = 'term_label'"
+                       WHERE input_col = 'term_label'"
 
   current_month <- toupper(format(Sys.Date(), "%b"))
   end_month <- toupper(format(as.Date(term_end_date), "%b"))

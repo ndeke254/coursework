@@ -12,14 +12,32 @@ student_content_tab <- div(
     width = 12,
     argonTab(
       tabName = "Library",
+      title = "Library",
       active = TRUE,
       p("Welcome to your library:", class = " fw-semibold mt-3"),
-      student_content_filters,
-      class = "container",
-      `data-aos` = "fade-up",
-      `data-aos-delay` = "100",
-      uiOutput("published_pdfs"),
-      uiOutput("selected_pdf_frame")
+      shinyjs::hidden(
+        div(
+          id = "payment_required",
+          class = "pt-5 mb-5 border-bottom mt-5 text-center",
+          div(
+            p("Payment required",
+              class = "fw-semibold",
+            ),
+            p(
+              textOutput("balance_required")
+            )
+          )
+        )
+      ),
+      div(
+        id = "content_pdfs",
+        student_content_filters,
+        class = "container",
+        `data-aos` = "fade-up",
+        `data-aos-delay` = "100",
+        uiOutput("published_pdfs"),
+        uiOutput("selected_pdf_frame")
+      )
     ),
     argonTab(
       tabName = "Payments",
@@ -61,6 +79,7 @@ student_content_tab <- div(
           inputId = "payment_time",
           label = label_mandatory("Select Date and Time:"),
           timepicker = TRUE,
+          maxDate = lubridate::today(),
           timepickerOpts = list(
             hoursStep = 1,
             minutesStep = 1,
@@ -87,13 +106,13 @@ student_content_tab <- div(
         textOutput("school_ticket"), br(),
         textOutput("paid_amount"), br(),
         textOutput("balance"), br(),
-      p("Payment progress", class = "fw-semibold"),
-      progressBar(
-        value = 0,
-        display_pct = TRUE,
-        title = "Payments:",
-        id = "payment_progress"
-      )
+        p("Payment progress", class = "fw-semibold"),
+        progressBar(
+          value = 0,
+          display_pct = TRUE,
+          title = "Payments:",
+          id = "payment_progress"
+        )
       ),
       uiOutput(outputId = "payments_tickets_data")
     )

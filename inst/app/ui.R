@@ -19,12 +19,21 @@ ui <- bslib::page(
       rel = "stylesheet",
       href = file.path("css", "styles.css")
     ),
+    tags$head(
+      tags$script(HTML("
+    $(window).scroll(function() {
+      if ($(window).scrollTop() + $(window).height() >= $(document).height() - 50) {
+        Shiny.setInputValue('scrollToBottom', new Date().getTime());
+      }
+    });
+  "))
+    ),
 
     # Bootstrap icons:
-    tags$link(
+    tags$head(tags$link(
       rel = "stylesheet",
-      href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
-    ),
+      href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    )),
 
     # AOS js:
     tags$link(
@@ -84,6 +93,26 @@ ui <- bslib::page(
     tabPanelBody(
       value = "student_content",
       student_content_tab
+    ),
+    tabPanelBody(
+      value = "admin_reg",
+      div(
+        class = "container text-center col-2",
+        p("Your are an Administrator", class = "fw-semibold mt-5"),
+        tags$img(
+          src = "logo/logo.png",
+          width = "100px"
+        ),
+        textInput(
+          inputId = "admin_name",
+          label = "Name:",
+          placeholder = "Enter your name"
+        ),
+        actionButton(
+          inputId = "admin_name_set",
+          label = "SUBMIT"
+        )
+      )
     )
   ),
   shinyjs::hidden(

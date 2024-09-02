@@ -17,7 +17,7 @@ update_payments_status <- \(
   new_status,
   balance,
   total,
-  paid
+  student_id
 ) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
@@ -32,8 +32,7 @@ update_payments_status <- \(
     "UPDATE payments
     SET status = :new_status,
     balance = :balance,
-    total = :total,
-    paid = :paid
+    total = :total
     WHERE ticket_id = :ticket_id"
   )
   dbBind(
@@ -45,6 +44,23 @@ update_payments_status <- \(
       total = total
     )
   )
+
+  if (balance <= 0) {
+    res <- dbSendQuery(
+      conn,
+      "UPDATE students
+    SET paid = :paid
+    WHERE id = :student_id"
+    )
+    dbBind(
+      res,
+      params = list(
+        paid = 1,
+        student_id = student_id
+      )
+    )
+  }
+
 
   dbClearResult(res)
 }
