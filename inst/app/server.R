@@ -18,7 +18,8 @@ server <- function(input, output, session) {
         current_page = 1,
         total_pages = 0,
         selected_pdf = NULL,
-        pdf_paths = list()
+        pdf_paths = list(),
+        pdf_time = 0
     )
 
     # Create reactive values for tables
@@ -31,9 +32,11 @@ server <- function(input, output, session) {
         payments_data = dbReadTable(conn, "payments"),
         requests_data = dbReadTable(conn, "requests"),
         administrator_data = dbReadTable(conn, "administrator"),
+        views_data = dbReadTable(conn, "views"),
         idx = NULL,
         status = NULL
     )
+
 
     uploaded_request_files <- reactiveVal(list())
 
@@ -41,7 +44,6 @@ server <- function(input, output, session) {
 
 
     user_details <- mod_auth_server("auth")
-
     observeEvent(
         list(input$register_now, input$register_now_1),
         {
@@ -180,7 +182,7 @@ server <- function(input, output, session) {
                 alert_fail_ui(
                     session = session,
                     info = "Password do not match",
-                    position = "bottom",
+                    position = "bottom"
                 )
             )
         }
@@ -252,6 +254,7 @@ server <- function(input, output, session) {
                 status = "Enabled",
                 views = 0
             )
+            width <- "100px"
 
             # Call the register_new_user function
             success <- register_new_user(table_name = "teachers", data = new_user)
@@ -533,18 +536,77 @@ server <- function(input, output, session) {
 
             pol_signed_user <- polished::get_app_users(email = signed_email)
             user_uid <- pol_signed_user$content$user_uid
-
-            # get roles
-            user_role <- polished::get_user_roles(user_uid = user_uid)
-
-            user_role <- user_role$content$role_name
             is_admin <- pol_signed_user$content$is_admin
 
-            # get the DB details of signed user
-            signed_user <- get_signed_user(signed_email, user_role)
-            user_status <- signed_user$status
-            user_name <- signed_user$user_name
+            if (is_admin) {
+                admin_data <- rvs$administrator_data
+                exists <- signed_email %in% admin_data$input_col
 
+                if (exists) {
+                    signed_user <- admin_data |>
+                        filter(input_col == signed_email)
+
+                    user_name <- signed_user$value
+                    user_status <- "Enabled"
+                    user_role <- "admin"
+                } else {
+                    updateTabsetPanel(
+                        inputId = "app_pages",
+                        selected = "admin_reg"
+                    )
+                    iv_admin <- InputValidator$new()
+                    iv_admin$add_rule("admin_name", sv_required())
+                    iv_admin$add_rule("admin_name", function(value) {
+                        names <- strsplit(value, " ")[[1]]
+                        if (length(names) != 2) {
+                            return("Must be 2 names")
+                        }
+                        return(NULL)
+                    })
+
+                    observeEvent(input$admin_name_set, {
+                        iv_admin$enable()
+                        req(iv_admin$is_valid())
+                        update <- update_admin_name(
+                            email = signed_email,
+                            name = input$admin_name
+                        )
+                        if (update == 1) {
+                            alert_success_ui(
+                                session = session,
+                                info = "Name updated..."
+                            )
+                            output$signed_user <- renderText({
+                                input$admin_name
+                            })
+                            updateTabsetPanel(
+                                inputId = "app_pages",
+                                selected = "admin_page"
+                            )
+                            # hide login link
+                            shinyjs::hide("login_link")
+                            shinyjs::hide("teachers_link")
+                            shinyjs::hide("students_link")
+                            shinyjs::show("user_profile_tab")
+                        } else {
+                            alert_fail_ui(
+                                session = session,
+                                info = "An error occurred"
+                            )
+                        }
+                    })
+                    return()
+                }
+            } else {
+                # get roles
+                user_role <- polished::get_user_roles(user_uid = user_uid)
+                user_role <- user_role$content$role_name
+
+                # get the DB details of signed user
+                signed_user <- get_signed_user(signed_email, user_role)
+                user_status <- signed_user$status
+                user_name <- signed_user$user_name
+            }
 
             # show the user on profile
             output$signed_user <- renderText({
@@ -554,6 +616,7 @@ server <- function(input, output, session) {
                 user_name
             })
 
+
             # hide login link
             shinyjs::hide("login_link")
             shinyjs::hide("teachers_link")
@@ -561,6 +624,7 @@ server <- function(input, output, session) {
             shinyjs::show("user_profile_tab")
 
             observeEvent(input$signed_user_link, {
+                req(isTruthy(user_role))
                 if (is_admin) {
                     updateTabsetPanel(
                         inputId = "app_pages",
@@ -591,10 +655,60 @@ server <- function(input, output, session) {
                         selected = "admin_page"
                     )
                 } else if (user_role == "student") {
+                    # check if user has paid
+                    price <- rvs$school_data |>
+                        filter(school_name == signed_user$school_name) |>
+                        select(price) |>
+                        as.numeric()
+
+                    paid_amount <- rvs$payments_data |>
+                        filter(status == "APPROVED" &
+                            user_id == signed_user$id) |>
+                        select(amount) |>
+                        unlist() |>
+                        as.numeric() |>
+                        sum()
+                    # Check if the user has paid for the year
+                    user_paid <- signed_user %>%
+                        select(paid) %>%
+                        pull(paid) %>%
+                        as.character()
+
+                    balance <- price - paid_amount
+                    clear <- prettyNum(balance, big.mark = ",")
+                    if (user_paid == "0") {
+                        shinyalert(
+                            title = "Subscription expired",
+                            text = paste(
+                                "Please clear your balance of KES", clear
+                            ),
+                            type = "",
+                            inputId = "pay_alert",
+                            imageUrl = "logo/mpesa_poster.jpg",
+                            imageWidth = 180,
+                            session = session,
+                            confirmButtonText = "PAY",
+                            confirmButtonCol = "#1D2856",
+                            callbackR = function() {
+                                shinyjs::hide("content_pdfs")
+                                shinyjs::show("payment_required")
+                                output$balance_required <- renderText(
+                                    paste(
+                                        "Please clear your balance of KES",
+                                        clear,
+                                        "to access your Keytabu"
+                                    )
+                                )
+                            }
+                        )
+                    }
+
+
                     updateTabsetPanel(
                         inputId = "app_pages",
                         selected = "student_content"
                     )
+
                     table <- data.frame(
                         ID = signed_user$id,
                         SCHOOL = signed_user$school_name,
@@ -629,22 +743,6 @@ server <- function(input, output, session) {
                             )
                         }
                     })
-
-                    price <- rvs$school_data |>
-                        filter(school_name == signed_user$school_name) |>
-                        select(price) |>
-                        as.numeric()
-
-                    paid_amount <- rvs$payments_data |>
-                        filter(status == "APPROVED" &
-                            user_id == signed_user$id) |>
-                        select(amount) |>
-                        unlist() |>
-                        as.numeric() |>
-                        sum()
-
-
-                    balance <- price - paid_amount
 
                     progress_value <- (paid_amount / price) * 100
 
@@ -761,26 +859,20 @@ server <- function(input, output, session) {
                                 full.names = TRUE
                             )
 
-
                             # Create card decks for each teacher
                             card_decks <- lapply(student_teachers, function(s_teacher) {
                                 # Filter data for the current teacher
                                 teacher_data <- filter(filtered_data, teacher == !!s_teacher)
                                 teacher_data <- arrange(teacher_data, desc(time))
 
-                                # Check if the user has paid for the year
-                                user_paid <- signed_user %>%
-                                    select(paid) %>%
-                                    pull(paid) %>%
-                                    as.character()
-
                                 # Set payment status
-                                pay_status <- ifelse(user_paid == "0", "has-danger", "has-success")
                                 div(
                                     class = "d-flex flex-wrap justify-content-center",
                                     lapply(1:nrow(teacher_data), function(i) {
                                         pdf_info <- teacher_data[i, ]
-                                        pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name))
+                                        pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name)) |>
+                                            tolower()
+
                                         table_html <- reactable(
                                             data = data.frame(
                                                 Input = c("Teacher", "Learning Area", "Topic", "Sub Topic"),
@@ -814,6 +906,7 @@ server <- function(input, output, session) {
                                             ),
                                             image_files
                                         )]
+
                                         cover_image <- ifelse(
                                             length(cover_image) > 0,
                                             sub("^www/", "", cover_image[1]),
@@ -822,13 +915,12 @@ server <- function(input, output, session) {
 
                                         # Create PDF card
                                         div(
-                                            class = "                                    card shadow w-25 mt-2
-                                        mx-2 hover-card",
+                                            class = "card shadow w-25 mt-2 mx-2 hover-card",
                                             div(
                                                 id = paste("card", i),
                                                 class = "d-flex justify-content-center",
                                                 onclick = sprintf(
-                                                    "Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random());",
+                                                    "Shiny.setInputValue('selected_pdf', '%s'); Shiny.setInputValue('trigger_modal', Math.random()); Shiny.setInputValue('refresh_pdf', Math.random());",
                                                     pdf_info$pdf_name
                                                 ),
                                                 argonR::argonImage(
@@ -850,59 +942,46 @@ server <- function(input, output, session) {
                     })
 
 
+                    # Reset selected_pdf when the Go Back button is clicked
                     observeEvent(input$go_back_btn, {
                         shinyjs::hide("selected_pdf_frame", anim = TRUE, animType = "fade")
                         shinyjs::show("published_pdfs", anim = TRUE, animType = "fade")
                         shinyjs::show("filters", anim = TRUE, animType = "fade")
-                    })
 
-                    observeEvent(input$trigger_modal, {
-                        # check if user has paid
-                        user_paid <- signed_user |>
-                            select(paid) |>
-                            pull(paid) |>
-                            as.character()
+                        spend_time <- Sys.time() - rv$pdf_time
+                        spend_time <- as.numeric(spend_time, units = "mins")
 
-                        user_school <- rvs$school_data |>
-                            filter(
-                                school_name == signed_user$school_name
-                            )
-                        price <- prettyNum(user_school$price, big.mark = ",")
-                        if (user_paid == "0") {
-                            return(
-                                shinyalert(
-                                    title = "Subscription expired",
-                                    text = paste(
-                                        "Please renew your subscription of KES", price
-                                    ),
-                                    type = "",
-                                    inputId = "pay_alert",
-                                    imageUrl = "images/mpesa_poster.jpg",
-                                    imageWidth = 180,
-                                    session = session,
-                                    confirmButtonText = "PAY",
-                                    confirmButtonCol = "#1D2856",
-                                    callbackR = function() {
-                                        session$sendCustomMessage(
-                                            type = "update-tabs",
-                                            message = "payments"
-                                        )
-                                    }
+                        if (spend_time > 2) {
+                            selected_pdf_details <- rvs$pdf_data |>
+                                filter(pdf_name == input$selected_pdf &
+                                    grade == signed_user$grade)
+
+                            teacher_data <- rvs$teachers_data |>
+                                filter(
+                                    user_name == selected_pdf_details$teacher
                                 )
+
+                            record_student_view(
+                                student_id = signed_user$id,
+                                teacher_id = teacher_data$id,
+                                pdf_id = selected_pdf_details$id
                             )
                         }
                     })
-
 
                     # Observe selection change and update image paths
                     observeEvent(input$selected_pdf, {
                         shinybusy::show_spinner()
 
                         req(input$selected_pdf)
+                        pdf <- tolower(input$selected_pdf)
+
                         shinyjs::hide("published_pdfs", anim = TRUE, animType = "fade")
                         shinyjs::show("selected_pdf_frame", anim = TRUE, animType = "fade")
                         shinyjs::hide("filters", anim = TRUE, animType = "fade")
 
+                        # Set reactive timer when the PDF is opened
+                        rv$pdf_time <- Sys.time()
 
                         output$selected_pdf_frame <- renderUI({
                             div(
@@ -916,7 +995,7 @@ server <- function(input, output, session) {
                                 ),
                                 tags$iframe(
                                     class = "pt-3",
-                                    src = file.path("pdf", input$selected_pdf, "#toolbar=0"),
+                                    src = file.path("pdf", pdf, "#toolbar=0"),
                                     style = "width: 100%; height: 100vh; border: none;",
                                     scrolling = "no"
                                 )
@@ -993,9 +1072,9 @@ server <- function(input, output, session) {
                                     style = function(status) {
                                         color <- case_when(
                                             status == "DECLINED" ~ "#e00000",
-                                            status == "PENDING", "#E76A35",
-                                            status == "APPROVED", "#008000",
-                                            ~"#1D2856"
+                                            status == "PENDING" ~ "#E76A35",
+                                            status == "APPROVED" ~ "#008000",
+                                            .default = "#1D2856"
                                         )
                                         list(color = color, fontWeight = "bold")
                                     }
@@ -1167,6 +1246,23 @@ server <- function(input, output, session) {
                 } else {
                     return()
                 }
+            } else {
+                shinyalert(
+                    title = "Contact Administrator",
+                    text = paste(
+                        "An error occurred with your account."
+                    ),
+                    type = "",
+                    inputId = "pay_alert",
+                    imageUrl = "logo/mpesa_poster.jpg",
+                    imageWidth = 180,
+                    session = session,
+                    confirmButtonText = "PAY",
+                    confirmButtonCol = "#1D2856",
+                    callbackR = function() {
+                        session$reload()
+                    }
+                )
             }
         }
 
@@ -1289,7 +1385,7 @@ server <- function(input, output, session) {
                                     )
                                     list(color = color, fontWeight = "bold")
                                 }
-                            ),
+                            )
                         ),
                         theme = reactableTheme(
                             borderColor = "#ddd",
@@ -1905,7 +2001,7 @@ server <- function(input, output, session) {
             # Filter and arrange the data as needed
             data <- rvs$payments_data |>
                 filter(user_id == signed_user$id) |>
-                select(-c(user_id, amount, balance)) |>
+                select(-c(user_id, total, balance)) |>
                 arrange(desc(time))
 
             # Set the column names
@@ -1935,7 +2031,7 @@ server <- function(input, output, session) {
                                     )
                                     list(color = color, fontWeight = "bold")
                                 }
-                            ),
+                            )
                         ),
                         theme = reactableTheme(
                             borderColor = "#ddd",
@@ -2073,6 +2169,14 @@ server <- function(input, output, session) {
                 )
             })
         })
+
+        signed_admin_user <- rvs$administrator_data |>
+            filter(input_col == user_details$email)
+        record_admin_action(
+            user = signed_admin_user$value,
+            action = "View",
+            description = paste("Viewed details for", details$ID)
+        )
     })
     observeEvent(input$change_request_status, {
         details <- input$show_details$info
@@ -2087,9 +2191,11 @@ server <- function(input, output, session) {
                 session = session
             )
             rvs$requests_data <- refresh_table_data("requests")
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "UPDATE",
+                user = signed_admin_user$value,
+                action = "Update",
                 description = paste(
                     "Updated", details$ID, "status to",
                     input$edit_request_status
@@ -2235,9 +2341,11 @@ server <- function(input, output, session) {
                 # refresh added data
                 rvs$pdf_data <- refresh_table_data(table_name = "content")
                 rvs$requests_data <- refresh_table_data(table_name = "requests")
+                signed_admin_user <- rvs$administrator_data |>
+                    filter(input_col == user_details$email)
                 record_admin_action(
-                    user = user_details$email,
-                    action = "UPLOAD",
+                    user = signed_admin_user$value,
+                    action = "Upload",
                     description = paste("Uploaded a new PDF:", data$id)
                 )
             } else {
@@ -2279,10 +2387,12 @@ server <- function(input, output, session) {
             )
             # refresh added data
             rvs$school_data <- refresh_table_data(table_name = "schools")
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "CREATE",
-                description = paste("Created a new school:", school_data$id)
+                user = signed_admin_user$value,
+                action = "Add",
+                description = paste("Added a new school:", school_data$id)
             )
         } else {
             alert_fail_ui(
@@ -2341,25 +2451,33 @@ server <- function(input, output, session) {
 
 
         if (action) {
-            # Update status
             new_status <- input$edit_school_status
+            new_status <- if (new_status) "Enabled" else "Disabled"
+
+            # Update status
             update_user_status(
                 user_id = details$ID,
                 table_name = "schools",
-                new_status = if (new_status) "Enabled" else "Disabled"
+                new_status = new_status
             )
             # Refresh data
             rvs$school_data <- refresh_table_data(table_name = "schools")
-            confirm_message <- if (new_status) "enabled..." else "disabled..."
+            confirm_message <- if (new_status == "Enabled") {
+                "enabled..."
+            } else {
+                "disabled..."
+            }
 
             alert_success_ui(
                 position = "top-end",
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
             )
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "UPDATE",
+                user = signed_admin_user$value,
+                action = "Update",
                 description = paste(
                     "Updated", details$ID, "status to",
                     new_status
@@ -2484,7 +2602,6 @@ server <- function(input, output, session) {
         showModal(modalDialog(
             title = details$ID,
             size = "xl",
-            class = "shadow-lg",
             html_content,
             footer = tagList(
                 modalButton("Cancel"),
@@ -2532,9 +2649,11 @@ server <- function(input, output, session) {
                 info = "School details updated...",
                 session = session
             )
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "UPDATE",
+                user = signed_admin_user$value,
+                action = "Update",
                 description = paste(
                     "Updated", details$ID, "details."
                 )
@@ -2567,9 +2686,11 @@ server <- function(input, output, session) {
                 info = paste(details$Name, "has been deleted..."),
                 session = session
             )
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "DELETE",
+                user = signed_admin_user$value,
+                action = "Delete",
                 description = paste(
                     "Deleted", details$ID, "details."
                 )
@@ -2693,25 +2814,33 @@ server <- function(input, output, session) {
 
 
         if (action) {
-            # Update status
             new_status <- input$edit_teacher_status
+            new_status <- if (new_status) "Enabled" else "Disabled"
+
+            # Update status
             update_user_status(
                 table_name = "teachers",
                 user_id = details$ID,
-                new_status = if (new_status) "Enabled" else "Disabled"
+                new_status = new_status
             )
             # Refresh data
             rvs$teachers_data <- refresh_table_data(table_name = "teachers")
-            confirm_message <- if (new_status) "enabled..." else "disabled..."
+            confirm_message <- if (new_status == "Enabled") {
+                "enabled..."
+            } else {
+                "disabled..."
+            }
 
             alert_success_ui(
                 position = "top-end",
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
             )
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "UPDATE",
+                user = signed_admin_user$value,
+                action = "Update",
                 description = paste(
                     "Updated", details$ID, "status to", new_status
                 )
@@ -2791,27 +2920,31 @@ server <- function(input, output, session) {
         req(!is.null(action))
         details <- input$student_menu_details$info
 
-
         if (action) {
             # Update status
             new_status <- input$edit_student_status
+            new_status <- if (new_status) "Enabled" else "Disabled"
+
             update_user_status(
                 table_name = "students",
                 user_id = details$ID,
-                new_status = if (new_status) "Enabled" else "Disabled"
+                new_status = new_status
             )
             # Refresh data
             rvs$students_data <- refresh_table_data(table_name = "students")
-            confirm_message <- if (new_status) "enabled..." else "disabled..."
+            confirm_message <- if (new_status == "Enabled") "enabled..." else "disabled..."
 
             alert_success_ui(
                 position = "top-end",
                 info = paste(details$Name, "has been", confirm_message),
                 session = session
             )
+
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "UPDATE",
+                user = signed_admin_user$value,
+                action = "Update",
                 description = paste(
                     "Updated", details$ID, "status to", new_status
                 )
@@ -2971,9 +3104,11 @@ server <- function(input, output, session) {
                 info = paste(details$Name, "has been", message),
                 session = session
             )
+            signed_admin_user <- rvs$administrator_data |>
+                filter(input_col == user_details$email)
             record_admin_action(
-                user = user_details$email,
-                action = "FLAG",
+                user = signed_admin_user$value,
+                action = "Flag",
                 description = paste(
                     "Flagged", details$ID, "status to", new_status
                 )
@@ -3126,9 +3261,11 @@ server <- function(input, output, session) {
                 )
 
                 rvs$pdf_data <- refresh_table_data("content")
+                signed_admin_user <- rvs$administrator_data |>
+                    filter(input_col == user_details$email)
                 record_admin_action(
-                    user = user_details$email,
-                    action = "UPDATE",
+                    user = signed_admin_user$value,
+                    action = "Update",
                     description = paste(
                         "Updated", details$ID, "details"
                     )
@@ -3314,6 +3451,11 @@ server <- function(input, output, session) {
             if (input$edit_payment_status == "APPROVED") {
                 student_data <- rvs$students_data |>
                     filter(id == details$`Student ID`)
+                data <- rvs$administrator_data
+
+                values <- data |>
+                    select(value) |>
+                    as.vector()
 
                 price <- rvs$school_data |>
                     filter(school_name == student_data$school_name) |>
@@ -3322,7 +3464,8 @@ server <- function(input, output, session) {
 
                 paid_amount <- rvs$payments_data |>
                     filter(status == "APPROVED" &
-                        user_id == details$`Student ID`) |>
+                        user_id == details$`Student ID` &
+                        term == values$value[2]) |>
                     select(amount) |>
                     unlist() |>
                     as.numeric() |>
@@ -3331,22 +3474,23 @@ server <- function(input, output, session) {
                 total_paid <- paid_amount + as.numeric(details$Amount)
 
                 balance <- price - total_paid
-                paid <- ifelse(balance <= 0, 1, 0)
 
                 update <- update_payments_status(
                     ticket_id = details$`Ticket ID`,
                     new_status = input$edit_payment_status,
                     balance = balance,
                     total = total_paid,
-                    paid = paid
+                    student_id = student_data$id
                 )
+
                 update
             } else {
                 update <- update_payments_status(
                     ticket_id = details$`Ticket ID`,
                     new_status = input$edit_payment_status,
                     balance = 0,
-                    total = 0
+                    total = 0,
+                    student_id = student_data$id
                 )
                 update
             }
@@ -3357,11 +3501,13 @@ server <- function(input, output, session) {
                     session = session
                 )
                 rvs$payments_data <- refresh_table_data("payments")
+                signed_admin_user <- rvs$administrator_data |>
+                    filter(input_col == user_details$email)
                 record_admin_action(
-                    user = user_details$email,
-                    action = "UPDATE",
+                    user = signed_admin_user$value,
+                    action = "Update",
                     description = paste(
-                        "Updated", details$`Ticket ID`, "status to", input$edit_payment_status
+                        "Updated", details$`Ticket ID`, " payment status to", input$edit_payment_status
                     )
                 )
             } else {
@@ -3377,17 +3523,341 @@ server <- function(input, output, session) {
 
     observeEvent(input$refresh_payments, {
         rvs$payments_data <- refresh_table_data("payments")
+        last_refresh_time <- Sys.time()
+
         alert_success_ui(
             info = "Records updated...",
             session = session
         )
+        autoInvalidate <- reactiveTimer(60000)
+
+        observe({
+            autoInvalidate()
+
+            output$payments_refresh_time <- renderText({
+                paste(
+                    "Last refresh:", round(difftime(Sys.time(), last_refresh_time, units = "mins")), "minute(s) ago"
+                )
+            })
+        })
     })
 
     observeEvent(input$refresh_requests, {
         rvs$requests_data <- refresh_table_data("requests")
+        last_refresh_time <- Sys.time()
+
         alert_success_ui(
             info = "Records updated...",
             session = session
         )
+        autoInvalidate <- reactiveTimer(60000)
+
+        observe({
+            autoInvalidate()
+
+            output$requests_refresh_time <- renderText({
+                paste(
+                    "Last refresh:", round(difftime(Sys.time(), last_refresh_time, units = "mins")), "minute(s) ago"
+                )
+            })
+        })
+    })
+
+    observeEvent(input$refresh_timeline, {
+        initial_data <- loadData(currentPage(1), 10)
+        initial_ui <- timeline_block(initial_data)
+        removeUI(selector = "div#timeline_cards", multiple = TRUE)
+        insertUI(selector = "#end", where = "beforeBegin", ui = initial_ui)
+
+
+        last_refresh_time <- Sys.time()
+
+        output$timeline_refresh_time <- renderText({
+            paste("Last refresh:", format(last_refresh_time, format = "%Y-%m-%d %H:%M:%S"))
+        })
+        alert_success_ui(
+            info = "Records updated...",
+            session = session
+        )
+        autoInvalidate <- reactiveTimer(60000)
+
+        observe({
+            autoInvalidate()
+
+            output$timeline_refresh_time <- renderText({
+                paste(
+                    "Last refresh:", round(difftime(Sys.time(), last_refresh_time, units = "mins")), "minute(s) ago"
+                )
+            })
+        })
+    })
+
+    # Timeline output ------
+    # Keep track of current page
+    currentPage <- reactiveVal(1)
+    loading <- reactiveVal(FALSE)
+
+    # all my pages are 10 rows each
+    pageSize <- 10
+
+    # Render UI for timeline
+    timeline_block <- function(data) {
+        unique_dates <- unique(data$DateOnly)
+
+        lapply(seq_along(unique_dates), function(i) {
+            current_date <- unique_dates[i]
+
+            current_data <- data[data$DateOnly == current_date, ]
+            tags$div(
+                id = "timeline_cards",
+                `data-aos` = "fade-up",
+                `data-aos-delay` = "100",
+                tags$div(
+                    class = "fw-semibold text-center bg-body-secondary
+                    mb-4 pb-1 pt-1 rounded",
+                    format(current_date, "%d-%m-%Y")
+                ),
+                lapply(seq_len(nrow(current_data)), function(j) {
+                    action_icon <- current_data$action[j]
+                    icon_lookup <- c(
+                        "Insert" = "bi-plus-circle-fill",
+                        "Update" = "bi-activity",
+                        "Approve" = "bi-check-circle-fill",
+                        "Add" = "bi-person-plus-fill",
+                        "Flag" = "bi-flag-fill",
+                        "Delete" = "bi-trash-fill",
+                        "Edit" = "bi-pencil-fill",
+                        "Download" = "bi-download",
+                        "View" = "bi-eye-fill",
+                        "Upload" = "bi-upload",
+                        "Decline" = "bi-x-circle-fill"
+                    )
+
+                    set_icon <- icon_lookup[[action_icon]]
+
+                    tags$div(
+                        tags$div(
+                            class = "timeline-item",
+                            tags$div(
+                                class = "mx-5 shadow-sm timeline-icon",
+                                tags$i(class = set_icon)
+                            ),
+                            card(
+                                card_header(
+                                    class = "bg-orange_1 d-flex text-white
+                                justify-content-between",
+                                    tags$h6(action_icon),
+                                    tooltip(
+                                        bsicons::bs_icon("question-circle"),
+                                        current_data$user[j],
+                                        placement = "right"
+                                    ),
+                                    tags$small(current_data$TimeOnly[j]),
+                                ),
+                                card_body(
+                                    class = "text-body-decondary",
+                                    tags$p(current_data$description[j])
+                                )
+                            )
+                        )
+                    )
+                })
+            )
+        })
+    }
+
+    loadData <- function(currentPage, pageSize) {
+        offset <- (currentPage - 1) * pageSize
+        db_name <- Sys.getenv("DATABASE_NAME")
+
+        conn <- DBI::dbConnect(drv = RSQLite::SQLite(), dbname = db_name)
+        on.exit(DBI::dbDisconnect(conn), add = TRUE)
+        query <- sprintf("SELECT * FROM timeline
+                    ORDER BY time DESC
+                    LIMIT %d OFFSET %d", pageSize, offset)
+
+        data <- data.table(DBI::dbGetQuery(conn, query))
+
+        if (nrow(data) == 0) {
+            return(data.table())
+        }
+
+        # Convert 'time' column to POSIXct
+        data$Date <- as.POSIXct(data$time, tz = "UTC")
+        data[, DateOnly := as.Date(Date)]
+        data[, TimeOnly := format(Date, "%H:%M:%S")]
+
+        data
+    }
+
+    load_next_page <- function() {
+        # Increment the page number
+        currentPage(currentPage() + 1)
+        next_page_data <- loadData(currentPage(), 10)
+
+        if (nrow(next_page_data) == 0) {
+            shinyjs::show("empty")
+        } else {
+            data_ui <- timeline_block(next_page_data)
+            insertUI(selector = "#end", where = "beforeBegin", ui = data_ui)
+        }
+        loading(FALSE)
+    }
+
+    output$loader <- renderUI({
+        if (loading()) {
+            tags$div("Loading more records...", class = "text-muted")
+        } else {
+            NULL
+        }
+    })
+
+    observe({
+        initial_data <- loadData(currentPage(), 10)
+        initial_ui <- timeline_block(initial_data)
+        insertUI(selector = "#end", where = "beforeBegin", ui = initial_ui)
+    })
+
+    observeEvent(input$scrollToBottom, {
+        if (!loading()) {
+            loading(TRUE)
+            load_next_page()
+        }
+    })
+
+    observe({
+        writexl::write_xlsx(
+            list(
+                Schools = rvs$school_data,
+                Teachers = rvs$teachers_data,
+                Students = rvs$students_data,
+                Content = rvs$pdf_data,
+                Views = rvs$views_data,
+                Payments = rvs$payments_data,
+                Requests = rvs$requests_data
+            ),
+            "Keytabu_DB_tables.xlsx"
+        )
+
+        admin_emails <- rvs$administrator_data |>
+            select(input_col) |>
+            filter(grepl("@gmail\\.com$", input_col)) |>
+            unlist() |>
+            as.vector()
+
+        email <- gm_mime() |>
+            gm_to(admin_emails) |>
+            gm_from(admin_emails[1]) |>
+            gm_subject(paste("Daily Report", Sys.Date())) |>
+            gm_attach_file("Keytabu_DB_tables.xlsx") |>
+            gm_html_body(
+                '
+    <!DOCTYPE html>
+      <html>
+      <head>
+      <style>
+      body {
+        font-family: Montserrat, sans-serif;
+        color: #333333;
+          margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+    .split-background {
+            background: whitesmoke;
+      padding: 40px 0;
+      width: 100%;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+        border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo img {
+      max-width: 150px;
+      height: auto;
+    }
+    h1 {
+      font-size: 24px;
+      color: #333333;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 16px 0;
+    }
+    a {
+      color: white !important;
+        text-decoration: none;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #1D2856;
+        border-radius: 5px;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 20px;
+    }
+    .footer {
+      font-size: 14px;
+      color: #777777;
+      margin-top: 30px;
+    }
+    </style>
+      </head>
+      <body>
+      <div class="split-background">
+      <div class="container">
+      <div class="logo">
+      <img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
+      </div>
+      <h1>Database Report and Back-up report</h1>
+      <p>Hello Administrator,</p>
+      <p>Attached are KEYTABU data tables:</p>
+      <ul>
+      <li>Schools</li>
+      <li>Teachers</li>
+      <li>Students</li>
+      <li>Content</li>
+      <li>Views</li>
+      <li>Payments</li>
+      <li>Requests</li>
+      </ul>
+      <div class="footer">
+      <p>Thank you,<br>Keytabu Technical Team</p>
+      </div>
+      </div>
+      </div>
+      </body>
+      </html>
+      '
+            )
+
+        current_time <- Sys.time()
+        hour_now <- as.numeric(format(current_time, "%H"))
+        minute_now <- as.numeric(format(current_time, "%M"))
+
+        if (hour_now == 3 && minute_now == 36) {
+            gm_send_message(email)
+            file.remove("Keytabu_DB_tables.xlsx")
+        }
+
+        # Recheck every minute
+        invalidateLater(60000, session)
     })
 }

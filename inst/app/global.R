@@ -22,6 +22,8 @@ library(frbs)
 library(stringr)
 library(magrittr)
 library(uuid)
+library(data.table)
+library(gmailr)
 
 # counties in Kenya
 # used as a choices input in school registration tab
@@ -40,27 +42,27 @@ kenyan_counties <- c(
 
 # Learning areas
 learning_areas <- c(
-   "Indigenous Language",
-   "Kiswahili",
-   "Mathematics",
-   "English",
-   "Religious Education",
-   "Environmental(Hygiene/Nutrition) activities",
-   "Agriculture and Nutrition Activities",
-   "Social studies",
-   "Creative Arts",
-   "Science and Technology",
-   "Language Activities",
-   "Creative Activities",
-   "Environmental Activities",
-   "Religious Activities",
-   "Pastoral Programme of Instruction (PPI)",
-   "Social Studies and Life Skills",
-   "Agriculture and Home Science",
-   "Integrated Science and Health Education",
-   "Pre Technical Studies, Computer Studies and Business Studies",
-   "Visual Arts, Performing Arts, Sports and PE"
- )
+  "Indigenous Language",
+  "Kiswahili",
+  "Mathematics",
+  "English",
+  "Religious Education",
+  "Environmental(Hygiene/Nutrition) activities",
+  "Agriculture and Nutrition Activities",
+  "Social studies",
+  "Creative Arts",
+  "Science and Technology",
+  "Language Activities",
+  "Creative Activities",
+  "Environmental Activities",
+  "Religious Activities",
+  "Pastoral Programme of Instruction (PPI)",
+  "Social Studies and Life Skills",
+  "Agriculture and Home Science",
+  "Integrated Science and Health Education",
+  "Pre Technical Studies, Computer Studies and Business Studies",
+  "Visual Arts, Performing Arts, Sports and PE"
+)
 
 # Retrieve credentials
 app_name <- Sys.getenv("POLISHED_APP_NAME")
@@ -107,3 +109,5 @@ download_btn <- function(btn) {
   html_tag_q$removeClass("disabled")
   return(html_tag_q$allTags())
 }
+
+gm_auth_configure(path = "gmail_creds.json")

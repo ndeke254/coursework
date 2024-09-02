@@ -841,3 +841,25 @@ h1.display-3.text-white.fw-bold {
 .btn-outline-light {
   --bs-btn-border-color: #979797;
 }
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.timeline-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background-color: #e9ecef;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+.timeline-content {
+  flex-grow: 1;
+}
