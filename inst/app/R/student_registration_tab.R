@@ -9,7 +9,7 @@ student_registration_tab <- div(
             class = "d-flex justify-content-center",
             tags$img(
                 src = file.path("logo", "logo.png"),
-                width = "150px"
+                width = "100px"
             )
         ),
         div(

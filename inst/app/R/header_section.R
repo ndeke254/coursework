@@ -1,14 +1,14 @@
-header_section <- div(
-  class = "bg-default heading-title ",
+header_section <- tags$header(
+  class = "fixed-top bg-default",
   tags$div(
     class = "container d-flex align-items-center justify-content-between",
-    div(
+    tags$h1(
       class = "logo",
       tags$a(
         href = "",
         tags$img(
           src = file.path("logo", "logo_white.svg"),
-          height = "140px"
+          height = "50px"
         )
       )
     ),
@@ -18,7 +18,7 @@ header_section <- div(
       tags$ul(
         tags$li(
           class = "fade-in",
-          actionLink(
+          shiny::actionLink(
             inputId = "home_link",
             label = "Home"
           )
@@ -65,6 +65,9 @@ header_section <- div(
             label = textOutput("signed_user")
           )
         )
+      ),
+      tags$i(
+        class = "bi bi-list mobile-nav-toggle text-white"
       )
     )
   )

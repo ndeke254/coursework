@@ -2,20 +2,22 @@
 % Please edit documentation in R/process_uploaded_photos.R
 \name{process_uploaded_photos}
 \alias{process_uploaded_photos}
-\title{Process uploaded photos}
+\title{Process Uploaded Photos}
 \usage{
 process_uploaded_photos(photos, dest_dir, base_id)
 }
 \arguments{
-\item{photos}{A list of file paths to the uploaded photos.}
+\item{photos}{A character vector of file paths to the uploaded photos.}
 
-\item{dest_dir}{The destination directory where the photos will be copied.}
+\item{dest_dir}{A character string specifying the destination directory where the
+photos will be copied.}
 
-\item{base_id}{The base ID to rename the photos (e.g., "REQ-001").}
+\item{base_id}{A character string used as the base for renaming the photos (e.g., "REQ-001").}
 }
 \value{
-A list of new file paths after renaming.
+A character vector of new file paths after renaming and copying.
 }
 \description{
-Process uploaded photos
+This function processes a list of uploaded photos by copying them to a specified
+destination directory and renaming them with a given base ID and a numeric suffix.
 }

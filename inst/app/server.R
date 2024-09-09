@@ -1,4 +1,10 @@
 server <- function(input, output, session) {
+# on click, add class 'active' to the clicked nav link:
+add_class_active <- \(id) {
+    shinyjs::removeClass(class = "active", selector = "header .nav-link")
+    shinyjs::addClass(id = id, class = "active")
+}
+
     # make sqlite connection:
     conn <- DBI::dbConnect(
         drv = RSQLite::SQLite(),
@@ -66,6 +72,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "company_website"
         )
+        shinyjs::hide("company_copyright")
         shinyjs::runjs("$('#home_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
 
@@ -74,6 +81,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "company_website"
         )
+        shinyjs::hide("company_copyright")
 
         shinyjs::runjs("$('#about_us_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
@@ -83,6 +91,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "company_website"
         )
+        shinyjs::hide("company_copyright")
 
         shinyjs::runjs("$('#contact_us_section')[0].scrollIntoView({ behavior: 'smooth' });")
     })
@@ -625,6 +634,8 @@ server <- function(input, output, session) {
 
             observeEvent(input$signed_user_link, {
                 req(isTruthy(user_role))
+                shinyjs::show("company_copyright")
+
                 if (is_admin) {
                     updateTabsetPanel(
                         inputId = "app_pages",
@@ -1132,7 +1143,7 @@ server <- function(input, output, session) {
                         photos <- uploaded_request_files()
                         if (length(photos) == 0) {
                             alert_fail_ui(
-                                info = "Upload photos...",
+                                info = "Upload new photos!",
                                 session = session
                             )
                             return()
@@ -1175,6 +1186,7 @@ server <- function(input, output, session) {
                                 table_html
                             ),
                             showCancelButton = TRUE,
+                            confirmButtonCol = "#1D2856",
                             html = TRUE
                         )
                     })
@@ -1253,11 +1265,11 @@ server <- function(input, output, session) {
                         "An error occurred with your account."
                     ),
                     type = "",
-                    inputId = "pay_alert",
+                    inputId = "error_alert",
                     imageUrl = "logo/mpesa_poster.jpg",
                     imageWidth = 180,
                     session = session,
-                    confirmButtonText = "PAY",
+                    confirmButtonText = "OK",
                     confirmButtonCol = "#1D2856",
                     callbackR = function() {
                         session$reload()
@@ -2719,7 +2731,8 @@ server <- function(input, output, session) {
                     status = "success",
                     right = TRUE,
                     inline = TRUE
-                ),
+                ) |>
+                    modified_switch(),
                 actionButton(
                     inputId = paste0("delete_school_btn"),
                     label = "Delete",
@@ -2761,7 +2774,8 @@ server <- function(input, output, session) {
                     status = "success",
                     right = TRUE,
                     inline = TRUE
-                )
+                ) |>
+                modified_switch()
             )
         )
 
@@ -2869,7 +2883,8 @@ server <- function(input, output, session) {
                     status = "success",
                     right = TRUE,
                     inline = TRUE
-                )
+                ) |>
+                modified_switch()
             )
         )
 
@@ -3725,7 +3740,12 @@ server <- function(input, output, session) {
         }
     })
 
-    observe({
+    observeEvent(input$send_email, {
+        current_time <- Sys.time()
+        hour_now <- as.numeric(format(current_time, "%H"))
+        minute_now <- as.numeric(format(current_time, "%M"))
+
+        temp_file <- tempfile(fileext = ".xlsx")
         writexl::write_xlsx(
             list(
                 Schools = rvs$school_data,
@@ -3736,7 +3756,7 @@ server <- function(input, output, session) {
                 Payments = rvs$payments_data,
                 Requests = rvs$requests_data
             ),
-            "Keytabu_DB_tables.xlsx"
+            temp_file
         )
 
         admin_emails <- rvs$administrator_data |>
@@ -3749,113 +3769,115 @@ server <- function(input, output, session) {
             gm_to(admin_emails) |>
             gm_from(admin_emails[1]) |>
             gm_subject(paste("Daily Report", Sys.Date())) |>
-            gm_attach_file("Keytabu_DB_tables.xlsx") |>
-            gm_html_body(
-                '
-    <!DOCTYPE html>
-      <html>
-      <head>
-      <style>
-      body {
-        font-family: Montserrat, sans-serif;
-        color: #333333;
-          margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
-    .split-background {
-            background: whitesmoke;
-      padding: 40px 0;
-      width: 100%;
-    }
-    .container {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #ffffff;
-        border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo img {
-      max-width: 150px;
-      height: auto;
-    }
-    h1 {
-      font-size: 24px;
-      color: #333333;
-    }
-    p {
-      font-size: 16px;
-      line-height: 1.6;
-      margin: 16px 0;
-    }
-    a {
-      color: white !important;
-        text-decoration: none;
-    }
-    .button {
-      display: inline-block;
-      padding: 10px 20px;
-      font-size: 16px;
-      color: white;
-      background-color: #1D2856;
-        border-radius: 5px;
-      text-align: center;
-      text-decoration: none;
-      margin-top: 20px;
-    }
-    .footer {
-      font-size: 14px;
-      color: #777777;
-      margin-top: 30px;
-    }
-    </style>
-      </head>
-      <body>
-      <div class="split-background">
-      <div class="container">
-      <div class="logo">
-      <img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
-      </div>
-      <h1>Database Report and Back-up report</h1>
-      <p>Hello Administrator,</p>
-      <p>Attached are KEYTABU data tables:</p>
-      <ul>
-      <li>Schools</li>
-      <li>Teachers</li>
-      <li>Students</li>
-      <li>Content</li>
-      <li>Views</li>
-      <li>Payments</li>
-      <li>Requests</li>
-      </ul>
-      <div class="footer">
-      <p>Thank you,<br>Keytabu Technical Team</p>
-      </div>
-      </div>
-      </div>
-      </body>
-      </html>
-      '
-            )
+            gm_attach_file(temp_file) |>
+            gm_html_body('
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  font-family: Montserrat, sans-serif;
+  color: #333333;
+    margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.split-background {
+        background: whitesmoke;
+  padding: 40px 0;
+  width: 100%;
+}
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+    border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.logo img {
+  max-width: 150px;
+  height: auto;
+}
+h1 {
+  font-size: 24px;
+  color: #333333;
+}
+p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 16px 0;
+}
+a {
+  color: white !important;
+    text-decoration: none;
+}
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #1D2856;
+    border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 20px;
+}
+.footer {
+  font-size: 14px;
+  color: #777777;
+  margin-top: 30px;
+}
+</style>
+</head>
+<body>
+<div class="split-background">
+<div class="container">
+<div class="logo">
+<img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
+</div>
+<h1>Database Report and Back-up report</h1>
+<p>Hello Administrator,</p>
+<p>Attached are KEYTABU data tables:</p>
+<ul>
+<li>Schools</li>
+<li>Teachers</li>
+<li>Students</li>
+<li>Content</li>
+<li>Views</li>
+<li>Payments</li>
+<li>Requests</li>
+</ul>
+<div class="footer">
+<p>Thank you,<br>Keytabu Technical Team</p>
+</div>
+</div>
+</div>
+</body>
+</html>
+')
 
-        current_time <- Sys.time()
-        hour_now <- as.numeric(format(current_time, "%H"))
-        minute_now <- as.numeric(format(current_time, "%M"))
+        gm_auth(token = gm_token_read(
+            path = "gmailr-token.rds",
+            key = "GMAILR_KEY"
+        ))
 
-        if (hour_now == 3 && minute_now == 36) {
-            gm_send_message(email)
-            file.remove("Keytabu_DB_tables.xlsx")
-        }
+        gm_send_message(email)
+        file.remove(temp_file)
+
+        alert_success_ui(
+            session = session,
+            info = "Email sent"
+        )
 
         # Recheck every minute
         invalidateLater(60000, session)
