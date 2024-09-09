@@ -12,7 +12,7 @@ create_payment_ticket(table_name, data)
 \item{data}{A data.frame of the data to be added.}
 }
 \value{
-double \code{1} if school was created. \code{0} otherwise.
+double \code{1} if ticket was created. \code{0} otherwise.
 }
 \description{
 Add a ticket details into the DB.

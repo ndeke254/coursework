@@ -12,15 +12,13 @@ login_form <- \(ns) {
     email_input <- shiny::textInput(
         inputId = ns("signin_email"),
         label = "Email address",
-        placeholder = "johndoe@example.com",
-        width = "400px"
+        placeholder = "johndoe@example.com"
     ) |> make_input_required()
     password_input_id <- ns("signin_password")
     password_input <- shiny::passwordInput(
         inputId = password_input_id,
         label = "Password",
-        placeholder = "Password",
-        width = "400px"
+        placeholder = "Password"
     ) |> make_input_required()
 
     # show/hide passwords
@@ -32,8 +30,7 @@ login_form <- \(ns) {
         label = div(
             "Show password",
             class = "mx-2"
-        ),
-        width = "400px"
+        )
     ) |> make_input_required()
 
     submit_btn_id <- ns("signin_submit")
@@ -41,14 +38,16 @@ login_form <- \(ns) {
         inputId = submit_btn_id,
         label = "Login",
         type = "submit",
+        width = "300px",
+        class = "bg-blue",
         onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
     ) |>
         basic_primary_btn()
 
     tags$form(
-        class = "pt-2",
+        class = "pt-2 p-4",
         tags$div(class = "mb-3", email_input),
         tags$div(class = "mb-3", password_input),
-        tags$div(class = "d-grid", submit_btn)
+        tags$div(class = "d-grid text-center", submit_btn)
     )
 }

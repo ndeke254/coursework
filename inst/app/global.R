@@ -110,4 +110,10 @@ download_btn <- function(btn) {
   return(html_tag_q$allTags())
 }
 
-gm_auth_configure(path = "gmail_creds.json")
+modified_switch <- function(switch) {
+  html_tag_q <- htmltools::tagQuery(switch)
+  html_tag_q$removeClass("shiny-input-container")
+  return(html_tag_q$allTags())
+}
+
+Sys.setenv(GMAILR_KEY = Sys.getenv("GMAILR_KEY"))

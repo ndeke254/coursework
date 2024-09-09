@@ -41,7 +41,7 @@ company_website <- div(
                                 actionButton(
                                     inputId = "register_now",
                                     label = "Register Now",
-                                    class = "mt-5 fw-bold",
+                                    class = "mt-5 mb-5 fw-bold",
                                     width = "230px"
                                 )
                             )
@@ -124,7 +124,7 @@ company_website <- div(
                         actionButton(
                             inputId = "lets_partner",
                             label = "Let's Partner",
-                            class = "mt-5 fw-bold",
+                            class = "mt-5 mb-5 fw-bold",
                             width = "230px"
                         )
                     )
