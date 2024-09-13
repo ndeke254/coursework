@@ -1,5 +1,5 @@
 header_section <- tags$header(
-  class = "fixed-top bg-default",
+  class = "fixed-top bg-default shadow",
   tags$div(
     class = "container d-flex align-items-center justify-content-between",
     tags$h1(

@@ -22,7 +22,7 @@ admin_registration_tab <- div(
       actionButton(
         inputId = "set_term_end",
         label = "Set",
-        width = "250px",
+        width = "300px",
         class = "mb-3"
       )
     ),
@@ -31,7 +31,7 @@ admin_registration_tab <- div(
       actionButton(
         inputId = "send_email",
         label = "Send backup email",
-        width = "250px",
+        width = "300px",
         class = "mb-3"
       )
     )
@@ -66,7 +66,7 @@ admin_registration_tab <- div(
         fluidRow(
           column(
             width = 3,
-            shiny::selectizeInput(
+            shinyWidgets::pickerInput(
               inputId = "doc_request",
               label = label_mandatory("Request ID:"),
               options = list(maxOptions = 3),
@@ -171,34 +171,45 @@ admin_registration_tab <- div(
             ),
             column(
               width = 3,
-              shiny::selectizeInput(
+              shinyWidgets::pickerInput(
                 inputId = "school_level",
                 label = label_mandatory("Level:"),
+                options = list(
+                  style = "btn-outline-light",
+                  title = "Eg. Primary"
+                ),
                 choices = c(
-                  "Preparatory",
-                  "Primary",
-                  "Junior Secondary",
-                  "Senior Secondary",
-                  "University/College",
-                  "Other"
+                  "Preparatory", "Primary", "Junior Secondary",
+                  "Senior Secondary", "University/College", "Other"
                 )
               )
             ),
             column(
               width = 3,
-              shiny::selectizeInput(
+              shinyWidgets::pickerInput(
                 inputId = "school_type",
                 label = label_mandatory("Type:"),
+                options = list(
+                  style = "btn-outline-light",
+                  title = "Eg. Public"
+                ),
                 choices = c("Public", "Private", "Other")
               )
             ),
             column(
               width = 3,
-              shiny::selectizeInput(
+              shinyWidgets::pickerInput(
                 inputId = "county",
                 label = label_mandatory("County:"),
+                options = list(
+                  title = "Eg. Nairobi",
+                  style = "btn-outline-light",
+                  size = 5,
+                  `live-search` = TRUE,
+                  `live-search-placeholder` = "Search county"
+                ),
                 choices = kenyan_counties,
-                options = list(maxOptions = 5)
+                autocomplete = TRUE
               )
             )
           ),

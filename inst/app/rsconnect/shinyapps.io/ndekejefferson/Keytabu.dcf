@@ -1,11 +1,11 @@
 name: Keytabu
-title: Keytabu
+title: app
 username: ndekejefferson
 account: ndekejefferson
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12376052
-bundleId: 9076771
+bundleId: 9097093
 url: https://ndekejefferson.shinyapps.io/Keytabu/
 version: 1
 asMultiple: FALSE
