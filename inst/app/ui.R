@@ -36,6 +36,18 @@ ui <- shiny::bootstrapPage(
   # Load dependencies
   useSweetAlert(),
   shinyjs::useShinyjs(),
+  shinybusy::add_busy_spinner(
+    spin = "fading-circle",
+    position = "top-right",
+    color = "#414042",
+    margins = c("30%", "50%")
+  ),
+  tags$a(
+    href = "#",
+    class = "back-to-top d-flex align-items-center
+             justify-content-center",
+    tags$i(class = "bi bi-arrow-up")
+  ),
   shiny::tabsetPanel(
     id = "panels",
     type = "hidden",
@@ -98,7 +110,7 @@ ui <- shiny::bootstrapPage(
         value = "dashboardpage_panel",
         tags$div(
           class = "fade-in",
-          dashboard_page()
+          dashboard_page(),
         )
       )
     ),
@@ -125,17 +137,6 @@ ui <- shiny::bootstrapPage(
         )
       )
     )
-  ),
-  shinybusy::add_busy_spinner(
-    spin = "fading-circle",
-    position = "top-right",
-    color = "#414042",
-    margins = c("30%", "50%")
-  ),
-  tags$a(
-    href = "#",
-    class = "back-to-top d-flex align-items-center justify-content-center",
-    tags$i(class = "bi bi-arrow-up-short")
   ),
   tags$script(
     src = "https://unpkg.com/aos@2.3.1/dist/aos.js"

@@ -1,20 +1,22 @@
 teacher_registration_tab <- div(
     id = "registration_form",
-    class = "pb-2 pt-3",
-    create_card(
-        title = "Welcome to Keytabu",
+    class = "vh-100 container justify-content-center align-content-center",
+    div(
         title_icon = NULL,
-        class = "container shadow text",
+        class = "card",
         tags$div(
-            class = "d-flex justify-content-center",
+            class = "bg-light d-flex justify-content-center",
             tags$img(
                 src = file.path("logo", "logo.png"),
                 width = "100px"
             )
         ),
+        h5("Welcome to Keytabu", class = "bg-light text-bold text-center
+        pb-3"),
         div(
             id = "teacher_registration",
-            p("Teacher Details"),
+            class = "card-body",
+            p("Teacher Details", class = "text-bold text-muted text-center"),
             fluidRow(
                 column(
                     width = 3,
@@ -27,21 +29,34 @@ teacher_registration_tab <- div(
                 ),
                 column(
                     width = 3,
-                    shiny::selectizeInput(
+                    shinyWidgets::pickerInput(
                         inputId = "teacher_school",
                         label = label_mandatory("School:"),
-                        options = list(maxOptions = 3),
+                        options = list(
+                            title = "Eg. Lenga Juu",
+                            style = "btn-outline-light",
+                            size = 5,
+                            `live-search` = TRUE,
+                            `live-search-placeholder` = "Search school"
+                        ),
                         choices = NULL
                     )
                 ),
                 column(
                     width = 3,
-                    shiny::selectizeInput(
+                    shinyWidgets::pickerInput(
                         inputId = "teacher_grades",
                         label = label_mandatory("Grades:"),
-                        choices = setNames(1:12, paste("Grade", 1:12)),
                         multiple = TRUE,
-                        options = list(maxItems = 3, maxOptions = 3)
+                        options = pickerOptions(
+                            style = "btn-outline-light",
+                            title = "Eg. Grade 6",
+                            size = 5,
+                            maxOptions = 3,
+                            maxOptionsText = "Max grades selected"
+                        ),
+                        choices = setNames(1:12, paste("Grade", 1:12)),
+                        autocomplete = TRUE
                     )
                 ),
                 column(
@@ -83,18 +98,15 @@ teacher_registration_tab <- div(
                 )
             ),
             privacy_tos_links,
-            fluidRow(
-                class = "mt-5",
-                div(
-                    class = "d-flex justify-content-center",
-                    shiny::actionButton(
-                        inputId = "submit_teacher_details",
-                        label = "Submit",
-                        class = "px-5",
-                        width = "250px"
-                    ) |>
-                        basic_primary_btn()
-                )
+            div(
+                class = "d-flex justify-content-center",
+                shiny::actionButton(
+                    inputId = "submit_teacher_details",
+                    label = "Submit",
+                    class = "bg-blue rounded text-center",
+                    width = "300px"
+                ) |>
+                    basic_primary_btn()
             )
         )
     )

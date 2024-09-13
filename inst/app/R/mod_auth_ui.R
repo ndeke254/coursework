@@ -4,19 +4,20 @@
 mod_auth_ui <- \(id) {
     ns <- NS(id)
     div(
-        class = "mt-5 pt-5 container v-100
+        class = "container vh-100
         d-flex justify-content-center align-items-center",
         div(
-            title = "Log in Keytabu",
             title_icon = NULL,
             class = "card",
             tags$div(
-                class = "d-flex justify-content-center",
+                class = "bg-light d-flex justify-content-center",
                 tags$img(
                     src = file.path("logo", "logo.png"),
-                    width = "150px"
+                    width = "100px"
                 )
             ),
+            h5("Log in Keytabu", class = "bg-light text-bold text-center
+             pb-3"),
             login_form(ns = ns),
             tags$div(
                 class = "text-center",

@@ -44,10 +44,20 @@ login_form <- \(ns) {
     ) |>
         basic_primary_btn()
 
-    tags$form(
-        class = "pt-2 p-4",
-        tags$div(class = "mb-3", email_input),
-        tags$div(class = "mb-3", password_input),
-        tags$div(class = "d-grid text-center", submit_btn)
+    div(
+        class = "card-body",
+        fluidRow(
+            column(
+                width = 12,
+                email_input
+            )
+        ),
+        fluidRow(
+            column(
+                width = 12,
+                password_input
+            )
+        ),
+        tags$div(class = "d-flex justify-content-center", submit_btn)
     )
 }

@@ -529,13 +529,19 @@ add_class_active <- \(id) {
 
     # now output signed user
     observe({
-        updateSelectInput(
+        updatePickerInput(
             inputId = "teacher_school",
-            choices = rvs$school_data$school_name
+            choices = rvs$school_data$school_name,
+             choicesOpt = list(
+                 subtext = rvs$school_data$level
+             )
         )
-        updateSelectInput(
+        updatePickerInput(
             inputId = "student_school",
-            choices = rvs$school_data$school_name
+            choices = rvs$school_data$school_name,
+             choicesOpt = list(
+                 subtext = rvs$school_data$level
+             )
         )
 
         if (isTruthy(user_details$email)) {
@@ -797,22 +803,22 @@ add_class_active <- \(id) {
                     rvts <- reactiveValues(data = student_content)
 
                     # Update picker inputs with unique values from the filtered data
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "filter_teacher",
                         choices = unique(student_content$teacher)
                     )
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "filter_learning_area",
                         choices = unique(student_content$learning_area)
                     )
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "filter_topic",
                         choices = unique(student_content$topic)
                     )
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "filter_sub_topic",
                         choices = unique(student_content$sub_topic)
@@ -1038,12 +1044,12 @@ add_class_active <- \(id) {
                     })
                     grades <- strsplit(signed_user$grade, ", ")[[1]] |>
                         as.numeric()
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "request_grade",
                         choices = setNames(grades, paste("Grade", grades))
                     )
-                    updateSelectizeInput(
+                    updatePickerInput(
                         session = session,
                         inputId = "request_learning_area",
                         choices = learning_areas
@@ -1312,7 +1318,7 @@ add_class_active <- \(id) {
                     select(id) |>
                     unlist() |>
                     as.vector()
-                updateSelectizeInput(
+                updatePickerInput(
                     session = session,
                     inputId = "doc_request",
                     choices = requests
@@ -1801,10 +1807,13 @@ add_class_active <- \(id) {
                 .(user_name, grade)
             ]
 
-            updateSelectizeInput(
+                updatePickerInput(
                 session = session,
                 inputId = "doc_teacher",
-                choices = unique(choices$user_name)
+                choices = unique(choices$user_name),
+                  choicesOpt = list(
+                      subtext = unique(choices$grade)
+                  )
             )
         })
 
@@ -1821,7 +1830,7 @@ add_class_active <- \(id) {
             grade <- strsplit(choices$grade, ", ")[[1]] |>
                 as.numeric()
 
-            updateSelectizeInput(
+            updatePickerInput(
                 session = session,
                 inputId = "doc_grade",
                 choices = setNames(grade, paste("Grade", grade)),
@@ -2147,7 +2156,7 @@ add_class_active <- \(id) {
                 div(
                     class = "d-flex align-items-center
                     justify-content-evenly",
-                    selectInput(
+                                shinyWidgets::pickerInput(
                         inputId = "edit_request_status",
                         label = "Change request status",
                         choices = c("PROCESSING", "CANCELLED")
@@ -3157,7 +3166,7 @@ add_class_active <- \(id) {
                 fluidRow(
                     column(
                         width = 3,
-                        shiny::selectizeInput(
+            shinyWidgets::pickerInput(
                             inputId = "edit_pdf_grade",
                             label = label_mandatory("Grade:"),
                             choices = setNames(grades, paste("Grade", grades)),
@@ -3167,7 +3176,7 @@ add_class_active <- \(id) {
                     ),
                     column(
                         width = 3,
-                        shiny::selectizeInput(
+                        shiny::updatePickerInput(
                             inputId = "edit_learning_area",
                             label = label_mandatory("Search a Learning Area:"),
                             choices = learning_areas,
@@ -3426,7 +3435,7 @@ add_class_active <- \(id) {
                 div(
                     class = "d-flex align-items-center
                     justify-content-evenly",
-                    selectInput(
+                                shinyWidgets::pickerInput(
                         inputId = "edit_payment_status",
                         label = "Change payment status",
                         choices = c("APPROVED", "DECLINED")

@@ -31,20 +31,20 @@ teacher_request_tab <- div(
         fluidRow(
           column(
             width = 3,
-            shiny::selectizeInput(
+            shinyWidgets::pickerInput(
               inputId = "request_grade",
               label = label_mandatory("Grade:"),
-              choices = NULL,
-              options = list(maxOptions = 5)
+              options = list(maxOptions = 5),
+              choices = NULL
             )
           ),
           column(
             width = 3,
-            shiny::selectizeInput(
+            shinyWidgets::pickerInput(
               inputId = "request_learning_area",
               label = label_mandatory(" Search a Learning Area:"),
-              choices = NULL,
-              options = list(maxOptions = 5)
+              options = list(maxOptions = 5),
+              choices = NULL
             )
           ),
           column(
