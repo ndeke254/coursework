@@ -2,46 +2,48 @@ company_website <- div(
     id = "website",
     style = "width: 100%; overflow-x: hidden;",
     div(
-        class = "bg-default",
+        class = "vh-100 bg-default align-content-center",
         id = "intro_page",
         `data-aos` = "fade-up",
         `data-aos-delay` = "100",
-        fluidRow(
-            column(
-                width = 6,
+        div(
+            style = "max-width: 1200px; margin: 0 auto;",
+            fluidRow(
                 class = "px-5",
-                div(
-                    class = "h1 text-bold text-white mt-5 pt-5",
-                    "Learn Quick",
-                    br(),
-                    "Learn Smart",
-                    br(),
-                    "Learn Alot..."
-                ),
-                div(
-                    class = "p lead text-orange_1 pt-3 pb-5",
-                    "With High Quality, Quick Reference",
-                    br(),
-                    "Content for Students"
-                ),
-                div(
-                    actionButton(
-                        inputId = "register_now",
-                        label = "Register Now",
-                        class = "mt-5",
-                        width = "230px"
+                column(
+                    width = 6,
+                    div(
+                        class = "h1 text-bold text-white mt-5 pt-5",
+                        "Learn Quick",
+                        br(),
+                        "Learn Smart",
+                        br(),
+                        "Learn Alot..."
+                    ),
+                    div(
+                        class = "p lead text-orange_1 pt-3 pb-4",
+                        "With High Quality, Quick Reference",
+                        br(),
+                        "Content for Students"
+                    ),
+                    div(
+                        actionButton(
+                            inputId = "register_now",
+                            label = "Register Now",
+                            class = "mt-5 mb-5",
+                            width = "230px"
+                        )
                     )
-                )
-            ),
-            column(
-                width = 6,
-                class = "px-5",
-                div(
-                    class = "d-flex justify-content-center mt-5 pt-5",
-                    tags$img(
-                        src = "inst/images/child_3.png",
-                        width = "200%",
-                        style = "max-width: 779px;"
+                ),
+                column(
+                    width = 6,
+                    div(
+                        class = "d-flex justify-content-center",
+                        tags$img(
+                            src = "inst/images/child_3.png",
+                            width = "100%",
+                            style = "max-width: 779px;"
+                        )
                     )
                 )
             )
@@ -52,55 +54,58 @@ company_website <- div(
         `data-aos` = "fade-up",
         `data-aos-delay` = "100",
         class = "bg-white",
-        fluidRow(
-            column(
-                width = 6,
-                class = "px-5",
-                div(
-                    tags$img(
-                        src = "inst/images/teacher_1.png",
-                        width = "100%",
-                        style = "max-width: 430px;"
+        div(
+            style = "max-width: 1200px; margin: 0 auto;",
+            fluidRow(
+                class = "  px-4",
+                column(
+                    width = 6,
+                    div(
+                        tags$img(
+                            src = "inst/images/teacher_1.png",
+                            width = "100%",
+                            style = "max-width: 430px;"
+                        )
                     )
-                )
-            ),
-            column(
-                width = 6,
-                class = "px-5 pt-5",
-                h1(
-                    class = "text-bold text-body_1",
-                    "What is Keytabu?"
-                ),
-                p(
-                    class = "lead pt-4",
-                    "Keytabu is an online learning platform that partners with teachers to create a
-                    digital library of revision materials. These include quick
-                    study guides, reference notes, and flashcards, all designed to enhance visual learning and aid retention."
-                ),
-                br(),
-                p("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics",
-                    class = "lead"
-                ),
-                div(
-                    class = "position-absolute pt-5 px-5",
-                    tags$img(
-                        src = "inst/images/arrow_left.png",
-                        width = "100%",
-                        style = "max-width: 100px;"
-                    )
-                ),
-                h5(
-                    class = "pb-5 mt-4 text-bold",
-                    "Are you a teacher?"
                 ),
                 column(
                     width = 6,
-                    class = "pt-4",
-                    actionButton(
-                        inputId = "lets_partner",
-                        label = "Let's Partner",
-                        class = "mt-5 mb-5 fw-bold",
-                        width = "230px"
+                    class = "pt-5",
+                    h1(
+                        class = "text-bold text-body_1",
+                        "What is Keytabu?"
+                    ),
+                    p(
+                        class = "lead pt-4",
+                        "Keytabu is an online learning platform that partners with teachers to create a
+                    digital library of revision materials. These include quick
+                    study guides, reference notes, and flashcards, all designed to enhance visual learning and aid retention."
+                    ),
+                    br(),
+                    p("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics",
+                        class = "lead"
+                    ),
+                    div(
+                        class = "position-absolute pt-5  px-5",
+                        tags$img(
+                            src = "inst/images/arrow_left.png",
+                            width = "100%",
+                            style = "max-width: 100px;"
+                        )
+                    ),
+                    h5(
+                        class = "pb-5 mt-4 text-bold",
+                        "Are you a teacher?"
+                    ),
+                    column(
+                        width = 6,
+                        class = "pt-4",
+                        actionButton(
+                            inputId = "lets_partner",
+                            label = "Let's Partner",
+                            class = "mt-5 mb-5 fw-bold",
+                            width = "230px"
+                        )
                     )
                 )
             )
@@ -112,13 +117,14 @@ company_website <- div(
         `data-aos-delay` = "100",
         class = "bg-gray-light",
         div(
+            style = "max-width: 1200px; margin: 0 auto;",
             class = "pt-5 pb-5",
             h1(
                 class = "text-bold text-body_1 text-center",
                 "Content Categories"
             ),
             fluidRow(
-                class = "pt-4 px-5",
+                class = "pt-4",
                 column(
                     width = 4,
                     class = "pb-2",
@@ -253,89 +259,92 @@ company_website <- div(
         `data-aos` = "fade-up",
         `data-aos-delay` = "100",
         class = "bg-white",
-        fluidRow(
-            column(
-                width = 6,
-                class = "px-5",
-                div(
-                    class = "d-flex pt-5",
-                    h1(
-                        class = "text-bold text-body_1",
-                        display = 5,
-                        "Our"
+        div(
+            style = "max-width: 1200px; margin: 0 auto;",
+            fluidRow(
+                class = "  px-4",
+                column(
+                    width = 6,
+                    div(
+                        class = "d-flex pt-5",
+                        h1(
+                            class = "text-bold text-body_1",
+                            display = 5,
+                            "Our"
+                        ),
+                        h1(
+                            class = "text-bold text-orange_1 px-3",
+                            display = 5,
+                            "Mission"
+                        )
                     ),
-                    h1(
-                        class = "text-bold text-orange_1 px-3",
-                        display = 5,
-                        "Mission"
-                    )
-                ),
-                fluidRow(
-                    p(
-                        class = "pt-3 lead",
-                        "We aim to provide a comprehensive online
+                    fluidRow(
+                        p(
+                            class = "pt-3 lead",
+                            "We aim to provide a comprehensive online
                                 resource of teacher-developed revision
                                 materials, accessible 24/7, to support both
                                 students and teachers in achieving
                                 their learning goals. Parents can also engage
                                  with their child's learning journey by
                                  accessing important study materials."
-                    )
-                ),
-                div(
-                    class = "justify-content-end d-flex pt-5 ",
-                    div(
-                        tags$img(
-                            src = "inst/images/parent_student.png",
-                            width = "100%",
-                            style = "max-width: 700px;"
                         )
                     ),
                     div(
-                        class = "position-absolute",
-                        tags$img(
-                            src = "inst/images/arrow_right.png",
-                            width = "100%",
-                            style = "max-width: 100px;"
-                        )
-                    )
-                )
-            ),
-            column(
-                width = 6,
-                class = "px-5",
-                fluidRow(
-                    div(
-                        tags$img(
-                            src = "inst/images/child_2.png",
-                            width = "100%",
-                            style = "max-width: 400px;"
-                        )
-                    )
-                ),
-                fluidRow(
-                    div(
-                        class = "d-flex pt-5",
-                        h1(
-                            class = "text-bold text-body_1",
-                            "Our"
+                        class = "justify-content-end d-flex pt-5 ",
+                        div(
+                            tags$img(
+                                src = "inst/images/parent_student.png",
+                                width = "100%",
+                                style = "max-width: 700px;"
+                            )
                         ),
-                        h1(
-                            class = "text-bold text-orange_1 px-3",
-                            "Premise"
+                        div(
+                            class = "position-absolute",
+                            tags$img(
+                                src = "inst/images/arrow_right.png",
+                                width = "100%",
+                                style = "max-width: 100px;"
+                            )
                         )
                     )
                 ),
-                fluidRow(
-                    p(
-                        class = "lead pt-3 pb-3",
-                        "With limited classroom time and varying
+                column(
+                    width = 6,
+                    fluidRow(
+                        class = "justify-content-center",
+                        div(
+                            tags$img(
+                                src = "inst/images/child_2.png",
+                                width = "100%",
+                                style = "max-width: 400px;"
+                            )
+                        )
+                    ),
+                    fluidRow(
+                        div(
+                            class = "d-flex pt-5",
+                            h1(
+                                class = "text-bold text-body_1",
+                                "Our"
+                            ),
+                            h1(
+                                class = "text-bold text-orange_1 px-3",
+                                "Premise"
+                            )
+                        )
+                    ),
+                    fluidRow(
+                        p(
+                            class = "lead pt-3 pb-3",
+                            "With limited classroom time and varying
                                 student learning speeds, traditional
                                 methods may not suit everyone.
                                 Keytabu offers additional, tailored
                                 learning materials that students can
                                 access anytime, bridging gaps and
                                 reinforcing classroom learning."
+                        )
                     )
                 )
             )
@@ -347,7 +356,8 @@ company_website <- div(
         `data-aos` = "fade-up",
         `data-aos-delay` = "100",
         div(
-            class = "pt-5 pb-5",
+            class = "pt-5 pb-5   px-4",
+            style = "max-width: 1200px; margin: 0 auto;",
             h1(
                 class = "text-bold text-body_1 text-center",
                 "Our Partners"
@@ -368,10 +378,11 @@ company_website <- div(
         `data-aos` = "fade-up",
         `data-aos-delay` = "100",
         div(
+            style = "max-width: 1200px; margin: 0 auto;",
             fluidRow(
-                class = "d-flex justify-content-center pt-5 pb-2 px-5",
+                class = "d-flex justify-content-center pt-5 pb-2",
                 column(
-                    width = 2,
+                    width = 4,
                     class = "p-2 border-right",
                     h1(
                         class = "justify-content-center d-flex text-bold",
@@ -383,7 +394,7 @@ company_website <- div(
                     )
                 ),
                 column(
-                    width = 2,
+                    width = 4,
                     class = "p-2 border-right",
                     h1(
                         class = "justify-content-center d-flex text-bold",
@@ -395,7 +406,7 @@ company_website <- div(
                     )
                 ),
                 column(
-                    width = 2,
+                    width = 4,
                     class = "p-2 border-right",
                     h1(
                         class = "justify-content-center d-flex text-bold",
@@ -408,7 +419,7 @@ company_website <- div(
                 )
             ),
             fluidRow(
-                class = "d-flex justify-content-center",
+                class = "d-flex justify-content-center   px-4",
                 div(
                     class = "pb-5",
                     actionButton(
@@ -424,61 +435,64 @@ company_website <- div(
     div(
         class = "pt-5 bg-default text-center",
         id = "footer_section",
-        fluidRow(
-            class = "align-items-center",
-            column(
-                width = 6,
-                tags$h1(
-                    class = "logo",
-                    tags$a(
-                        href = "",
-                        tags$img(
-                            src = file.path("logo", "logo_white.svg"),
-                            height = "100%",
-                            style = "max-height: 180px;"
+        div(
+            style = "max-width: 1200px; margin: 0 auto;",
+            fluidRow(
+                class = "align-items-center   px-4",
+                column(
+                    width = 6,
+                    tags$h1(
+                        class = "logo",
+                        tags$a(
+                            href = "",
+                            tags$img(
+                                src = file.path("logo", "logo_white.svg"),
+                                height = "100%",
+                                style = "max-height: 180px;"
+                            )
                         )
+                    )
+                ),
+                column(
+                    width = 2,
+                    actionLink(
+                        inputId = "about_us_down",
+                        label = "About Us"
+                    )
+                ),
+                column(
+                    width = 2,
+                    actionLink(
+                        inputId = "contact_us",
+                        label = "Contact Us"
                     )
                 )
             ),
-            column(
-                width = 2,
-                actionLink(
-                    inputId = "about_us_down",
-                    label = "About Us"
-                )
+            tags$hr(
+                class = "bg-gray"
             ),
-            column(
-                width = 2,
-                actionLink(
-                    inputId = "contact_us",
-                    label = "Contact Us"
-                )
-            )
-        ),
-        tags$hr(
-            class = "bg-gray"
-        ),
-        fluidRow(
-            class = "align-items-center",
-            column(
-                width = 8,
-                p(
-                    class = "text-white-50",
-                    "Copyright © 2024"
+            fluidRow(
+                class = "align-items-center   px-4",
+                column(
+                    width = 8,
+                    p(
+                        class = "text-white-50",
+                        "Copyright © 2024"
+                    ),
                 ),
-            ),
-            column(
-                width = 2,
-                actionLink(
-                    inputId = "tos",
-                    label = "Terms & service"
-                )
-            ),
-            column(
-                width = 2,
-                actionLink(
-                    inputId = "privacy_link",
-                    label = "Privacy Policy"
+                column(
+                    width = 2,
+                    actionLink(
+                        inputId = "tos",
+                        label = "Terms & service"
+                    )
+                ),
+                column(
+                    width = 2,
+                    actionLink(
+                        inputId = "privacy_link",
+                        label = "Privacy Policy"
+                    )
                 )
             )
         )

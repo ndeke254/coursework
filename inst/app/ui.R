@@ -89,7 +89,7 @@ ui <- shiny::bootstrapPage(
         value = "admin_reg",
         div(
           class = "container text-center col-2",
-          p("Your are an Administrator", class = "fw-semibold mt-5"),
+          p("Your are an Administrator", class = "text-bold mt-5"),
           tags$img(
             src = "logo/logo.png",
             width = "100px"
@@ -102,7 +102,8 @@ ui <- shiny::bootstrapPage(
           actionButton(
             inputId = "admin_name_set",
             label = "SUBMIT"
-          )
+          ) |>
+            basic_primary_btn()
         )
       ),
       # dashboardpage----

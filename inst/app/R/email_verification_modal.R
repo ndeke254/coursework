@@ -25,7 +25,8 @@
 email_verification_modal <- \(email_address) {
     modal <- shiny::modalDialog(
         title = p("Email verification required",
-         class = "fw-semibold"),
+            class = "text-bold"
+        ),
         easyClose = FALSE,
         size = "m",
         footer = NULL,

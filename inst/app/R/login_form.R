@@ -39,7 +39,6 @@ login_form <- \(ns) {
         label = "Login",
         type = "submit",
         width = "300px",
-        class = "bg-blue",
         onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
     ) |>
         basic_primary_btn()

@@ -5,7 +5,7 @@
 #' @param class Additional classes to apply to the card container
 #' @param ... Card content
 #' @return [shiny::tags$div]
-#' @export 
+#' @export
 create_card <- \(..., title = NULL, title_icon = NULL, class = NULL) {
     tags$div(
         class = paste("card p-1 p-md-4 border-0", class),
@@ -13,7 +13,7 @@ create_card <- \(..., title = NULL, title_icon = NULL, class = NULL) {
             class = "card-body",
             if (!is.null(title) || !is.null(title_icon)) {
                 tags$h3(
-                    class = "fw-semibold fs-4 text-center",
+                    class = "text-bold fs-4 text-center",
                     title_icon,
                     title
                 )

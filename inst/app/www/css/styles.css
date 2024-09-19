@@ -86,6 +86,22 @@ a#log_link:hover {
   color: var(--secondary);
 }
 
+a#contact_us,
+a#about_us_down,
+a#tos,
+a#privacy_link {
+  color: whitesmoke;
+  text-decoration: none;
+  background-color: transparent;
+}
+
+a#contact_us:hover,
+a#about_us_down:hover,
+a#tos:hover,
+a#privacy_link:hover {
+  color: var(--secondary);
+}
+
 /* sidebar user panel: */
 .user-panel {
   align-items: end;
@@ -109,12 +125,6 @@ a#log_link:hover {
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0px 1px 4px 0px rgb(67 76 94);
-}
-
-/* ----- */
-a {
-  color: whitesmoke;
-  text-decoration: none;
 }
 
 a:hover {
@@ -437,7 +447,8 @@ header .logo img {
 .navbar-mobile a:focus {
   padding: 10px 20px;
   font-size: 15px;
-  color: var(--primary);
+  font-weight: 900;
+  color: white;
 }
 
 .navbar-mobile a:hover,
@@ -791,23 +802,153 @@ label:not(.form-check-label):not(.custom-file-label) {
   font-weight: 500;
 }
 
-button#auth-signin_submit,
-button#submit_student_details,
-button#submit_teacher_details {
-  background-color: var(--primary) !important;
-
-}
-
 .swal2-popup.swal2-toast {
   padding-top: 0.2rem !important;
   font-size: 1rem !important;
 }
 
-.swal2-popup {
+.swal2-popup.swal2-modal {
   font-size: 1rem !important;
 }
 
 a#auth-reset_password {
   background-color: transparent;
-  color: #5e72e4;
+  color: var(--blue);
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: var(--primary);
+  border: 0;
+}
+
+.btn-primary:hover {
+  color: #fff;
+  background-color: var(--secondary);
+  border: 0;
+}
+
+.btn {
+  line-height: 2.0;
+}
+
+.btn-primary:not(:disabled):not(.disabled).active,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show>.btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: var(--gray);
+  border-color: #ddd;
+}
+
+.btn-primary.focus,
+.btn-primary:focus {
+  color: #fff;
+  background-color: var(--primary);
+  box-shadow: 0 0 0 0 rgb(38 143 255);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show>.nav-link {
+  background-color: var(--primary);
+}
+
+.nav-pills .nav-link {
+  color: var(--primary);
+}
+
+.nav-pills .nav-link:not(.active):hover {
+  color: var(--secondary);
+}
+
+.btn-file {
+  background-color: var(--primary);
+  line-height: 1.5;
+  color: white;
+}
+
+.progress-bar,
+.progress {
+  height: 15px;
+  background-color: var(--secondary);
+}
+
+
+.timeline-content {
+  flex-grow: 1;
+}
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  position: relative;
+  width: fit-content;
+}
+
+.timeline:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ccc;
+  left: 20px;
+  margin-right: -1.5px;
+}
+
+.timeline-item {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #6c757d;
+  color: white;
+  text-align: center;
+  line-height: 40px;
+  font-size: 18px;
+}
+
+.timeline-content {
+  margin-left: 60px;
+  background: #f8f9fa;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.sweet-alert .sa-icon.sa-custom {
+  background-size: cover;
+}
+
+.sweet-alert button.cancel {
+  background-color: var(--secondary) !important;
+}
+
+.sweet-alert {
+  font-family: 'Montserrat' !important;
+}
+
+.sweet-alert button {
+  line-height: 1.6;
 }

@@ -100,7 +100,8 @@ label_mandatory <- \(label) {
 
 basic_primary_btn <- function(btn) {
   html_tag_q <- htmltools::tagQuery(btn)
-  html_tag_q$removeClass("btn-default")
+  html_tag_q <- html_tag_q$removeClass("btn-default") 
+  html_tag_q <- html_tag_q$addClass("btn-primary")
   return(html_tag_q$allTags())
 }
 
