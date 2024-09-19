@@ -100,7 +100,6 @@ student_registration_tab <- div(
                 shiny::actionButton(
                     inputId = "submit_student_details",
                     label = "Submit",
-                    class = "bg-blue rounded text-center",
                     width = "300px"
                 ) |>
                     basic_primary_btn()

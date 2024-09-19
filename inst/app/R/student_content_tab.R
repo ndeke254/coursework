@@ -14,14 +14,14 @@ student_content_tab <- div(
       tabName = "Library",
       title = "Library",
       active = TRUE,
-      p("Welcome to your library:", class = " fw-semibold mt-3"),
+      p("Welcome to your library:", class = " text-bold mt-3"),
       shinyjs::hidden(
         div(
           id = "payment_required",
           class = "pt-5 mb-5 border-bottom mt-5 text-center",
           div(
             p("Payment required",
-              class = "fw-semibold",
+              class = "text-bold",
             ),
             p(
               textOutput("balance_required")
@@ -41,7 +41,7 @@ student_content_tab <- div(
     ),
     argonTab(
       tabName = "Payments",
-      p("Create a payment ticket:", class = " fw-semibold mt-3"),
+      p("Create a payment ticket:", class = " text-bold mt-3"),
       fluidRow(
         class = "container",
         column(
@@ -106,7 +106,7 @@ student_content_tab <- div(
         textOutput("school_ticket"), br(),
         textOutput("paid_amount"), br(),
         textOutput("balance"), br(),
-        p("Payment progress", class = "fw-semibold"),
+        p("Payment progress", class = "text-bold"),
         progressBar(
           value = 0,
           display_pct = TRUE,

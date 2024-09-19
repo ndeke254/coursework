@@ -1,42 +1,43 @@
 admin_registration_tab <- div(
-  class = "container mt-5 mb-5",
-  fluidRow(
-    airDatepickerInput(
-      inputId = "term_end_date",
-      label = "Current Term End Date:",
-      value = Sys.Date(),
-      minDate = lubridate::today(),
-      autoClose = TRUE
-    ),
-    shinyjs::disabled(
-      textInput(
-        inputId = "term_label",
-        label = "Term label:",
-        placeholder = "Enter term label"
-      )
-    )
-  ),
+  class = "container mt-5 mb-5 pt-5",
+  p("Set payment period", class = "lead text-bold text-default_1"),
   fluidRow(
     column(
-      width = 6,
+      width = 4,
+      airDatepickerInput(
+        inputId = "term_end_date",
+        label = "Current Term End Date:",
+        value = Sys.Date(),
+        minDate = lubridate::today(),
+        autoClose = TRUE
+      )
+    ),
+    column(
+      width = 4,
+      shinyjs::disabled(
+        textInput(
+          inputId = "term_label",
+          label = "Term label:",
+          placeholder = "Enter term label"
+        )
+      )
+    ),
+    column(
+      width = 4,
+      class = "pt-4 pb-4",
       actionButton(
         inputId = "set_term_end",
         label = "Set",
-        width = "300px",
-        class = "mb-3"
-      )
-    ),
-    column(
-      width = 6,
-      actionButton(
-        inputId = "send_email",
-        label = "Send backup email",
-        width = "300px",
-        class = "mb-3"
-      )
+        width = "175px",
+        class = "mt-2"
+      ) |>
+        basic_primary_btn()
     )
   ),
-  fluidRow(uiOutput("term_end_table")),
+  fluidRow(
+    class = "pb-3",
+    uiOutput("term_end_table")
+  ),
   argonTabSet(
     id = "registration_tabset",
     horizontal = TRUE,
@@ -51,80 +52,86 @@ admin_registration_tab <- div(
     argonTab(
       tabName = "Upload",
       active = TRUE,
-      fluidRow(center = TRUE, bslib::card(
-        p("Upload content", class = "mt-3 fw-semibold"),
-        p("All fields are required"),
-        div(
-          class = "d-flex justify-content-center",
-          fileInput(
-            inputId = "pdfFile",
-            label = "Select a PDF",
-            width = 500,
-            accept = c(".pdf")
-          )
-        ),
-        fluidRow(
-          column(
-            width = 3,
-            shinyWidgets::pickerInput(
-              inputId = "doc_request",
-              label = label_mandatory("Request ID:"),
-              options = list(maxOptions = 3),
-              choices = NULL
+      fluidRow(
+        bslib::card(
+          p("Upload content", class = "mt-3 text-bold"),
+          p("All fields are required"),
+          div(
+            class = "d-flex justify-content-center",
+            fileInput(
+              inputId = "pdfFile",
+              label = "Select a PDF",
+              width = 500,
+              accept = c(".pdf")
             )
           ),
-          column(width = 3, disabled(
+          fluidRow(
+            column(
+              width = 3,
+              shinyWidgets::pickerInput(
+                inputId = "doc_request",
+                label = label_mandatory("Request ID:"),
+                options = list(maxOptions = 3),
+                choices = NULL
+              )
+            ),
+            column(width = 3, disabled(
+              shiny::textInput(
+                inputId = "doc_teacher_id",
+                label = label_mandatory("Teacher:"),
+                placeholder = "Eg. John Kamau"
+              )
+            )),
+            column(width = 3, disabled(
+              shiny::textInput(
+                inputId = "doc_grade",
+                label = label_mandatory("Grade:"),
+                placeholder = "Eg. Grade 6"
+              )
+            )),
+            column(width = 3, disabled(
+              shiny::textInput(
+                inputId = "doc_learning_area",
+                label = label_mandatory("Learning Area:"),
+                placeholder = "Eg. Mathematics"
+              )
+            ))
+          ),
+          fluidRow(column(width = 3, disabled(
             shiny::textInput(
-              inputId = "doc_teacher_id",
-              label = label_mandatory("Teacher:"),
-              placeholder = "Eg. John Kamau"
+              inputId = "doc_topic",
+              label = label_mandatory("Topic:"),
+              placeholder = "Eg. Addition"
             )
-          )),
-          column(width = 3, disabled(
+          )), column(width = 3, disabled(
             shiny::textInput(
-              inputId = "doc_grade",
-              label = label_mandatory("Grade:"),
-              placeholder = "Eg. Grade 6"
+              inputId = "doc_sub_topic",
+              label_mandatory("Sub-topic:"),
+              value = "",
+              placeholder = "Eg. Long division method"
             )
-          )),
-          column(width = 3, disabled(
-            shiny::textInput(
-              inputId = "doc_learning_area",
-              label = label_mandatory("Learning Area:"),
-              placeholder = "Eg. Mathematics"
-            )
-          ))
-        ),
-        fluidRow(column(width = 3, disabled(
-          shiny::textInput(
-            inputId = "doc_topic",
-            label = label_mandatory("Topic:"),
-            placeholder = "Eg. Addition"
+          ))),
+          div(
+            class = "d-flex justify-content-center",
+            actionButton(
+              inputId = "upload_btn",
+              label = "Publish PDF",
+              class = "mt-2 mb-2 float-right",
+              width = "300px"
+            ) |>
+              basic_primary_btn()
           )
-        )), column(width = 3, disabled(
-          shiny::textInput(
-            inputId = "doc_sub_topic",
-            label_mandatory("Sub-topic:"),
-            value = "",
-            placeholder = "Eg. Long division method"
-          )
-        ))),
-        div(
-          class = "d-flex justify-content-center",
-          actionButton(
-            inputId = "upload_btn",
-            label = "Publish PDF",
-            class = "mt-2 mb-2 float-right"
-          ) |>
-            basic_primary_btn()
         )
-      ))
+      )
     ),
-    argonTab(tabName = "Registration", fluidRow(bslib::card(
-      h6("School Registration", class = "fw-semibold pt-3"),
-      tags$head(tags$style(
-        HTML(
-          " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
+    argonTab(
+      tabName = "Registration",
+      bslib::card(
+        p("School Registration", class = "text-bold mt-3"),
+        p("All fields are required"),
+        tags$head(tags$style(
+          HTML(
+            " #step_1, #step_2, #step_u3, #step_u1, #step_u2 {
               height: 15px; width: 15px; margin: 0 10px; border: 0.5px solid;
                border-radius: 50%;
                 display: inline-block; opacity: 0.5;
@@ -136,191 +143,191 @@ admin_registration_tab <- div(
                        margin: 0 5px; flex-grow: 0.5;
                        }
                         "
-        )
-      )),
-      div(
-        id = "reg_form",
-        p("All fields are required"),
-        div(
-          class = "align-items-center
-               justify-content-center d-flex",
-          span(id = "step_1"),
-          span(id = "line"),
-          span(id = "step_2")
-        ),
-        div(
-          class = "d-flex pb-3 justify-content-center",
-          div(
-            class = "w-50 d-flex justify-content-between pt-2",
-            p("Details", class = "fw-semibold"),
-            p("Confirm", class = "fw-semibold"),
           )
-        ),
+        )),
         div(
-          id = "tab_1",
-          h6("Details:", class = "mt--3 mb-3"),
-          fluidRow(
-            column(
-              width = 3,
-              shiny::textInput(
-                inputId = "school_name",
-                label_mandatory("Name:"),
-                value = "",
-                placeholder = "Eg. Lenga Juu"
-              )
-            ),
-            column(
-              width = 3,
-              shinyWidgets::pickerInput(
-                inputId = "school_level",
-                label = label_mandatory("Level:"),
-                options = list(
-                  style = "btn-outline-light",
-                  title = "Eg. Primary"
-                ),
-                choices = c(
-                  "Preparatory", "Primary", "Junior Secondary",
-                  "Senior Secondary", "University/College", "Other"
+          id = "reg_form",
+          div(
+            class = "d-flex justify-content-center",
+            span(id = "step_1"),
+            span(id = "line"),
+            span(id = "step_2")
+          ),
+          div(
+            class = "d-flex pb-3 justify-content-center",
+            div(
+              class = "w-50 d-flex justify-content-between pt-2",
+              p("Details", class = "text-bold"),
+              p("Confirm", class = "text-bold"),
+            )
+          ),
+          div(
+            id = "tab_1",
+            h6("Details:", class = "mt--3 mb-3"),
+            fluidRow(
+              column(
+                width = 3,
+                shiny::textInput(
+                  inputId = "school_name",
+                  label_mandatory("Name:"),
+                  value = "",
+                  placeholder = "Eg. Lenga Juu"
+                )
+              ),
+              column(
+                width = 3,
+                shinyWidgets::pickerInput(
+                  inputId = "school_level",
+                  label = label_mandatory("Level:"),
+                  options = list(
+                    style = "btn-outline-light",
+                    title = "Eg. Primary"
+                  ),
+                  choices = c(
+                    "Preparatory", "Primary", "Junior Secondary",
+                    "Senior Secondary", "University/College", "Other"
+                  )
+                )
+              ),
+              column(
+                width = 3,
+                shinyWidgets::pickerInput(
+                  inputId = "school_type",
+                  label = label_mandatory("Type:"),
+                  options = list(
+                    style = "btn-outline-light",
+                    title = "Eg. Public"
+                  ),
+                  choices = c("Public", "Private", "Other")
+                )
+              ),
+              column(
+                width = 3,
+                shinyWidgets::pickerInput(
+                  inputId = "county",
+                  label = label_mandatory("County:"),
+                  options = list(
+                    title = "Eg. Nairobi",
+                    style = "btn-outline-light",
+                    size = 5,
+                    `live-search` = TRUE,
+                    `live-search-placeholder` = "Search county"
+                  ),
+                  choices = kenyan_counties,
+                  autocomplete = TRUE
                 )
               )
             ),
-            column(
-              width = 3,
-              shinyWidgets::pickerInput(
-                inputId = "school_type",
-                label = label_mandatory("Type:"),
-                options = list(
-                  style = "btn-outline-light",
-                  title = "Eg. Public"
-                ),
-                choices = c("Public", "Private", "Other")
-              )
-            ),
-            column(
-              width = 3,
-              shinyWidgets::pickerInput(
-                inputId = "county",
-                label = label_mandatory("County:"),
-                options = list(
-                  title = "Eg. Nairobi",
-                  style = "btn-outline-light",
-                  size = 5,
-                  `live-search` = TRUE,
-                  `live-search-placeholder` = "Search county"
-                ),
-                choices = kenyan_counties,
-                autocomplete = TRUE
+            fluidRow(
+              column(
+                width = 3,
+                shiny::textInput(
+                  inputId = "school_email",
+                  label_mandatory("Email:"),
+                  value = "",
+                  placeholder = "Eg. johnwekesa@gmail.com"
+                )
+              ),
+              column(
+                width = 3,
+                autonumericInput(
+                  inputId = "doc_price",
+                  label_mandatory("Price:"),
+                  value = 1000,
+                  currencySymbol = "Ksh ",
+                  decimalPlaces = 0,
+                  minimumValue = 50
+                )
               )
             )
           ),
-          fluidRow(
-            column(
-              width = 3,
-              shiny::textInput(
-                inputId = "school_email",
-                label_mandatory("Email:"),
-                value = "",
-                placeholder = "Eg. johnwekesa@gmail.com"
-              )
-            ),
-            column(
-              width = 3,
-              autonumericInput(
-                inputId = "doc_price",
-                label_mandatory("Price:"),
-                value = 1000,
-                currencySymbol = "Ksh ",
-                decimalPlaces = 0,
-                minimumValue = 500
-              )
-            )
-          )
-        ),
-        shinyjs::hidden(div(
-          id = "tab_2",
-          p("Confirm school details", class = "mt-3"),
-          uiOutput("confirm_school_data")
-        )),
-        div(
-          style = "overflow: auto; margin-top: 20px;",
+          shinyjs::hidden(div(
+            id = "tab_2",
+            p("Confirm school details", class = "mb-3 text-bold"),
+            uiOutput("confirm_school_data")
+          )),
           div(
-            id = "tab_buttons",
-            class = "d-flex mt-3 justify-content-end",
-            shinyjs::hidden(
+            style = "overflow: auto; margin-top: 20px;",
+            div(
+              id = "tab_buttons",
+              class = "d-flex mt-3 justify-content-end",
+              shinyjs::hidden(
+                shiny::actionButton(
+                  inputId = "prevBtn",
+                  label = "",
+                  icon = icon("arrow-left"),
+                  class = "px-5"
+                ) |>
+                  basic_primary_btn()
+              ),
+              shinyjs::hidden(
+                shiny::actionButton(
+                  inputId = "confirmBtn",
+                  label = "",
+                  icon = icon("check"),
+                  class = "px-5"
+                ) |>
+                  basic_primary_btn()
+              ),
               shiny::actionButton(
-                inputId = "prevBtn",
+                inputId = "nextBtn",
                 label = "",
-                icon = icon("arrow-left"),
+                icon = icon("arrow-right"),
                 class = "px-5"
               ) |>
                 basic_primary_btn()
-            ),
-            shinyjs::hidden(
-              shiny::actionButton(
-                inputId = "confirmBtn",
-                label = "",
-                icon = icon("check"),
-                class = "px-5"
-              ) |>
-                basic_primary_btn()
-            ),
-            shiny::actionButton(
-              inputId = "nextBtn",
-              label = "",
-              icon = icon("arrow-right"),
-              class = "px-5"
-            ) |>
-              basic_primary_btn()
+            )
           )
         )
       )
-    ))),
-    argonTab(tabName = "Manage", fluidRow(center = TRUE, bslib::card(
-      argonTabSet(
-        id = "users",
-        circle = TRUE,
-        width = 12,
-        iconList = list(
-          icon = icon("school"),
-          icon = icon("chalkboard-user"),
-          icon = icon("children"),
-          icon = icon("clock"),
-          icon = icon("file-pdf"),
-          icon = icon("file-pdf")
-        ),
-        argonTab(
-          tabName = "School",
-          active = TRUE,
-          p("Existing schools data", class = " fw-semibold mt-3"),
-          bslib::card(id = "pdf_card", uiOutput("school_data"))
-        ),
-        argonTab(
-          tabName = "Teacher",
-          p("Existing teachers data", class = " fw-semibold mt-3"),
-          bslib::card(id = "pdf_card", uiOutput("teachers_data"))
-        ),
-        argonTab(
-          tabName = "Student",
-          p("Existing students data", class = " fw-semibold mt-3"),
-          bslib::card(id = "pdf_card", uiOutput("students_data"))
-        ),
-        argonTab(
-          tabName = "Requests",
-          p("Pending requests:", class = " fw-semibold mt-3"),
-          actionButton(
-            inputId = "refresh_requests",
-            label = "Refresh",
-            icon = icon("refresh"),
-            class = "mb-3"
+    ),
+    argonTab(
+      tabName = "Manage",
+      bslib::card(
+        argonTabSet(
+          id = "users",
+          circle = TRUE,
+          width = 12,
+          iconList = list(
+            icon = icon("school"),
+            icon = icon("chalkboard-user"),
+            icon = icon("children"),
+            icon = icon("clock"),
+            icon = icon("file-pdf"),
+            icon = icon("sack-dollar")
           ),
-          p(class = "text-body-tertiary mb-2", textOutput("requests_refresh_time")),
-          bslib::card(id = "pdf_card", uiOutput("requests_data"))
-        ),
-        argonTab(
-          tabName = "Content",
-          p("Published content:", class = " fw-semibold mt-3"),
-          bslib::card(
-            id = "pdf_card",
+          argonTab(
+            tabName = "School",
+            active = TRUE,
+            p("Existing schools data", class = " text-bold mt-3"),
+            uiOutput("school_data")
+          ),
+          argonTab(
+            tabName = "Teacher",
+            p("Existing teachers data", class = " text-bold mt-3"),
+            uiOutput("teachers_data")
+          ),
+          argonTab(
+            tabName = "Student",
+            p("Existing students data", class = " text-bold mt-3"),
+            uiOutput("students_data")
+          ),
+          argonTab(
+            tabName = "Requests",
+            p("Pending requests:", class = " text-bold mt-3"),
+            actionButton(
+              inputId = "refresh_requests",
+              label = "Refresh",
+              icon = icon("refresh"),
+              class = "mb-3"
+            ) |>
+              basic_primary_btn(),
+            p(class = "text-body-tertiary mb-2", textOutput("requests_refresh_time")),
+            uiOutput("requests_data")
+          ),
+          argonTab(
+            tabName = "Content",
+            p("Published content:", class = " text-bold mt-3"),
             bslib::layout_sidebar(
               sidebar = bslib::sidebar(
                 id = "card_sidebar",
@@ -331,33 +338,36 @@ admin_registration_tab <- div(
               ),
               uiOutput("pdf_data")
             )
-          )
-        ),
-        argonTab(
-          tabName = "Payments",
-          p("Payments records:", class = " fw-semibold mt-3"),
-          actionButton(
-            inputId = "refresh_payments",
-            label = "Refresh",
-            icon = icon("refresh"),
-            class = "mb-3"
           ),
-          p(class = "text-body-tertiary mb-2", textOutput("payments_refresh_time")),
-          bslib::card(id = "pdf_card", uiOutput("payments_data"))
+          argonTab(
+            tabName = "Payments",
+            p("Payments records:", class = " text-bold mt-3"),
+            actionButton(
+              inputId = "refresh_payments",
+              label = "Refresh",
+              icon = icon("refresh"),
+              class = "mb-3"
+            ) |>
+              basic_primary_btn(),
+            p(class = "text-body-tertiary mb-2", textOutput("payments_refresh_time")),
+            uiOutput("payments_data")
+          )
         )
       )
-    ))),
+    ),
     argonTab(
       tabName = "Timeline",
-      class = "card card-body shadow-sm",
-      p("Administrator actions:", class = "fw-semibold text-center mx-auto
-       pt-2"),
+      class = "card card-body",
+      p("Administrator actions:",
+        class = "text-bold text-center mx-auto pt-2"
+      ),
       actionButton(
         inputId = "refresh_timeline",
         label = "Refresh",
         icon = icon("refresh"),
         class = "mb-3"
-      ),
+      ) |>
+        basic_primary_btn(),
       p(class = "text-body-tertiary mb-2", textOutput("timeline_refresh_time")),
       div(id = "end"),
       div(class = "loader", uiOutput("loader")),

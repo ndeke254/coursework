@@ -1,9 +1,9 @@
 server <- function(input, output, session) {
-# on click, add class 'active' to the clicked nav link:
-add_class_active <- \(id) {
-    shinyjs::removeClass(class = "active", selector = "header .nav-link")
-    shinyjs::addClass(id = id, class = "active")
-}
+    # on click, add class 'active' to the clicked nav link:
+    add_class_active <- \(id) {
+        shinyjs::removeClass(class = "active", selector = "header .nav-link")
+        shinyjs::addClass(id = id, class = "active")
+    }
 
     # make sqlite connection:
     conn <- DBI::dbConnect(
@@ -532,16 +532,16 @@ add_class_active <- \(id) {
         updatePickerInput(
             inputId = "teacher_school",
             choices = rvs$school_data$school_name,
-             choicesOpt = list(
-                 subtext = rvs$school_data$level
-             )
+            choicesOpt = list(
+                subtext = rvs$school_data$level
+            )
         )
         updatePickerInput(
             inputId = "student_school",
             choices = rvs$school_data$school_name,
-             choicesOpt = list(
-                 subtext = rvs$school_data$level
-             )
+            choicesOpt = list(
+                subtext = rvs$school_data$level
+            )
         )
 
         if (isTruthy(user_details$email)) {
@@ -592,7 +592,7 @@ add_class_active <- \(id) {
                                 info = "Name updated..."
                             )
                             output$signed_user <- renderText({
-                                input$admin_name
+                                input$admin_name[1]
                             })
                             updateTabsetPanel(
                                 inputId = "app_pages",
@@ -628,7 +628,7 @@ add_class_active <- \(id) {
                 if (length(user_name) == 0) {
                     return("Uknown")
                 }
-                user_name
+                user_name[1]
             })
 
 
@@ -750,13 +750,11 @@ add_class_active <- \(id) {
                             as.vector()
 
                         if (is.na(values$value[1]) || is.na(values$value[2])) {
-                            p("Welcome Administrator. Create your first term",
-                                class = "fw-semibold mb-5 mt-5"
-                            )
+                            p("Welcome Administrator. Create your first term")
                         } else {
                             p(
                                 paste("Current term", values$value[2], "ends on", values$value[1]),
-                                class = "fw-semibold mb-5 mt-5"
+                                class = "px-2"
                             )
                         }
                     })
@@ -1008,7 +1006,8 @@ add_class_active <- \(id) {
                                         inputId = "go_back_btn",
                                         label = "",
                                         icon = icon("arrow-left")
-                                    )
+                                    ) |>
+                                        basic_primary_btn()
                                 ),
                                 tags$iframe(
                                     class = "pt-3",
@@ -1807,13 +1806,13 @@ add_class_active <- \(id) {
                 .(user_name, grade)
             ]
 
-                updatePickerInput(
+            updatePickerInput(
                 session = session,
                 inputId = "doc_teacher",
                 choices = unique(choices$user_name),
-                  choicesOpt = list(
-                      subtext = unique(choices$grade)
-                  )
+                choicesOpt = list(
+                    subtext = unique(choices$grade)
+                )
             )
         })
 
@@ -2156,7 +2155,7 @@ add_class_active <- \(id) {
                 div(
                     class = "d-flex align-items-center
                     justify-content-evenly",
-                                shinyWidgets::pickerInput(
+                    shinyWidgets::pickerInput(
                         inputId = "edit_request_status",
                         label = "Change request status",
                         choices = c("PROCESSING", "CANCELLED")
@@ -2166,7 +2165,8 @@ add_class_active <- \(id) {
                         label = "",
                         icon = icon("check"),
                         class = "btn-circle bg-default mt-3"
-                    )
+                    ) |>
+                        basic_primary_btn()
                 )
             )
         ))
@@ -2626,7 +2626,8 @@ add_class_active <- \(id) {
             html_content,
             footer = tagList(
                 modalButton("Cancel"),
-                actionButton("save_changes", "Save changes")
+                actionButton("save_changes", "Save changes") |>
+                    basic_primary_btn()
             )
         ))
     })
@@ -2730,7 +2731,7 @@ add_class_active <- \(id) {
         html_content <- div(
             h5(paste(details$ID), ":", details$Name),
             div(
-                class = "pt-4",
+                class = "pt-2",
                 materialSwitch(
                     inputId = "edit_school_status",
                     label = details$Status,
@@ -2784,7 +2785,7 @@ add_class_active <- \(id) {
                     right = TRUE,
                     inline = TRUE
                 ) |>
-                modified_switch()
+                    modified_switch()
             )
         )
 
@@ -2893,7 +2894,7 @@ add_class_active <- \(id) {
                     right = TRUE,
                     inline = TRUE
                 ) |>
-                modified_switch()
+                    modified_switch()
             )
         )
 
@@ -2990,30 +2991,49 @@ add_class_active <- \(id) {
         iva$enable() # enable validation check
         req(iva$is_valid()) # ensure checks are valid
 
-        added <- add_term_end(
-            term_end_date = input$term_end_date
+        ask_confirmation(
+            session = session,
+            inputId = "confirm_set_end_date",
+            btn_colors = c("#E76A35", "#1D2856"),
+            title = "Set new term",
+            text = paste(
+                "Are you sure you want to reset payments now?"
+            ),
+            btn_labels = c("Cancel", "Yes")
         )
-        if (added == 2) {
-            alert_success_ui(
-                session = session,
-                info = "Term end date updated"
-            )
-            data <- refresh_table_data("administrator")
-            values <- data |>
-                select(value) |>
-                as.vector()
+    })
 
-            output$term_end_table <- renderUI({
-                p(
-                    paste("Current term", values$value[2], "ends on", values$value[1]),
-                    class = "fw-semibold mb-5 mt-5"
-                )
-            })
-        } else {
-            alert_fail_ui(
-                session = session,
-                info = "An error occured..."
+    observeEvent(input$confirm_set_end_date, {
+        action <- input$confirm_set_end_date
+
+        req(!is.null(action))
+
+        if (action) {
+            added <- add_term_end(
+                term_end_date = input$term_end_date
             )
+            if (added == 2) {
+                alert_success_ui(
+                    session = session,
+                    info = "Term end date updated"
+                )
+                data <- refresh_table_data("administrator")
+                values <- data |>
+                    select(value) |>
+                    as.vector()
+
+                output$term_end_table <- renderUI({
+                    p(
+                        paste("Current term", values$value[2], "ends on", values$value[1]),
+                        class = "px-2"
+                    )
+                })
+            } else {
+                alert_fail_ui(
+                    session = session,
+                    info = "An error occured..."
+                )
+            }
         }
     })
 
@@ -3024,13 +3044,11 @@ add_class_active <- \(id) {
             as.vector()
 
         if (is.na(values$value[1]) || is.na(values$value[2])) {
-            p("Welcome Administrator. Create your first term",
-                class = "fw-semibold mb-5 mt-5"
-            )
+            p("Welcome Administrator. Create your first term")
         } else {
             p(
                 paste("Current term", values$value[2], "ends on", values$value[1]),
-                class = "fw-semibold mb-5 mt-5"
+                class = "px-2"
             )
         }
     })
@@ -3063,7 +3081,7 @@ add_class_active <- \(id) {
         output$sidebar_content <- renderUI({
             div(
                 p(
-                    class = "fw-semibold",
+                    class = "text-bold",
                     paste(details$ID, details$Name)
                 ),
                 div(
@@ -3072,11 +3090,13 @@ add_class_active <- \(id) {
                     actionButton(
                         inputId = "flag_pdf",
                         label = label
-                    ),
+                    ) |>
+                        basic_primary_btn(),
                     actionButton(
                         inputId = "edit_content_details",
                         label = "Edit"
-                    )
+                    ) |>
+                        basic_primary_btn()
                 )
             )
         })
@@ -3166,7 +3186,7 @@ add_class_active <- \(id) {
                 fluidRow(
                     column(
                         width = 3,
-            shinyWidgets::pickerInput(
+                        shinyWidgets::pickerInput(
                             inputId = "edit_pdf_grade",
                             label = label_mandatory("Grade:"),
                             choices = setNames(grades, paste("Grade", grades)),
@@ -3205,7 +3225,8 @@ add_class_active <- \(id) {
                 ),
                 footer = tagList(
                     modalButton("Cancel"),
-                    actionButton("save_content_changes", "Save Changes")
+                    actionButton("save_content_changes", "Save Changes") |>
+                        basic_primary_btn()
                 )
             )
         )
@@ -3435,7 +3456,7 @@ add_class_active <- \(id) {
                 div(
                     class = "d-flex align-items-center
                     justify-content-evenly",
-                                shinyWidgets::pickerInput(
+                    shinyWidgets::pickerInput(
                         inputId = "edit_payment_status",
                         label = "Change payment status",
                         choices = c("APPROVED", "DECLINED")
@@ -3445,7 +3466,8 @@ add_class_active <- \(id) {
                         label = "",
                         icon = icon("check"),
                         class = "btn-circle bg-default mt-3"
-                    )
+                    ) |>
+                        basic_primary_btn()
                 )
             )
         ))
@@ -3636,9 +3658,9 @@ add_class_active <- \(id) {
                 id = "timeline_cards",
                 `data-aos` = "fade-up",
                 `data-aos-delay` = "100",
+                class = "timeline",
                 tags$div(
-                    class = "fw-semibold text-center bg-body-secondary
-                    mb-4 pb-1 pt-1 rounded",
+                    class = "figure shadow text-bold rounded p-2 bg-gray mb-5",
                     format(current_date, "%d-%m-%Y")
                 ),
                 lapply(seq_len(nrow(current_data)), function(j) {
@@ -3659,30 +3681,21 @@ add_class_active <- \(id) {
 
                     set_icon <- icon_lookup[[action_icon]]
 
-                    tags$div(
-                        tags$div(
-                            class = "timeline-item",
-                            tags$div(
-                                class = "mx-5 shadow-sm timeline-icon",
-                                tags$i(class = set_icon)
+
+                    div(
+                        class = "timeline-item",
+                        div(
+                            class = "timeline-icon shadow",
+                            tags$i(class = set_icon)
+                        ),
+                        div(
+                            class = "timeline-content",
+                            div(class = "timeline-title", action_icon),
+                            div(
+                                class = "timeline-time",
+                                current_data$TimeOnly[j], "-", current_data$user[j]
                             ),
-                            card(
-                                card_header(
-                                    class = "bg-orange_1 d-flex text-white
-                                justify-content-between",
-                                    tags$h6(action_icon),
-                                    tooltip(
-                                        bsicons::bs_icon("question-circle"),
-                                        current_data$user[j],
-                                        placement = "right"
-                                    ),
-                                    tags$small(current_data$TimeOnly[j]),
-                                ),
-                                card_body(
-                                    class = "text-body-decondary",
-                                    tags$p(current_data$description[j])
-                                )
-                            )
+                            current_data$description[j]
                         )
                     )
                 })
@@ -3749,41 +3762,41 @@ add_class_active <- \(id) {
         }
     })
 
-    observeEvent(input$send_email, {
+    observe({
+        invalidateLater(60000, session)
+
         current_time <- Sys.time()
         hour_now <- as.numeric(format(current_time, "%H"))
         minute_now <- as.numeric(format(current_time, "%M"))
 
-        temp_file <- tempfile(fileext = ".xlsx")
-        writexl::write_xlsx(
-            list(
-                Schools = rvs$school_data,
-                Teachers = rvs$teachers_data,
-                Students = rvs$students_data,
-                Content = rvs$pdf_data,
-                Views = rvs$views_data,
-                Payments = rvs$payments_data,
-                Requests = rvs$requests_data
-            ),
-            temp_file
-        )
+        # Check if it's 12 AM
+        if (hour_now == 0 && minute_now == 51) {
+            temp_file <- tempfile(fileext = ".xlsx")
+            writexl::write_xlsx(
+                list(
+                    Schools = rvs$school_data,
+                    Teachers = rvs$teachers_data,
+                    Students = rvs$students_data,
+                    Content = rvs$pdf_data,
+                    Views = rvs$views_data,
+                    Payments = rvs$payments_data,
+                    Requests = rvs$requests_data
+                ),
+                temp_file
+            )
 
-        admin_emails <- rvs$administrator_data |>
-            select(input_col) |>
-            filter(grepl("@gmail\\.com$", input_col)) |>
-            unlist() |>
-            as.vector()
 
-        email <- gm_mime() |>
-            gm_to(admin_emails) |>
-            gm_from(admin_emails[1]) |>
-            gm_subject(paste("Daily Report", Sys.Date())) |>
-            gm_attach_file(temp_file) |>
-            gm_html_body('
-<!DOCTYPE html>
-<html>
-<head>
-<style>
+            admin_emails <- rvs$administrator_data |>
+                select(input_col) |>
+                filter(grepl("@gmail\\.com$", input_col)) |>
+                unlist() |>
+                as.vector()
+
+            email_body <- paste0('
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <style>
 body {
   font-family: Montserrat, sans-serif;
   color: #333333;
@@ -3845,50 +3858,66 @@ a {
   font-size: 14px;
   color: #777777;
   margin-top: 30px;
-}
-</style>
-</head>
-<body>
-<div class="split-background">
-<div class="container">
-<div class="logo">
-<img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
-</div>
-<h1>Database Report and Back-up report</h1>
-<p>Hello Administrator,</p>
-<p>Attached are KEYTABU data tables:</p>
-<ul>
-<li>Schools</li>
-<li>Teachers</li>
-<li>Students</li>
-<li>Content</li>
-<li>Views</li>
-<li>Payments</li>
-<li>Requests</li>
-</ul>
-<div class="footer">
-<p>Thank you,<br>Keytabu Technical Team</p>
-</div>
-</div>
-</div>
-</body>
-</html>
-')
+}            </style>
+            </head>
+            <body>
+            <div class="split-background">
+            <div class="container">
+            <div class="logo">
+            <img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
+            </div>
+            <h1>Database Back-up report</h1>')
 
-        gm_auth(token = gm_token_read(
-            path = "gmailr-token.rds",
-            key = "GMAILR_KEY"
-        ))
+            for (email in admin_emails) {
+                admin_name <- rvs$administrator_data |>
+                    filter(grepl(email, input_col)) |>
+                    pull(value)
 
-        gm_send_message(email)
-        file.remove(temp_file)
+                first_name <- strsplit(admin_name, " ")[[1]][1]
+                email_body <- paste0(email_body, "<p>Hello ", first_name, ",</p>")
+            }
 
-        alert_success_ui(
-            session = session,
-            info = "Email sent"
-        )
+            email_body <- paste0(email_body, '
+            <p>Attached are KEYTABU records:</p>
+            <ul>
+            <li>Schools</li>
+            <li>Teachers</li>
+            <li>Students</li>
+            <li>Content</li>
+            <li>Views</li>
+            <li>Payments</li>
+            <li>Requests</li>
+            </ul>
+            <div class="footer">
+            <p>Happy working,<br>Keytabu Technical Team</p>
+            </div>
+            </div>
+            </div>
+            </body>
+            </html>
+        ')
 
-        # Recheck every minute
-        invalidateLater(60000, session)
+            email <- gm_mime() |>
+                gm_to(admin_emails) |>
+                gm_from(admin_emails[1]) |>
+                gm_subject(
+                    paste(
+                        "Keytabu Daily Report",
+                        toupper(format(Sys.Date(),
+                            format = "%d-%b-%Y"
+                        ))
+                    )
+                ) |>
+                gm_attach_file(temp_file) |>
+                gm_html_body(email_body)
+
+            gm_auth(token = gm_token_read(
+                path = "gmailr-token.rds",
+                key = "GMAILR_KEY"
+            ))
+
+            gm_send_message(email)
+            file.remove(temp_file)
+        }
     })
 }

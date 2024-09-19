@@ -7,7 +7,7 @@
 #'
 #' alert_fail_ui("User delete failed!", "top-end", session)
 #' @export
-alert_fail_ui <- \(info, position = "top-end", session) {
+alert_fail_ui <- \(info, position = "top-end", session, timer = 3000) {
   show_toast(
     session = session,
     title = NULL,
@@ -15,6 +15,6 @@ alert_fail_ui <- \(info, position = "top-end", session) {
     position = position,
     type = "error",
     width = "auto",
-    timer = 3000
+    timer = timer
   )
 }
