@@ -24,19 +24,22 @@
 #' )
 email_verification_modal <- \(email_address) {
     modal <- shiny::modalDialog(
-        title = "Email verification required",
+        title = p("Email verification required",
+            class = "text-bold"
+        ),
         easyClose = FALSE,
         size = "m",
         footer = NULL,
-        tags$h6(
-            class = "card card-body border border-dark",
+        tags$h5(
+            class = "card card-body border-0 modal-dialog-centered",
             tags$span(
                 "Click the link we just sent to ",
                 tags$a(
                     href = paste0("mailto:", email_address),
                     email_address
                 ),
-                " to verify your email address. Once you're done, refresh this page & sign in."
+                " to verify your email address.
+                 Once you're done, refresh this page & sign in."
             )
         )
     )

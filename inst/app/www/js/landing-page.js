@@ -131,4 +131,17 @@
     })
   });
 
+  window.onscroll = function () {
+    scrollFunction();
+  };
+
+  function scrollFunction() {
+    const backToTopButton = document.querySelector(".back-to-top");
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+      backToTopButton.classList.add("active");
+    } else {
+      backToTopButton.classList.remove("active");
+    }
+  }
+
 })()
