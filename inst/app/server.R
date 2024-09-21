@@ -196,127 +196,174 @@ server <- function(input, output, session) {
             )
         }
 
-        grades <- paste(input$teacher_grades, collapse = ", ")
+        tryCatch(
+            expr = {
+                # Get the list of app users
+                app_users <- polished::get_app_users()[1]$content$email
+                # Check if the input email exists in the email column
+                email_exists <- input$teacher_email %in% app_users
 
-        table_html <- reactable(
-            data = data.frame(
-                Input = c(
-                    "Name", "School", "Grades",
-                    "Contact", "Email"
-                ),
-                Value = stringr::str_trunc(
-                    c(
-                        stringr::str_to_title(input$teacher_username),
-                        input$teacher_school,
-                        grades,
-                        input$teacher_tel_number,
-                        input$teacher_email
+                if (email_exists) {
+                    msg <- "User email already exists!"
+                    stop(msg, call. = FALSE)
+                }
+
+                grades <- paste(input$teacher_grades, collapse = ", ")
+
+                table_html <- reactable(
+                    data = data.frame(
+                        Input = c(
+                            "Name", "School", "Grades",
+                            "Contact", "Email"
+                        ),
+                        Value = stringr::str_trunc(
+                            c(
+                                stringr::str_to_title(input$teacher_username),
+                                input$teacher_school,
+                                grades,
+                                input$teacher_tel_number,
+                                input$teacher_email
+                            ),
+                            width = 25
+                        )
                     ),
-                    width = 25
+                    columns = list(
+                        Input = colDef(name = "Input"),
+                        Value = colDef(name = "Value")
+                    ),
+                    borderless = TRUE,
+                    bordered = FALSE,
+                    striped = FALSE,
+                    outlined = TRUE,
+                    wrap = FALSE,
+                    resizable = FALSE,
+                    class = "text-gray-dark"
                 )
-            ),
-            columns = list(
-                Input = colDef(name = "Input"),
-                Value = colDef(name = "Value")
-            ),
-            borderless = TRUE,
-            bordered = FALSE,
-            striped = FALSE,
-            outlined = TRUE,
-            wrap = FALSE,
-            resizable = FALSE
-        )
 
-        # Show confirmation dialog with reactable table
-        ask_confirmation(
-            session = session,
-            inputId = "confirm_teacher_details",
-            title = NULL,
-            text = tags$div(
-                table_html
-            ),
-            btn_labels = c("Cancel", "Yes"),
-            html = TRUE
+                # Show confirmation dialog with reactable table
+                ask_confirmation(
+                    session = session,
+                    inputId = "confirm_teacher_details",
+                    title = NULL,
+                    text = tags$div(
+                        table_html
+                    ),
+                    btn_labels = c("Cancel", "Yes"),
+                    html = TRUE
+                )
+            },
+            error = \(e) {
+                alert_fail_ui(
+                    session = session,
+                    position = "bottom",
+                    info = conditionMessage(e)
+                )
+            }
         )
     })
-
 
     observeEvent(input$confirm_teacher_details, {
         disable("confirm_teacher_details")
         # if has confirmed details
         if (input$confirm_teacher_details) {
-            # Convert the vector of grades to a single string
-            grades <- paste(input$teacher_grades, collapse = ", ")
-
-            # get the available data
-            available_data <- refresh_table_data(table_name = "teachers")
-
-            # Create data to append
-            new_user <- data.frame(
-                id = next_user_id("teachers", "teacher"),
-                user_name = stringr::str_to_title(input$teacher_username),
-                school_name = input$teacher_school,
-                grade = grades,
-                phone = input$teacher_tel_number,
-                email = input$teacher_email,
-                time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
-                status = "Enabled",
-                views = 0
-            )
-            width <- "100px"
-
-            # Call the register_new_user function
-            success <- register_new_user(table_name = "teachers", data = new_user)
-            if (success == 1) {
-                updateTabsetPanel(
-                    inputId = "app_pages",
-                    selected = "auth_page"
-                )
-
-                name <- stringr::word(input$teacher_username, 1)
-
-                # add user to firebase
-                user <- frbs::frbs_sign_up(
-                    input$teacher_email,
-                    input$teacher_password
-                )
-                id_token <- user$idToken
-                frbs::frbs_send_email_verification(
-                    id_token = id_token
-                )
-
-                # add user to polished
-                polished::add_app_user(
-                    app_uid = app_uid,
-                    email = input$teacher_email
-                )
-                # get user details
-                get_new_user <- polished::get_users(email = input$teacher_email)
-                user_uid <- get_new_user$content$uid
-
-                # add role to the user
-                polished::add_user_role(user_uid = user_uid, role_name = "teacher")
-                shinyalert(
-                    title = paste0(name, ", Welcome to Keytabu"),
-                    text = paste0(
-                        "Click the link we just sent to ",
+            tryCatch(
+                expr = {
+                    # add user to firebase
+                    user <- frbs::frbs_sign_up(
                         input$teacher_email,
-                        " to verify your email address, then log in."
-                    ),
-                    type = "",
-                    inputId = "roles_alert",
-                    imageUrl = "logo/logo.png",
-                    imageWidth = 180,
-                    session = session,
-                    confirmButtonText = "OK",
-                    confirmButtonCol = "#1D2856"
-                )
-            } else {
-                alert_fail_ui(
-                    info = "Name or email or phone already exists!",
-                    session = session
-                )
-            }
+                        input$teacher_password
+                    )
+
+                    if (!is.null(user$error)) {
+                        stop("An error occured with your email", call. = FALSE)
+                    }
+                    name <- stringr::word(input$teacher_username, 1)
+
+                    id_token <- user$idToken
+                    frbs::frbs_send_email_verification(
+                        id_token = id_token
+                    )
+
+                    # add user to polished
+                    polished::add_app_user(
+                        app_uid = app_uid,
+                        email = input$teacher_email
+                    )
+
+                    # get user details
+                    get_new_user <- polished::get_users(
+                        email = input$teacher_email
+                    )
+                    user_uid <- get_new_user$content$uid
+
+                    # add role to the user
+                    polished::add_user_role(
+                        user_uid = user_uid,
+                        role_name = "teacher"
+                    )
+
+                    # Convert the vector of grades to a single string
+                    grades <- paste(input$teacher_grades, collapse = ", ")
+
+                    # get the available data
+                    available_data <- refresh_table_data(table_name = "teachers")
+
+                    # Create data to append
+                    new_user <- data.frame(
+                        id = next_user_id("teachers", "teacher"),
+                        user_name = stringr::str_to_title(input$teacher_username),
+                        school_name = input$teacher_school,
+                        grade = grades,
+                        phone = input$teacher_tel_number,
+                        email = input$teacher_email,
+                        time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+                        status = "Enabled",
+                        views = 0
+                    )
+                    width <- "100px"
+
+                    # Call the register_new_user function
+                    success <- register_new_user(
+                        table_name = "teachers",
+                        data = new_user
+                    )
+
+                    if (success == 1) {
+                        updateTabsetPanel(
+                            inputId = "app_pages",
+                            selected = "auth_page"
+                        )
+
+                        shinyalert(
+                            title = paste0(name, ", Welcome to Keytabu"),
+                            text = paste0(
+                                "Click the link we just sent to ",
+                                input$teacher_email,
+                                " to verify your email address, then log in."
+                            ),
+                            type = "",
+                            inputId = "roles_alert",
+                            imageUrl = "logo/logo.png",
+                            imageWidth = 180,
+                            session = session,
+                            confirmButtonText = "OK",
+                            confirmButtonCol = "#1D2856"
+                        )
+                    } else {
+                        alert_fail_ui(
+                            info = "Name or email or phone already exists!",
+                            session = session
+                        )
+                    }
+                },
+                error = \(e) {
+                    alert_fail_ui(
+                        session = session,
+                        position = "bottom",
+                        info = conditionMessage(e)
+                    )
+                }
+            )
         } else {
             # if has declined to confirm
             alert_warn_ui(
@@ -422,7 +469,8 @@ server <- function(input, output, session) {
             striped = FALSE,
             outlined = TRUE,
             wrap = FALSE,
-            resizable = FALSE
+            resizable = FALSE,
+            class = "text-gray-dark"
         )
 
         # Show confirmation dialog with reactable table
@@ -910,7 +958,8 @@ server <- function(input, output, session) {
                                             bordered = FALSE,
                                             striped = FALSE,
                                             outlined = TRUE,
-                                            wrap = FALSE
+                                            wrap = FALSE,
+                                            class = "text-gray-dark"
                                         )
                                         # Get the cover images
                                         cover_image <- image_files[grepl(
@@ -1051,22 +1100,40 @@ server <- function(input, output, session) {
                     updatePickerInput(
                         session = session,
                         inputId = "request_learning_area",
-                        choices = learning_areas
+                        choices = learning_areas,
+                        choicesOpt = list(
+                            content = stringr::str_trunc(
+                                learning_areas,
+                                width = 25
+                            )
+                        )
                     )
 
                     # add validation rules
                     ivr <- InputValidator$new()
+                    ivrd <- InputValidator$new()
+
                     ivr$add_rule("photo_file", sv_required())
                     ivr$add_rule("request_grade", sv_required())
                     ivr$add_rule("request_learning_area", sv_required())
                     ivr$add_rule("request_topic", sv_required())
                     ivr$add_rule("request_sub_topic", sv_required())
+                    ivrd$add_rule("request_description", function(value) {
+                        if (nchar(value) > 100) {
+                            return("Limit of 100 characters exceeded!")
+                        }
+                    })
+                    ivrd$enable()
 
+                    output$char_count <- renderUI({
+                        # Use tags$span to create a small class text
+                        tags$span(paste("Character count:", nchar(input$request_description), "/ 100 characters"), class = "small text-gray")
+                    })
                     output$teacher_requests <- renderReactable({
                         # Filter and arrange the data as needed
                         data <- rvs$requests_data |>
                             filter(teacher_id == signed_user$id) |>
-                            select(-teacher_id) |>
+                            select(-c(teacher_id, request_description)) |>
                             arrange(desc(time))
 
                         # Set the column names
@@ -1144,7 +1211,9 @@ server <- function(input, output, session) {
 
                     observeEvent(input$request_btn, {
                         ivr$enable() # enable validation check
-                        req(ivr$is_valid()) # ensure checks are valid)
+                        req(ivr$is_valid()) # ensure checks are valid
+                        req(ivrd$is_valid())
+
                         photos <- uploaded_request_files()
                         if (length(photos) == 0) {
                             alert_fail_ui(
@@ -1179,7 +1248,8 @@ server <- function(input, output, session) {
                             striped = FALSE,
                             outlined = TRUE,
                             wrap = FALSE,
-                            resizable = FALSE
+                            resizable = FALSE,
+                            class = "text-gray-dark"
                         )
 
                         # Show confirmation dialog with reactable table
@@ -1213,6 +1283,7 @@ server <- function(input, output, session) {
                                 learning_area = input$request_learning_area,
                                 topic = input$request_topic,
                                 sub_topic = input$request_sub_topic,
+                                request_description = input$request_description,
                                 time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
                                 status = "PENDING"
                             )
@@ -1247,6 +1318,11 @@ server <- function(input, output, session) {
                                 rvs$requests_data <- refresh_table_data(
                                     table_name = "requests"
                                 )
+                                updateTextAreaInput(
+                                    session = session,
+                                    inputId = "request_description",
+                                    value = ""
+                                )
                             } else {
                                 alert_fail_ui(
                                     info = "Details match found...",
@@ -1271,7 +1347,6 @@ server <- function(input, output, session) {
                     ),
                     type = "",
                     inputId = "error_alert",
-                    imageUrl = "logo/mpesa_poster.jpg",
                     imageWidth = 180,
                     session = session,
                     confirmButtonText = "OK",
@@ -1366,7 +1441,10 @@ server <- function(input, output, session) {
                 mutate(details = NA)
 
             # Set the column names
-            colnames(data) <- c("ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status", "details")
+            colnames(data) <- c(
+                "ID", "Teacher ID", "Photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Additional info",
+                "Time", "Status", "details"
+            )
 
             if (nrow(data) > 0) {
                 # Create a reactable with download and update features
@@ -1392,6 +1470,7 @@ server <- function(input, output, session) {
                                     )
                                 }
                             ),
+                            `Additional info` = colDef(show = F),
                             Status = colDef(
                                 style = function(status) {
                                     color <- case_when(
@@ -1536,7 +1615,7 @@ server <- function(input, output, session) {
                     striped = FALSE,
                     outlined = TRUE,
                     wrap = FALSE,
-                    class = "text-body_1"
+                    class = "text-gray-dark"
                 )
                 table_html
             })
@@ -2100,7 +2179,7 @@ server <- function(input, output, session) {
                 column(4, p(file$name)),
                 column(2, tags$button(
                     id = paste0("remove_", i),
-                    class = "btn-danger",
+                    class = "text-red",
                     style = "border: none; background: transparent;",
                     onclick = sprintf("Shiny.setInputValue('delete_file', %d, {priority: 'event'});", i),
                     icon("trash")
@@ -2141,35 +2220,46 @@ server <- function(input, output, session) {
                 download_btn()
         })
 
-        showModal(modalDialog(
-            easyClose = TRUE,
-            title = paste("Details for", details$ID),
-            footer = NULL,
-            div(
-                class = "pb-3",
-                tags$p("Download images:"),
+        showModal(
+            modalDialog(
+                easyClose = TRUE,
+                title = paste("Details for", details$ID),
+                footer = NULL,
                 div(
                     class = "pb-3",
-                    download_buttons
+                    tags$p("Download images:", class = "text-bold"),
+                    div(
+                        class = "d-flex flex-wrap gap-2",
+                        download_buttons
+                    )
                 ),
                 div(
-                    class = "d-flex align-items-center
-                    justify-content-evenly",
+                    class = "pb-3",
+                    tags$p("More details:", class = "text-bold"),
+                    tags$p(details$`Additional info`)
+                ),
+                div(
+                    class = "pb-3",
+                    tags$p("Change request status", class = "text-bold"),
                     shinyWidgets::pickerInput(
                         inputId = "edit_request_status",
-                        label = "Change request status",
+                        label = NULL,
+                        width = "300px",
                         choices = c("PROCESSING", "CANCELLED")
-                    ),
+                    )
+                ),
+                div(
+                    class = "d-flex justify-content-end mt-3 modal-footer",
                     actionButton(
                         inputId = "change_request_status",
                         label = "",
                         icon = icon("check"),
-                        class = "btn-circle bg-default mt-3"
-                    ) |>
-                        basic_primary_btn()
+                        class = "btn-circle"
+                    ) |> basic_primary_btn()
                 )
             )
-        ))
+        )
+
 
         if (details$Status != "PENDING") {
             shinyjs::disable("edit_request_status")
@@ -2282,8 +2372,7 @@ server <- function(input, output, session) {
             striped = FALSE,
             outlined = TRUE,
             wrap = FALSE,
-            resizable = ,
-            class = "text-body_1"
+            class = "text-gray-dark"
         )
 
         # Show confirmation dialog with reactable table
@@ -2997,7 +3086,9 @@ server <- function(input, output, session) {
             btn_colors = c("#E76A35", "#1D2856"),
             title = "Set new term",
             text = paste(
-                "Are you sure you want to reset payments now?"
+                "Current payments will be reset on",
+                input$term_end_date,
+                "?"
             ),
             btn_labels = c("Cancel", "Yes")
         )
@@ -3028,6 +3119,16 @@ server <- function(input, output, session) {
                         class = "px-2"
                     )
                 })
+
+                signed_admin_user <- rvs$administrator_data |>
+                    filter(input_col == user_details$email)
+                record_admin_action(
+                    user = signed_admin_user$value,
+                    action = "Update",
+                    description = paste(
+                        "Updated term end date to", input$term_end_date
+                    )
+                )
             } else {
                 alert_fail_ui(
                     session = session,
@@ -3201,7 +3302,9 @@ server <- function(input, output, session) {
                             label = label_mandatory("Search a Learning Area:"),
                             choices = learning_areas,
                             selected = details$`Learning Area`,
-                            options = list(maxOptions = 5)
+                            options = list(
+                                size = 5
+                            )
                         )
                     ),
                     column(
@@ -3272,6 +3375,7 @@ server <- function(input, output, session) {
             striped = FALSE,
             outlined = TRUE,
             wrap = FALSE,
+            class = "text-gray-dark",
             resizable = FALSE
         )
         # Show confirmation modal
@@ -3357,7 +3461,8 @@ server <- function(input, output, session) {
             striped = FALSE,
             outlined = TRUE,
             wrap = FALSE,
-            resizable = TRUE
+            resizable = TRUE,
+            class = "text-gray-dark"
         )
 
         # Show confirmation dialog with reactable table
@@ -3684,6 +3789,7 @@ server <- function(input, output, session) {
 
                     div(
                         class = "timeline-item",
+                        id = "timeline_item",
                         div(
                             class = "timeline-icon shadow",
                             tags$i(class = set_icon)

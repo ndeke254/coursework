@@ -847,6 +847,11 @@ a#auth-reset_password {
   box-shadow: 0 0 0 0 rgb(38 143 255);
 }
 
+.btn-primary.disabled,
+.btn-primary:disabled {
+  background-color: var(--primary);
+}
+
 .nav-pills .nav-link.active,
 .nav-pills .show>.nav-link {
   background-color: var(--primary);
@@ -951,4 +956,8 @@ a#auth-reset_password {
 
 .sweet-alert button {
   line-height: 1.6;
+}
+
+button:focus {
+  outline: 0px auto -webkit-focus-ring-color !important;
 }
