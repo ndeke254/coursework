@@ -12,15 +12,13 @@ login_form <- \(ns) {
     email_input <- shiny::textInput(
         inputId = ns("signin_email"),
         label = "Email address",
-        placeholder = "johndoe@example.com",
-        width = "400px"
+        placeholder = "johndoe@example.com"
     ) |> make_input_required()
     password_input_id <- ns("signin_password")
     password_input <- shiny::passwordInput(
         inputId = password_input_id,
         label = "Password",
-        placeholder = "Password",
-        width = "400px"
+        placeholder = "Password"
     ) |> make_input_required()
 
     # show/hide passwords
@@ -32,23 +30,33 @@ login_form <- \(ns) {
         label = div(
             "Show password",
             class = "mx-2"
-        ),
-        width = "400px"
+        )
     ) |> make_input_required()
 
     submit_btn_id <- ns("signin_submit")
     submit_btn <- actionButton(
         inputId = submit_btn_id,
         label = "Login",
-        class = "btn btn-primary ",
         type = "submit",
+        width = "300px",
         onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
-    )
+    ) |>
+        basic_primary_btn()
 
-    tags$form(
-        class = "pt-2",
-        tags$div(class = "mb-3", email_input),
-        tags$div(class = "mb-3", password_input),
-        tags$div(class = "d-grid", submit_btn)
+    div(
+        class = "card-body",
+        fluidRow(
+            column(
+                width = 12,
+                email_input
+            )
+        ),
+        fluidRow(
+            column(
+                width = 12,
+                password_input
+            )
+        ),
+        tags$div(class = "d-flex justify-content-center", submit_btn)
     )
 }

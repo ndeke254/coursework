@@ -25,13 +25,17 @@ mod_auth_server <- \(id) {
                             stop("Invalid email!", call. = FALSE)
                         }
 
-                        toast_success(
-                            message = "Password reset link sent!"
+                        alert_success_ui(
+                            session = session,
+                            info = "Password reset link sent!"
                         )
                     },
                     error = \(e) {
                         print(e)
-                        toast_error(message = conditionMessage(e), timeOut = 0)
+                        alert_fail_ui(
+                            session = session,
+                            info = conditionMessage(e)
+                        )
                     }
                 )
             })
@@ -71,7 +75,11 @@ mod_auth_server <- \(id) {
                     },
                     error = \(e) {
                         print(e)
-                        toast_error(message = conditionMessage(e), timeOut = 0)
+                        alert_fail_ui(
+                            session = session,
+                            position = "bottom",
+                            info = conditionMessage(e)
+                        )
                     }
                 )
             })
@@ -90,7 +98,7 @@ mod_auth_server <- \(id) {
                 tryCatch(
                     expr = {
                         user_details <- rv_signed_in() |> lapply(`[[`, 1)
-                        
+
                         user_email <- user_details$users$email
 
                         # send verification link
@@ -111,9 +119,9 @@ mod_auth_server <- \(id) {
                     error = \(e) {
                         switch_auth_form_tab("signin")
                         print(e)
-                        toast_error(
-                            title = "Error",
-                            message = "An error occurred while signing you in"
+                        alert_fail_ui(
+                            session = session,
+                            info = "An error occurred while signing you in"
                         )
                     }
                 )
@@ -124,4 +132,3 @@ mod_auth_server <- \(id) {
         }
     )
 }
-

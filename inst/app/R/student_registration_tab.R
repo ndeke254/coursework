@@ -1,24 +1,25 @@
 student_registration_tab <- div(
     id = "registration_form",
-    create_card(
-        title = "Welcome to Keytabu",
+    class = "vh-100 container justify-content-center align-content-center",
+    div(
         title_icon = NULL,
-        class = "shadow text",
+        class = "card",
         tags$div(
-            class = "d-flex justify-content-center",
+            class = "bg-light d-flex justify-content-center",
             tags$img(
                 src = file.path("logo", "logo.png"),
-                width = "150px"
+                width = "100px"
             )
         ),
+        h5("Welcome to Keytabu", class = "bg-light text-bold text-center
+         pb-3"),
         div(
             id = "student_registration",
-            p("Student Details"),
-            uiOutput("error_styles"), # Include the error CSS
-
-            argonRow(
-                argonColumn(
-                    width = 4,
+            class = "card-body",
+            p("Student Details", class = "text-bold text-muted text-center"),
+            fluidRow(
+                column(
+                    width = 3,
                     shiny::textInput(
                         inputId = "student_username",
                         label = label_mandatory("Name:"),
@@ -26,76 +27,80 @@ student_registration_tab <- div(
                         placeholder = "Eg. Joseph Juma"
                     )
                 ),
-                argonColumn(
-                    width = 4,
-                    shiny::selectizeInput(
+                column(
+                    width = 3,
+                    shinyWidgets::pickerInput(
                         inputId = "student_school",
                         label = label_mandatory("School:"),
-                        options = list(maxOptions = 3),
+                        options = list(
+                            title = "Eg. Lenga Juu",
+                            style = "btn-outline-light",
+                            size = 5,
+                            `live-search` = TRUE,
+                            `live-search-placeholder` = "Search school"
+                        ),
                         choices = NULL
                     )
                 ),
-                argonColumn(
-                    width = 4,
-                    shiny::selectizeInput(
+                column(
+                    width = 3,
+                    shinyWidgets::pickerInput(
                         inputId = "student_grade",
                         label = label_mandatory("Grade:"),
+                        options = pickerOptions(
+                            style = "btn-outline-light",
+                            title = "Eg. Grade 6",
+                            size = 5
+                        ),
                         choices = setNames(1:12, paste("Grade", 1:12)),
-                        options = list(maxOptions = 3)
+                        autocomplete = TRUE
                     )
-                )
-            ),
-            argonRow(
-                argonColumn(
-                    width = 4,
+                ),
+                column(
+                    width = 3,
                     autonumericInput(
-                        inputId = ("student_tel_number"),
+                        inputId = "student_tel_number",
                         label = label_mandatory("Phone:"),
                         value = 123456789,
                         currencySymbol = "254 ",
                         decimalPlaces = 0,
                         digitGroupSeparator = ""
                     )
-                ),
-                argonColumn(
-                    width = 4,
+                )
+            ),
+            fluidRow(
+                column(
+                    width = 3,
                     shiny::textInput(
                         inputId = "student_email",
                         label = label_mandatory("Email address"),
-                        placeholder = "johndoe@example.com",
-                        width = "400px"
+                        placeholder = "johndoe@example.com"
                     )
                 ),
-                argonColumn(
-                    width = 4,
+                column(
+                    width = 3,
                     shiny::passwordInput(
                         inputId = "student_password",
                         label = label_mandatory("Password"),
-                        placeholder = "Password",
-                        width = "400px"
+                        placeholder = "Password"
                     )
-                )
-            ),
-            argonRow(
-                argonColumn(
-                    width = 4,
+                ),
+                column(
+                    width = 3,
                     shiny::passwordInput(
                         inputId = "student_confirm_password",
-                        label = label_mandatory("Password"),
-                        placeholder = "Password",
-                        width = "400px"
+                        label = label_mandatory("Confirm password"),
+                        placeholder = "Password"
                     )
                 )
             ),
             privacy_tos_links,
-            argonRow(
-                class = "mt-5",
-                center = TRUE,
+            div(
+                class = "d-flex justify-content-center",
                 shiny::actionButton(
                     inputId = "submit_student_details",
                     label = "Submit",
-                    icon = icon("arrow-right"),
-                    class = "px-5"
+                    width = "300px"
                 ) |>
                     basic_primary_btn()
             )

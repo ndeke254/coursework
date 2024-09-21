@@ -11,3 +11,5 @@
 *.pdf
 .test.R
 .history
+*.rds
+*.json

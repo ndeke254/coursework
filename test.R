@@ -3,25 +3,26 @@ library(DBI)
 # make sqlite connection:
 conn <- DBI::dbConnect(
   drv = RSQLite::SQLite(),
-  "/home/jefferson.ndeke/PersonalR/coursework/inst/app/coursework.sqlite"
+  "inst/app/coursework.sqlite"
 )
 
 dbListTables(conn = conn)
 
-table <- dbReadTable(conn, "teachers")
-table
+table <- dbReadTable(conn, "timeline")
 
+
+table
 
 table$time[1]
 table[5, "id"]
 RSQLite::dbRemoveTable(conn, "content")
-query <- "DELETE FROM students WHERE user_name LIKE '%Mwende%';"
+query <- "DELETE FROM administrator WHERE input LIKE '%musumbijefferson@gmail.com%';"
 query <- "DELETE FROM teachers WHERE school_name LIKE '%C%';"
 
 
-query <- "UPDATE students
-	SET paid = 1
-  	WHERE grade = '5'
+query <- "UPDATE teachers
+  	SET views = 0
+	 WHERE views = 1
   "
 query <- "ALTER TABLE students
 DROP COLUMN type"
@@ -44,6 +45,7 @@ school <- structure(
     county = character(),
     email = character(),
     price = character(),
+    time = character(),
     status = character()
   ),
   row.names = integer(0),
@@ -53,7 +55,8 @@ school <- structure(
 DBI::dbWriteTable(
   conn = conn,
   name = "schools",
-  value = school
+  value = school,
+  overwrite = TRUE
 )
 
 # --- TEACHERS ----
@@ -65,6 +68,7 @@ teacher <- structure(
     grade = character(),
     phone = character(),
     email = character(),
+    time = character(),
     status = character(),
     views = integer()
   ),
@@ -74,7 +78,8 @@ teacher <- structure(
 DBI::dbWriteTable(
   conn = conn,
   name = "teachers",
-  value = teacher
+  value = teacher,
+  overwrite = TRUE
 )
 
 
@@ -82,7 +87,6 @@ DBI::dbWriteTable(
 pdf <- structure(
   .Data = list(
     id = character(),
-    school_name = character(),
     pdf_name = character(),
     teacher = character(),
     grade = character(),
@@ -90,6 +94,7 @@ pdf <- structure(
     topic = character(),
     sub_topic = character(),
     time = character(),
+    status = character(),
     views = integer()
   ),
   row.names = integer(0),
@@ -99,7 +104,8 @@ pdf <- structure(
 DBI::dbWriteTable(
   conn = conn,
   name = "content",
-  value = pdf
+  value = pdf,
+  overwrite = TRUE
 )
 
 # --- STUDENTS -----
@@ -111,24 +117,30 @@ student <- structure(
     grade = character(),
     phone = character(),
     email = character(),
+    time = character(),
     status = character(),
     paid = integer()
   ),
   row.names = integer(0),
   class = "data.frame"
 )
+
 DBI::dbWriteTable(
   conn = conn,
   name = "students",
-  value = student
+  value = student,
+  overwrite = TRUE
 )
 
 # ---PAYMENTS ----
 payments <- structure(
   .Data = list(
-    user_email = character(),
+    ticket_id = character(),
+    user_id = character(),
     code = character(),
     amount = character(),
+    balance = character(),
+    total = character(),
     number = character(),
     time = character(),
     term = character(),
@@ -141,7 +153,90 @@ payments <- structure(
 DBI::dbWriteTable(
   conn = conn,
   name = "payments",
-  value = payments
+  value = payments,
+  overwrite = TRUE
+)
+
+# Requests
+
+request <- structure(
+  .Data = list(
+    id = character(),
+    teacher_id = character(),
+    photos = character(),
+    grade = character(),
+    learning_area = character(),
+    topic = character(),
+    sub_topic = character(),
+    time = character(),
+    status = character()
+  ),
+  row.names = integer(0),
+  class = "data.frame"
+)
+
+DBI::dbWriteTable(
+  conn = conn,
+  name = "requests",
+  value = request,
+  overwrite = TRUE
+)
+
+
+# Timeline
+
+action <- structure(
+  .Data = list(
+    user = character(),
+    action = character(),
+    description = character(),
+    time = character()
+  ),
+  row.names = integer(0),
+  class = "data.frame"
+)
+
+DBI::dbWriteTable(
+  conn = conn,
+  name = "timeline",
+  value = action,
+  overwrite = TRUE
+)
+
+# views
+views <- structure(
+  .Data = list(
+    student_id = character(),
+    teacher_id = character(),
+    pdf_id = character(),
+    date = character()
+  ),
+  row.names = integer(0),
+  class = "data.frame"
+)
+
+DBI::dbWriteTable(
+  conn = conn,
+  name = "views",
+  value = views,
+  overwrite = TRUE
+)
+
+# admin table
+admin <- structure(
+  .Data = list(
+    input_col = c("term_end_date", "term_label"),
+    value = c(NA, NA)
+  ),
+  row.names = 1:2,
+  class = "data.frame"
+)
+
+DBI::dbWriteTable(
+  conn = conn,
+  name = "administrator",
+  value = admin,
+  overwrite = TRUE
 )
 
 
@@ -149,19 +244,21 @@ DBI::dbWriteTable(
 
 
 data <- data.frame(
-  id = "SCH-001",
-  name = "Kataa",
-  level = "Primary",
-  type = "Public",
-  county = "Kitui",
-  email = "kataa@gmail.com",
-  status = "Enabled"
+  id = "STU-001",
+  user_name = "Jefferson Ndeke",
+  school_name = "Kataa",
+  grade = "5",
+  phone = "706924458",
+  email = "dieprazeptor@gmail.com",
+  time = "2024-05-23 12:34:24",
+  status = "Enabled",
+  paid = 0
 )
 dbSendQuery(conn, "SELECT * FROM schools")
 
 dbAppendTable(
-  conn = con,
-  name = "schools",
+  conn = conn,
+  name = "students",
   value = data
 )
 register_new_school(
@@ -209,3 +306,59 @@ rsconnect::deployApp()
 rsconnect::accountInfo()
 rsconnect::applications()
 rsconnect::deployments()
+
+remotes::install_github("https://github.com/ndeke254/coursework/")
+pak::pkg_install("ndeke254/coursework")
+install.packages("pak")
+gitcreds::gitcreds_set()
+remotes::install_github("ndeke254/coursework")
+pak::pkg_install("ndeke254/coursework")
+packageStatus()
+
+update_request_status(request_id = "REQ-001", new_status = "PROCESSING")
+file.remove(c("inst/app/www/requests/REQ-008-2.jpg", "inst/app/www/requests/REQ-008-3.jpg"))
+getwd()
+
+
+
+  record_admin_action(
+    conn = conn,
+    user = "Admin123",
+    action = "Approve",
+    description = "Approved ticket #038F389E"
+  )
+
+  library(data.table)
+
+timeline_data <- read.csv("/home/jefferson.ndeke/PersonalR/coursework/inst/app/timeline.csv") |>
+as.data.table()
+
+currentPage = 3
+pageSize = 10
+offset <- (currentPage - 1) * pageSize
+
+ data <- timeline_data[order(-time)][(offset + 1):(offset + pageSize), ]
+
+timeline_data
+
+signed_admin_user <- table |>
+  filter(input == "musumbijefferson@gmail.com")
+library(dplyr)
+signed_admin_user <- table %>%
+  dplyr::filter(input == user_details$email)
+
+record_student_view(
+  student_id = "STU-001",
+  teacher_id = "TEA-001",
+  pdf_id = "PDF-001"
+)
+
+library(dplyr)
+admin_emails <- table |>
+select(input) |>
+  filter(grepl("@gmail\\.com$", input)) |>
+  unlist() |>
+  as.vector()
+
+table
+names(table) <- c("input_col", "value")

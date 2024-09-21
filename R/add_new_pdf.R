@@ -19,8 +19,8 @@ add_new_pdf <- function(table_name, data) {
 
   # Check if the school name or email already exists
   available <- table_data |>
-    select(school_name, pdf_name)
-  new_data <- c(data$school_name, data$pdf_name)
+    select(pdf_name, grade)
+  new_data <- c(data$pdf_name, data$grade)
 
   # check for a row with match
   match <- prodlim::row.match(new_data, available)
