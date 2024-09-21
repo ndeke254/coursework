@@ -34,6 +34,7 @@ mod_auth_server <- \(id) {
                         print(e)
                         alert_fail_ui(
                             session = session,
+                            position = "bottom",
                             info = conditionMessage(e)
                         )
                     }
@@ -121,6 +122,7 @@ mod_auth_server <- \(id) {
                         print(e)
                         alert_fail_ui(
                             session = session,
+                            position = "bottom",
                             info = "An error occurred while signing you in"
                         )
                     }
