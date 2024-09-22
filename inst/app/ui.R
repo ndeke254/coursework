@@ -106,6 +106,26 @@ ui <- shiny::bootstrapPage(
             basic_primary_btn()
         )
       ),
+
+      # tos and privacy policy
+
+      tabPanelBody(
+        value = "privacy_policy_page",
+        div(
+          class = "container mt-5 pt-5 px-3
+           bg-gray-light rounded pb-3",
+          includeMarkdown("www/privacy_policy.md")
+        )
+      ),
+      tabPanelBody(
+        value = "tos_page",
+        div(
+          class = "container mt-5 pt-5 px-3
+           bg-gray-light rounded pb-3",
+          includeMarkdown("www/terms_of_service.md")
+        )
+      ),
+
       # dashboardpage----
       tabPanelBody(
         value = "dashboardpage_panel",
@@ -115,27 +135,25 @@ ui <- shiny::bootstrapPage(
         )
       )
     ),
-    shinyjs::hidden(
-      div(
-        id = "company_copyright",
-        class = "mt-5",
-        p(
-          HTML(
-            '
+    footer = div(
+      id = "company_copyright",
+      class = "mt-5 pt-5 border-top",
+      p(
+        HTML(
+          '
                 Copyright &copy;<span id = "year"></span>
                 KEYTABU LTD.
                 '
-          ),
-          style = "text-align: center;"
         ),
-        p(
-          "All Rights Reserved.",
-          style = "text-align: center;"
-        ),
-        tags$script(
-          'document.getElementById("year").innerHTML =
+        style = "text-align: center;"
+      ),
+      p(
+        "All Rights Reserved.",
+        style = "text-align: center;"
+      ),
+      tags$script(
+        'document.getElementById("year").innerHTML =
               new Date().getFullYear();'
-        )
       )
     )
   ),

@@ -6,7 +6,15 @@ mod_auth_server <- \(id) {
 
             # Handle send reset link
             observeEvent(input$reset_password, {
-                email <- input$signin_email
+                updateTabsetPanel(
+                    inputId = "auth_pages",
+                    session = session,
+                    selected = "reset_page"
+                )
+            })
+
+            observeEvent(input$reset_password_btn, {
+                email <- input$reset_email
 
                 # check if user exists
 
@@ -27,6 +35,7 @@ mod_auth_server <- \(id) {
 
                         alert_success_ui(
                             session = session,
+                            position = "bottom",
                             info = "Password reset link sent!"
                         )
                     },
@@ -41,6 +50,13 @@ mod_auth_server <- \(id) {
                 )
             })
 
+            observeEvent(input$back_to_login, {
+                updateTabsetPanel(
+                    inputId = "auth_pages",
+                    session = session,
+                    selected = "login_page"
+                )
+            })
             # Signin process
             rv_signed_in <- reactiveVal()
             signed_user_email <- reactiveValues(
@@ -107,8 +123,10 @@ mod_auth_server <- \(id) {
                             frbs::frbs_send_email_verification(
                                 id_token = user_details$idToken
                             )
-                            modal <- email_verification_modal(user_email)
-                            showModal(modal)
+                            email_verification_alert(
+                                user_email,
+                                session = session
+                            )
                             return()
                         }
 
