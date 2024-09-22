@@ -50,6 +50,7 @@ server <- function(input, output, session) {
 
 
     user_details <- mod_auth_server("auth")
+
     observeEvent(
         list(input$register_now, input$register_now_1),
         {
@@ -57,6 +58,7 @@ server <- function(input, output, session) {
                 inputId = "app_pages",
                 selected = "reg_student_page"
             )
+            shinyjs::hide("company_copyright")
         },
         ignoreInit = TRUE
     )
@@ -66,7 +68,9 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "reg_teacher_page"
         )
+        shinyjs::hide("company_copyright")
     })
+
     observeEvent(input$home_link, {
         updateTabsetPanel(
             inputId = "app_pages",
@@ -102,6 +106,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "reg_student_page"
         )
+        shinyjs::hide("company_copyright")
     })
 
     observeEvent(input$teachers_link, {
@@ -110,6 +115,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "reg_teacher_page"
         )
+        shinyjs::hide("company_copyright")
     })
 
     observeEvent(input$login_link, {
@@ -118,6 +124,7 @@ server <- function(input, output, session) {
             inputId = "app_pages",
             selected = "auth_page"
         )
+        shinyjs::hide("company_copyright")
     })
 
     # Register a new teacher
@@ -127,7 +134,6 @@ server <- function(input, output, session) {
     ivt$add_rule("teacher_school", sv_required())
     ivt$add_rule("teacher_password", sv_required())
     ivt$add_rule("teacher_confirm_password", sv_required())
-
     ivt$add_rule("teacher_grades", sv_required())
     ivt$add_rule("teacher_tel_number", sv_required())
     ivt$add_rule("teacher_email", sv_email())
@@ -171,6 +177,12 @@ server <- function(input, output, session) {
         }
 
         return(NULL) # Return NULL if validation passes
+    })
+
+    ivt$add_rule("t_privacy_link_tos", function(value) {
+        if (value != TRUE) {
+            return("Required")
+        }
     })
 
     observeEvent(input$submit_teacher_details, {
@@ -334,20 +346,9 @@ server <- function(input, output, session) {
                             selected = "auth_page"
                         )
 
-                        shinyalert(
-                            title = paste0(name, ", Welcome to Keytabu"),
-                            text = paste0(
-                                "Click the link we just sent to ",
-                                input$teacher_email,
-                                " to verify your email address, then log in."
-                            ),
-                            type = "",
-                            inputId = "roles_alert",
-                            imageUrl = "logo/logo.png",
-                            imageWidth = 180,
-                            session = session,
-                            confirmButtonText = "OK",
-                            confirmButtonCol = "#1D2856"
+                        email_verification_alert(
+                            email_address = input$teacher_email,
+                            session = session
                         )
                     } else {
                         alert_fail_ui(
@@ -424,6 +425,13 @@ server <- function(input, output, session) {
 
         return(NULL) # Return NULL if validation passes
     })
+
+    ivst$add_rule("s_privacy_link_tos", function(value) {
+        if (value != TRUE) {
+            return("Required")
+        }
+    })
+
 
     observeEvent(input$submit_student_details, {
         ivst$enable() # enable validation check
@@ -733,6 +741,7 @@ server <- function(input, output, session) {
                         unlist() |>
                         as.numeric() |>
                         sum()
+
                     # Check if the user has paid for the year
                     user_paid <- signed_user %>%
                         select(paid) %>%
@@ -742,6 +751,8 @@ server <- function(input, output, session) {
                     balance <- price - paid_amount
                     clear <- prettyNum(balance, big.mark = ",")
                     if (user_paid == "0") {
+                        shinyjs::hide("content_pdfs")
+
                         shinyalert(
                             title = "Subscription expired",
                             text = paste(
@@ -755,15 +766,47 @@ server <- function(input, output, session) {
                             confirmButtonText = "PAY",
                             confirmButtonCol = "#1D2856",
                             callbackR = function() {
-                                shinyjs::hide("content_pdfs")
                                 shinyjs::show("payment_required")
-                                output$balance_required <- renderText(
-                                    paste(
-                                        "Please clear your balance of KES",
-                                        clear,
-                                        "to access your Keytabu"
-                                    )
+                                updateTabsetPanel(
+                                    session = session,
+                                    inputId = "student_content_tabset",
+                                    selected = "Payments"
                                 )
+
+                                output$balance_required <- renderUI({
+                                    # Define MPESA payment details
+                                    paybill_no <- "123456"
+                                    ac_number <- "Your Keytabu ID"
+
+                                    div(
+                                        id = "payment_required",
+                                        class = "card pt-2 border-bottom
+                                        text-white",
+                                        style = "background-color: #3aa335",
+                                        div(
+                                            p("Payment required",
+                                                class = "card-header text-bold text-center",
+                                            )
+                                        ),
+                                        div(
+                                            class = "card-body",
+                                            tags$p(
+                                                "Please clear your balance of KES", clear,
+                                                "to access your Keytabu. Pay via MPESA using the following details:"
+                                            ),
+                                            tags$p(
+                                                "Paybill Number:", paybill_no
+                                            ),
+                                            tags$p(
+                                                "Account Number:", ac_number
+                                            )
+                                        ),
+                                        tags$p(
+                                            class = "card-footer",
+                                            "Then create a payment ticket using the MPESA SMS on next tab for approval."
+                                        )
+                                    )
+                                })
                             }
                         )
                     }
@@ -816,22 +859,13 @@ server <- function(input, output, session) {
                     )
 
                     output$school_ticket <- renderText(
-                        paste(
-                            "Your Invoice: Ksh.",
-                            prettyNum(price, big.mark = ",")
-                        )
+                        paste("Ksh.", prettyNum(price, big.mark = ","))
                     )
                     output$paid_amount <- renderText(
-                        paste(
-                            "You have paid: Ksh.",
-                            prettyNum(paid_amount, big.mark = ",")
-                        )
+                        paste("Ksh.", prettyNum(paid_amount, big.mark = ","))
                     )
                     output$balance <- renderText(
-                        paste(
-                            "Your Balance: Ksh.",
-                            prettyNum(balance, big.mark = ",")
-                        )
+                        paste("Ksh.", prettyNum(balance, big.mark = ","))
                     )
                     # Filter the student content based on the signed-in user's grade and school
                     signed_student_teachers <- rvs$teachers_data |>
@@ -959,7 +993,7 @@ server <- function(input, output, session) {
                                             striped = FALSE,
                                             outlined = TRUE,
                                             wrap = FALSE,
-                                            class = "text-gray-dark"
+                                            class = "bg-default"
                                         )
                                         # Get the cover images
                                         cover_image <- image_files[grepl(
@@ -2005,12 +2039,12 @@ server <- function(input, output, session) {
             # get the payments data
             payments_data <- rvs$payments_data |>
                 arrange(desc(time)) |>
+                select(-term) |>
                 mutate(details = NA)
 
             colnames(payments_data) <- c(
                 "Ticket ID", "Student ID", "Code", "Amount",
-                "Balance", "Total paid", "Number", "Time", "Term",
-                "Status", "details"
+                "Balance", "Total paid", "Number", "Time", "Status", "details"
             )
 
             if (nrow(payments_data) > 0) {
@@ -2096,7 +2130,7 @@ server <- function(input, output, session) {
             return(NULL) # Return NULL if validation passes
         })
 
-        output$payments_tickets_data <- renderUI({
+        output$payments_tickets_data <- renderReactable({
             # Filter and arrange the data as needed
             data <- rvs$payments_data |>
                 filter(user_id == signed_user$id) |>
@@ -2107,43 +2141,38 @@ server <- function(input, output, session) {
             colnames(data) <- c(
                 "Ticket ID", "Code", " Amount", "Number", "Time", "Term", "Status"
             )
-            if (nrow(data) > 0) {
-                # Create a reactable with customization
-                output$table <- renderReactable({
-                    reactable(
-                        data,
-                        searchable = TRUE,
-                        sortable = TRUE,
-                        defaultPageSize = 10,
-                        highlight = TRUE,
-                        wrap = FALSE,
-                        resizable = TRUE,
-                        bordered = TRUE,
-                        columns = list(
-                            Status = colDef(
-                                style = function(status) {
-                                    color <- case_when(
-                                        status == "DECLINED" ~ "#e00000",
-                                        status == "PENDING" ~ "#E76A35",
-                                        status == "APPROVED" ~ "#008000",
-                                        .default = "#1D2856"
-                                    )
-                                    list(color = color, fontWeight = "bold")
-                                }
+            # Create a reactable with customization
+            reactable(
+                data,
+                searchable = TRUE,
+                sortable = TRUE,
+                defaultPageSize = 10,
+                highlight = TRUE,
+                wrap = FALSE,
+                resizable = TRUE,
+                bordered = TRUE,
+                columns = list(
+                    Status = colDef(
+                        style = function(status) {
+                            color <- case_when(
+                                status == "DECLINED" ~ "#e00000",
+                                status == "PENDING" ~ "#E76A35",
+                                status == "APPROVED" ~ "#008000",
+                                .default = "#1D2856"
                             )
-                        ),
-                        theme = reactableTheme(
-                            borderColor = "#ddd",
-                            cellPadding = "8px",
-                            borderWidth = "1px",
-                            highlightColor = "#f0f0f0"
-                        )
+                            list(color = color, fontWeight = "bold")
+                        }
                     )
-                })
-            } else {
-                show_empty_state_ui
-            }
+                ),
+                theme = reactableTheme(
+                    borderColor = "#ddd",
+                    cellPadding = "8px",
+                    borderWidth = "1px",
+                    highlightColor = "#f0f0f0"
+                )
+            )
         })
+
 
         # Actions for logout button
         observeEvent(input$log_out_session, {
@@ -2239,7 +2268,6 @@ server <- function(input, output, session) {
                     tags$p(details$`Additional info`)
                 ),
                 div(
-                    class = "pb-3",
                     tags$p("Change request status", class = "text-bold"),
                     shinyWidgets::pickerInput(
                         inputId = "edit_request_status",
@@ -2289,6 +2317,7 @@ server <- function(input, output, session) {
             description = paste("Viewed details for", details$ID)
         )
     })
+
     observeEvent(input$change_request_status, {
         details <- input$show_details$info
 
@@ -3284,6 +3313,7 @@ server <- function(input, output, session) {
         showModal(
             modalDialog(
                 size = "xl",
+                title = paste(details$ID, ":", details$Name),
                 fluidRow(
                     column(
                         width = 3,
@@ -3292,19 +3322,22 @@ server <- function(input, output, session) {
                             label = label_mandatory("Grade:"),
                             choices = setNames(grades, paste("Grade", grades)),
                             selected = details$Grade,
-                            options = list(maxOptions = 5)
+                            options = list(size = 3)
                         )
                     ),
                     column(
                         width = 3,
-                        shiny::updatePickerInput(
+                        shinyWidgets::pickerInput(
                             inputId = "edit_learning_area",
                             label = label_mandatory("Search a Learning Area:"),
                             choices = learning_areas,
                             selected = details$`Learning Area`,
                             options = list(
-                                size = 5
-                            )
+                                size = 5,
+                                title = "Eg. Creative Arts",
+                                `live-search` = TRUE,
+                                `live-search-placeholder` = "Type here..."
+                            ),
                         )
                     ),
                     column(
@@ -3552,30 +3585,32 @@ server <- function(input, output, session) {
     observeEvent(input$student_payments_details, {
         details <- input$student_payments_details$info
 
-        showModal(modalDialog(
-            easyClose = TRUE,
-            title = paste("Approval for ticket", details$Code),
-            footer = NULL,
-            div(
-                class = "pb-3",
+        showModal(
+            modalDialog(
+                easyClose = TRUE,
+                title = paste("Approval for ticket", details$Code),
+                footer = NULL,
                 div(
-                    class = "d-flex align-items-center
-                    justify-content-evenly",
+                    tags$p("Change payment status", class = "text-bold"),
                     shinyWidgets::pickerInput(
                         inputId = "edit_payment_status",
-                        label = "Change payment status",
+                        label = NULL,
+                        width = "300px",
                         choices = c("APPROVED", "DECLINED")
-                    ),
+                    )
+                ),
+                div(
+                    class = "d-flex justify-content-end mt-3 modal-footer",
                     actionButton(
                         inputId = "change_payment_status",
                         label = "",
                         icon = icon("check"),
-                        class = "btn-circle bg-default mt-3"
+                        class = "btn-circle"
                     ) |>
                         basic_primary_btn()
                 )
             )
-        ))
+        )
 
         if (details$Status != "PENDING") {
             shinyjs::disable("edit_payment_status")
@@ -3599,9 +3634,10 @@ server <- function(input, output, session) {
                 )
             )
         } else {
+            student_data <- rvs$students_data |>
+                filter(id == details$`Student ID`)
+
             if (input$edit_payment_status == "APPROVED") {
-                student_data <- rvs$students_data |>
-                    filter(id == details$`Student ID`)
                 data <- rvs$administrator_data
 
                 values <- data |>
@@ -4026,4 +4062,36 @@ a {
             file.remove(temp_file)
         }
     })
+
+    observeEvent(
+        list(
+            input$s_privacy_policy_link,
+            input$t_privacy_policy_link
+        ),
+        {
+            updateTabsetPanel(
+                session = session,
+                inputId = "app_pages",
+                selected = "privacy_policy_page"
+            )
+            shinyjs::show("company_copyright")
+        },
+        ignoreInit = TRUE
+    )
+
+    observeEvent(
+        list(
+            input$s_terms_service_link,
+            input$t_terms_service_link
+        ),
+        {
+            updateTabsetPanel(
+                session = session,
+                inputId = "app_pages",
+                selected = "tos_page"
+            )
+            shinyjs::show("company_copyright")
+        },
+        ignoreInit = TRUE
+    )
 }

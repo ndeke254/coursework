@@ -961,3 +961,34 @@ a#auth-reset_password {
 button:focus {
   outline: 0px auto -webkit-focus-ring-color !important;
 }
+
+.sweet-alert h2 {
+  font-size: 25px !important;
+  margin: 15px 0 !important;
+  line-height: 1.5 !important;
+}
+
+
+
+.modal-open .modal {
+  backdrop-filter: blur(5px) !important;
+}
+
+.hover-card {
+  position: relative;
+}
+
+.card-details {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  color: white;
+  line-height: 0.5;
+  font-size: small;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.hover-card:hover .card-details {
+  display: block;
+}

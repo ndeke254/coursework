@@ -11,7 +11,6 @@ Capture Administrator Action and Update the Timeline Table
 }
 \examples{
 \dontrun{
-# Example usage
 record_admin_action(
   user = "Admin123",
   action = "Approve",

@@ -3,8 +3,10 @@
 #' @param user_email A character string representing the user email
 #' @param user_type A character string, either `student` or `teacher`
 #' @examples
+#' \dontrun{
 #' email <- "useremail@gmail.com"
 #' get_signed_user(user_email = "useremail@gmail.com", user_type = "student")
+#' }
 #' @import DBI
 #' @export
 get_signed_user <- function(user_email, user_type) {

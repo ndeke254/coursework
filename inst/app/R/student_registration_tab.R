@@ -94,7 +94,20 @@ student_registration_tab <- div(
                     )
                 )
             ),
-            privacy_tos_links,
+            div(
+                class = "mt-2 d-flex justify-content-center",
+                shinyWidgets::awesomeCheckbox(
+                    inputId = "s_privacy_link_tos",
+                    status = "success",
+                    label = tags$p(
+                        class = "small text-center",
+                        "By continuing, you are indicating that you accept our",
+                        actionLink("s_privacy_policy_link", "Privacy Policy"),
+                        "and",
+                        actionLink("s_terms_service_link", "Terms of Service")
+                    )
+                )
+            ),
             div(
                 class = "d-flex justify-content-center",
                 shiny::actionButton(

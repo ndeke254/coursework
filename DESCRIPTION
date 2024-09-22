@@ -20,10 +20,13 @@ Imports:
     shinyWidgets (>= 0.7.6),
     RSQLite (>= 2.3.1),
     shinyvalidate (>= 0.1.3),
+    data.table (>= 1.16.0),
     dplyr (>= 1.1.2),
     reactable (>= 0.4.4),
+    htmltools (>= 0.5.8.1),
     prodlim (>= 2018.04.13),
-    DBI (>= 1.2.3)
+    DBI (>= 1.2.3),
+    fs (>= 1.6.4)
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
