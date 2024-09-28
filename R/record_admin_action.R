@@ -22,7 +22,7 @@ record_admin_action <- \(user, action, description) {
     user = user,
     action = action,
     description = description,
-    time =  format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+    time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
     stringsAsFactors = FALSE
   )
   dbAppendTable(

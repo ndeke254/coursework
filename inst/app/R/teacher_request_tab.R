@@ -49,12 +49,12 @@ teacher_request_tab <- div(
                 `live-search` = TRUE,
                 `live-search-placeholder` = "Type here..."
               ),
-               choicesOpt = list(
-                 content = stringr::str_trunc(
-                   learning_areas,
-                   width = 25
-                 )
-               ),
+              choicesOpt = list(
+                content = stringr::str_trunc(
+                  learning_areas,
+                  width = 25
+                )
+              ),
               choices = NULL
             )
           ),

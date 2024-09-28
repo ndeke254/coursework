@@ -164,6 +164,6 @@ ui <- shiny::bootstrapPage(
     src = file.path("js", "landing-page.js")
   ),
   tags$script(
-    src = file.path("js", "main.js")
+    src = file.path("js", "script.js")
   )
 )

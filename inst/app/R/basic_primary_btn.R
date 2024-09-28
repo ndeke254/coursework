@@ -1,4 +1,3 @@
-
 #' Remove class 'btn-default' from a button
 #' Add the `btn-primary` class
 #'

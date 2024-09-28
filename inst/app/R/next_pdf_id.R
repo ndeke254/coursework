@@ -10,7 +10,7 @@ next_pdf_id <- function(table_name) {
   # Make SQLite connection
   conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
-  
+
   # Read the table from the database
   pdf_data <- DBI::dbReadTable(conn, table_name)
 

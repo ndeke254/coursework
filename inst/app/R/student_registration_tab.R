@@ -5,7 +5,7 @@ student_registration_tab <- div(
         title_icon = NULL,
         class = "card",
         tags$div(
-            class = "bg-light d-flex justify-content-center",
+            class = "bg-light rounded d-flex justify-content-center",
             tags$img(
                 src = file.path("logo", "logo.png"),
                 width = "100px"
@@ -91,6 +91,23 @@ student_registration_tab <- div(
                         inputId = "student_confirm_password",
                         label = label_mandatory("Confirm password"),
                         placeholder = "Password"
+                    )
+                ),
+                column(
+                    width = 3,
+                    tags$div(
+                        class = "form-check",
+                        tags$input(
+                            type = "checkbox",
+                            class = "form-check-input",
+                            id = "show_password",
+                            onclick = sprintf("togglePassword('%s')", "student_password")
+                        ),
+                        tags$label(
+                            class = "form-check-label pb-3",
+                            `for` = "show_password",
+                            "Show Password"
+                        )
                     )
                 )
             ),
