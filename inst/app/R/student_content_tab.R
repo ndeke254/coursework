@@ -143,7 +143,7 @@ student_content_tab <- div(
       ),
       div(
         class = "card card-body",
-  #      p("Payments tickets:", class = "lead mb-3 text-bold"),
+        #      p("Payments tickets:", class = "lead mb-3 text-bold"),
         reactable::reactableOutput("payments_tickets_data")
       )
     )

@@ -3,7 +3,7 @@
 #' Status of the newly created school is "enabled" by default.
 #'
 #' @param table_name Name of the table to add a record to.
-#' @param data A data.frame of the data to be added. Colnames are id, name, 
+#' @param data A data.frame of the data to be added. Colnames are id, name,
 #' level, type, county, email, status.
 #' @return double `1` if school was created. `0` otherwise.
 #'
@@ -15,18 +15,18 @@ register_new_school <- function(table_name, data) {
   # Make SQLite connection
   conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
-  
+
   # Read the DB table
   table_data <- DBI::dbReadTable(conn, table_name)
-  
+
   # Check if the school name or email already exists
   name_exists <- data$school_name %in% table_data$school_name
   email_exists <- data$email %in% table_data$email
 
   if (!name_exists && !email_exists) {
     DBI::dbAppendTable(conn = conn, name = table_name, value = data)
-    return(1)  # School successfully added
+    return(1) # School successfully added
   } else {
-    return(0)  # School already exists
+    return(0) # School already exists
   }
 }
