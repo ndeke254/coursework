@@ -8,7 +8,7 @@ dashboard_page <- function() {
     body = dashboard_body(),
     dark = NULL,
     controlbar = NULL,
-    title = "KEYTABU",
+    title = "CANDIDATE",
     scrollToTop = TRUE,
     help = NULL
   )

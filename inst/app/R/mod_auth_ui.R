@@ -8,24 +8,14 @@ mod_auth_ui <- \(id) {
     tagList(
         tags$head(
             tags$style(HTML("
-     /* Full-screen background with gradient and animation */
-        body, html {
-          height: 100%;
-          margin: 0;
-          font-family: Arial, Helvetica, sans-serif;
-          background: linear-gradient(-45deg, #ee7752,
-          #e73c7e, #23a6d5, #23d5ab);
-          background-size: 400% 400%;
-          animation: gradientBG 15s ease infinite;
-        }
-
         /* Center the card on the page */
         .centered-container {
           display: flex;
           justify-content: center;
           align-items: center;
           height: 100vh;
-          padding: 15px; /* Padding for small screens */
+          padding: 10px; /* Padding for small screens */
+
         }
 
        .split-card {
@@ -34,8 +24,7 @@ mod_auth_ui <- \(id) {
           width: 100%;
           max-width: 800px;
           height: auto;
-          border-radius: 10px;
-          box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+          border-radius: 5px;
           overflow: hidden;
           background-color: white;
         }
@@ -44,7 +33,14 @@ mod_auth_ui <- \(id) {
         .split-card-left {
           width: 50%;
           background: url('logo/girl_child.png') no-repeat center center;
-          background-size: cover;
+          background-size: 100%;
+        }
+
+               /* Left side with image */
+        .split-card-left-reset {
+          width: 50%;
+          background: url('logo/girl_forgot.png') no-repeat center center;
+          background-size: 100%;
         }
 
         /* Right side with form */
@@ -97,19 +93,43 @@ mod_auth_ui <- \(id) {
                 }
             }
         ")),
+        div(
+            style = "
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('logo/login_background.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.4;  /* Damped opacity */
+            mask-image: linear-gradient(to right, black 70%, transparent 100%);
+        "
+        ),
 
         # Centered card layout
         div(
             class = "centered-container",
             div(
-                class = "split-card",
+                class = "split-card card",
 
                 # Left side with background image
-                div(class = "split-card-left"),
+                div(
+                    id = ns("login_background_image"),
+                    class = "split-card-left bg-default"
+                ),
+                shinyjs::hidden(
+                    div(
+                        id = ns("reset_background_image"),
+                        class = "split-card-left-reset bg-default"
+                    )
+                ),
 
                 # Right side with form
                 div(
-                    class = "split-card-right",
+                    class = "split-card-right border",
                     tabsetPanel(
                         id = ns("auth_pages"),
                         type = "hidden",
@@ -120,22 +140,20 @@ mod_auth_ui <- \(id) {
                                 class = "container",
                                 div(
                                     title_icon = NULL,
-                                    #                    class = "card",
                                     tags$div(
                                         id = ns("auth_loader"),
                                         class = "auth_form_loader shinyjs-hide bg-default"
                                     ),
-                                    tags$div(
-                                        class = "bg-light rounded d-flex
-                             justify-content-center",
+                                    div(
+                                        class = "text-center pb-3",
                                         tags$img(
                                             src = file.path("logo", "logo.png"),
-                                            width = "100px"
+                                            width = "80px",
+                                            class = "rounded-circle"
+                                        ),
+                                        h4("Log in Candidate",
+                                            class = "text-body_1 text-bold mt-3"
                                         )
-                                    ),
-                                    h5("Log in Keytabu",
-                                        class = "bg-light text-bold
-                             text-center pb-3"
                                     ),
                                     login_form(ns = ns),
                                     tags$div(
@@ -158,21 +176,19 @@ mod_auth_ui <- \(id) {
                                 class = "container",
                                 div(
                                     title_icon = NULL,
-                                    #     class = "card",
                                     tags$div(
                                         id = ns("authr_loader"),
                                         class = "auth_form_loader shinyjs-hide bg-default"
                                     ),
                                     tags$div(
-                                        class = "bg-light rounded d-flex justify-content-center",
+                                        class = "d-flex justify-content-center",
                                         tags$img(
                                             src = file.path("logo", "logo.png"),
                                             width = "100px"
                                         )
                                     ),
                                     h5("Reset Password",
-                                        class = "bg-light text-bold
-                             text-center pb-3"
+                                        class = "text-bold text-center pb-3"
                                     ),
                                     div(
                                         class = "card-body",

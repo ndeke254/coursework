@@ -21,6 +21,9 @@ mod_auth_server <- \(id) {
 
       # Handle send reset link
       observeEvent(input$reset_password, {
+        shinyjs::show("reset_background_image")
+        shinyjs::hide("login_background_image")
+
         updateTabsetPanel(
           inputId = "auth_pages",
           session = session,
@@ -71,6 +74,9 @@ mod_auth_server <- \(id) {
       })
 
       observeEvent(input$back_to_login, {
+        shinyjs::hide("reset_background_image")
+        shinyjs::show("login_background_image")
+
         updateTabsetPanel(
           inputId = "auth_pages",
           session = session,
@@ -161,7 +167,7 @@ mod_auth_server <- \(id) {
 
             alert_success_ui(
               session = session,
-              info = "Welcome to Keytabu"
+              info = "Welcome to Candidate"
             )
           },
           error = \(e) {
