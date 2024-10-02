@@ -16,8 +16,8 @@ body {
 }
 
 :root {
-  --primary: #1D2856;
-  --secondary: #E76A35;
+  --primary: #07334F;
+  --secondary: #F9D62E;
   --greyfont: #414042;
 }
 
@@ -26,15 +26,15 @@ body {
 }
 
 .text-body_1 {
-  color: #1D2856;
+  color: #07334F;
 }
 
 .bg-orange_1 {
-  background-color: #E76A35;
+  background-color: #F9D62E;
 }
 
 .text-orange_1 {
-  color: #E76A35;
+  color: #F9D62E;
 }
 
 button#register_now {
@@ -44,6 +44,7 @@ button#register_now {
   background-color: white;
   font-weight: 900;
   border: 0;
+  box-shadow: 1px 1px 5px black;
 }
 
 button#lets_partner,
@@ -54,6 +55,7 @@ button#register_now_1 {
   background-color: var(--primary);
   font-weight: 900;
   border: 0;
+  box-shadow: 1px 1px 5px black;
 }
 
 button#register_now:hover,
@@ -147,6 +149,7 @@ a:hover {
   height: 40px;
   border-radius: 4px;
   transition: all 0.4s;
+  box-shadow: 1px 1px 5px black;
 }
 
 .back-to-top i {
@@ -990,7 +993,7 @@ button:focus {
 /* auth_form_loader */
 .auth_form_loader {
   width: 100%;
-  height: 4.8px;
+  height: 2.8px;
   display: inline-block;
   position: relative;
   background: rgba(255, 255, 255, 0.15);
@@ -1019,4 +1022,18 @@ button:focus {
     left: 100%;
     transform: translateX(0%);
   }
+}
+
+.awesome-checkbox label::before {
+  margin-left: 0px !important;
+}
+
+.mask {
+  position: absolute;
+  background-position: 50%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: .8;
 }

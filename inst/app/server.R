@@ -4,6 +4,7 @@ server <- function(input, output, session) {
     shinyjs::removeClass(class = "active", selector = "header .nav-link")
     shinyjs::addClass(id = id, class = "active")
   }
+  shinyjs::hide("company_copyright")
 
   # make sqlite connection:
   conn <- DBI::dbConnect(
@@ -276,6 +277,8 @@ server <- function(input, output, session) {
 
   observeEvent(input$confirm_teacher_details, {
     disable("confirm_teacher_details")
+    shinyjs::show("t_auth_loader")
+
     # if has confirmed details
     if (input$confirm_teacher_details) {
       tryCatch(
@@ -373,6 +376,7 @@ server <- function(input, output, session) {
       )
     }
     enable("confirm_teacher_details")
+    shinyjs::hide("t_auth_loader")
   })
 
   # Register a new student
@@ -496,6 +500,8 @@ server <- function(input, output, session) {
 
   observeEvent(input$confirm_student_details, {
     disable("submit_student_details")
+    shinyjs::show("s_auth_loader")
+
     # if has confirmed details
     if (input$confirm_student_details) {
       # Convert the vector of grades to a single string
@@ -553,7 +559,7 @@ server <- function(input, output, session) {
           role_name = "student"
         )
         shinyalert(
-          title = paste0(name, ", Welcome to Keytabu"),
+          title = paste0(name, ", Welcome to Candidate"),
           text = paste0(
             "Click the link we just sent to ",
             input$student_email,
@@ -565,7 +571,7 @@ server <- function(input, output, session) {
           imageWidth = 180,
           session = session,
           confirmButtonText = "OK",
-          confirmButtonCol = "#1D2856"
+          confirmButtonCol = "#07334F"
         )
       } else {
         alert_fail_ui(
@@ -580,6 +586,8 @@ server <- function(input, output, session) {
         session = session
       )
     }
+    shinyjs::hide("t_auth_loader")
+
     enable("submit_student_details")
   })
 
@@ -764,7 +772,7 @@ server <- function(input, output, session) {
               imageWidth = 180,
               session = session,
               confirmButtonText = "PAY",
-              confirmButtonCol = "#1D2856",
+              confirmButtonCol = "#07334F",
               callbackR = function() {
                 shinyjs::show("payment_required")
                 updateTabsetPanel(
@@ -776,7 +784,7 @@ server <- function(input, output, session) {
                 output$balance_required <- renderUI({
                   # Define MPESA payment details
                   paybill_no <- "123456"
-                  ac_number <- "Your Keytabu ID"
+                  ac_number <- "Your Candidate ID"
 
                   div(
                     id = "payment_required",
@@ -792,7 +800,7 @@ server <- function(input, output, session) {
                       class = "card-body",
                       tags$p(
                         "Please clear your balance of KES", clear,
-                        "to access your Keytabu. Pay via MPESA using the following details:"
+                        "to access your Candidate. Pay via MPESA using the following details:"
                       ),
                       tags$p(
                         "Paybill Number:", paybill_no
@@ -1189,9 +1197,9 @@ server <- function(input, output, session) {
                   style = function(status) {
                     color <- case_when(
                       status == "DECLINED" ~ "#e00000",
-                      status == "PENDING" ~ "#E76A35",
+                      status == "PENDING" ~ "#F9D62E",
                       status == "APPROVED" ~ "#008000",
-                      .default = "#1D2856"
+                      .default = "#07334F"
                     )
                     list(color = color, fontWeight = "bold")
                   }
@@ -1295,7 +1303,7 @@ server <- function(input, output, session) {
                 table_html
               ),
               showCancelButton = TRUE,
-              confirmButtonCol = "#1D2856",
+              confirmButtonCol = "#07334F",
               html = TRUE
             )
           })
@@ -1384,7 +1392,7 @@ server <- function(input, output, session) {
           imageWidth = 180,
           session = session,
           confirmButtonText = "OK",
-          confirmButtonCol = "#1D2856",
+          confirmButtonCol = "#07334F",
           callbackR = function() {
             session$reload()
           }
@@ -1509,9 +1517,9 @@ server <- function(input, output, session) {
                 style = function(status) {
                   color <- case_when(
                     status == "CANCELLED" ~ "#e00000",
-                    status == "PENDING" ~ "#E76A35",
+                    status == "PENDING" ~ "#F9D62E",
                     status == "APPROVED" ~ "#008000",
-                    .default = "#1D2856"
+                    .default = "#07334F"
                   )
                   list(color = color, fontWeight = "bold")
                 }
@@ -2068,9 +2076,9 @@ server <- function(input, output, session) {
                 style = function(status) {
                   color <- case_when(
                     status == "DECLINED" ~ "#e00000",
-                    status == "PENDING" ~ "#E76A35",
+                    status == "PENDING" ~ "#F9D62E",
                     status == "APPROVED" ~ "#008000",
-                    .default = "#1D2856"
+                    .default = "#07334F"
                   )
                   list(color = color, fontWeight = "bold")
                 }
@@ -2156,9 +2164,9 @@ server <- function(input, output, session) {
             style = function(status) {
               color <- case_when(
                 status == "DECLINED" ~ "#e00000",
-                status == "PENDING" ~ "#E76A35",
+                status == "PENDING" ~ "#F9D62E",
                 status == "APPROVED" ~ "#008000",
-                .default = "#1D2856"
+                .default = "#07334F"
               )
               list(color = color, fontWeight = "bold")
             }
@@ -2413,7 +2421,7 @@ server <- function(input, output, session) {
         table_html
       ),
       showCancelButton = TRUE,
-      confirmButtonCol = "#1D2856",
+      confirmButtonCol = "#07334F",
       html = TRUE
     )
   })
@@ -2569,7 +2577,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_status",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -2638,7 +2646,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_delete",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = NULL,
       text = paste(
         "Are you sure you want to delete",
@@ -2936,7 +2944,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_teacher_status",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3045,7 +3053,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_student_status",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3112,7 +3120,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_set_end_date",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = "Set new term",
       text = paste(
         "Current payments will be reset on",
@@ -3241,7 +3249,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_flag_action",
-      btn_colors = c("#E76A35", "#1D2856"),
+      btn_colors = c("#F9D62E", "#07334F"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3990,7 +3998,7 @@ a {
   padding: 10px 20px;
   font-size: 16px;
   color: white;
-  background-color: #1D2856;
+  background-color: #07334F;
     border-radius: 5px;
   text-align: center;
   text-decoration: none;
@@ -4006,7 +4014,7 @@ a {
             <div class="split-background">
             <div class="container">
             <div class="logo">
-            <img src="https://ndekejefferson.shinyapps.io/Keytabu/_w_d812c45f/logo/logo.png" alt="KEYTABU Logo">
+            <img src="https://ndekejefferson.shinyapps.io/Candidate/_w_d812c45f/logo/logo.png" alt="CANDIDATE Logo">
             </div>
             <h1>Database Back-up report</h1>')
 
@@ -4020,7 +4028,7 @@ a {
       }
 
       email_body <- paste0(email_body, '
-            <p>Attached are KEYTABU records:</p>
+            <p>Attached are CANDIDATE records:</p>
             <ul>
             <li>Schools</li>
             <li>Teachers</li>
@@ -4031,7 +4039,7 @@ a {
             <li>Requests</li>
             </ul>
             <div class="footer">
-            <p>Happy working,<br>Keytabu Technical Team</p>
+            <p>Happy working,<br>Candidate Technical Team</p>
             </div>
             </div>
             </div>
@@ -4044,7 +4052,7 @@ a {
         gm_from(admin_emails[1]) |>
         gm_subject(
           paste(
-            "Keytabu Daily Report",
+            "Candidate Daily Report",
             toupper(format(Sys.Date(),
               format = "%d-%b-%Y"
             ))
@@ -4091,6 +4099,18 @@ a {
         selected = "tos_page"
       )
       shinyjs::show("company_copyright")
+    },
+    ignoreInit = TRUE
+  )
+  observeEvent(
+    list(input$already_member, input$have_an_account),
+    {
+      updateTabsetPanel(
+        session = session,
+        inputId = "app_pages",
+        selected = "auth_page"
+      )
+      shinyjs::hide("company_copyright")
     },
     ignoreInit = TRUE
   )

@@ -36,6 +36,6 @@ email_verification_alert <- \(email_address, session) {
     session = session,
     html = TRUE,
     confirmButtonText = "OK",
-    confirmButtonCol = "#1D2856"
+    confirmButtonCol = "#07334F"
   )
 }

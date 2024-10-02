@@ -7,11 +7,37 @@ company_website <- div(
     `data-aos` = "fade-up",
     `data-aos-delay` = "100",
     div(
+      div(
+        style = "
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('logo/cover.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.1;  /* Damped opacity */
+        "
+      ),
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "px-5",
         column(
-          width = 6,
+          width = 4,
+          div(
+            class = "d-flex justify-content-center",
+            tags$img(
+              src = "logo/girl_tablet.png",
+              width = "100%",
+              style = "margin-top: 90px;
+              background: radial-gradient(#F9D62E -72%, #00000000 70%);"
+            )
+          )
+        ),
+        column(
+          width = 4,
           div(
             class = "h1 text-bold text-white mt-5 pt-5",
             "Learn Quick",
@@ -36,13 +62,14 @@ company_website <- div(
           )
         ),
         column(
-          width = 6,
+          width = 4,
           div(
             class = "d-flex justify-content-center",
             tags$img(
-              src = "inst/images/child_3.png",
+              src = "inst/images/child_1.png",
               width = "100%",
-              style = "max-width: 779px;"
+              style = "max-width: 250px;
+              background: radial-gradient(#fff -72%, #00000000 70%);"
             )
           )
         )
@@ -55,42 +82,57 @@ company_website <- div(
     `data-aos-delay` = "100",
     class = "bg-white",
     div(
+      style = "
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:url('logo/login_background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.1;  /* Damped opacity */
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        "
+    ),
+    div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "  px-4",
         column(
-          width = 6,
+          width = 4,
           div(
             tags$img(
               src = "inst/images/teacher_1.png",
               width = "100%",
-              style = "max-width: 430px;"
+              style = "max-width: 430px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
             )
           )
         ),
         column(
-          width = 6,
+          width = 8,
           class = "pt-5",
           h1(
             class = "text-bold text-body_1",
-            "What is Keytabu?"
+            "What is Candidate?"
           ),
-          p(
+          tags$div(
             class = "lead pt-4",
-            "Keytabu is an online learning platform that partners with teachers to create a
-                    digital library of revision materials. These include quick
-                    study guides, reference notes, and flashcards, all designed to enhance visual learning and aid retention."
-          ),
-          br(),
-          p("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics",
-            class = "lead"
+            p(HTML("<em>Candidate</em> is an online library of revision material created by teachers for their students.")),
+            p("That is worth repeating; the content is created by teachers to aid their own students in mastering what has been taught in class. And because the content is teacher-generated, it is highly focused on the identified needs of students."),
+            p("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics."),
+            p(HTML("The revision material is intentionally made short (often limited to a page or two). Additionally, we emphasize the use of pictures and illustrations that complement traditional notes, enhancing both the understanding and retention of basic and advanced topics.")),
+            p(HTML("As a final note, <em>Candidate</em> does not focus on exam preparation. We prefer the higher goal of helping students understand lessons at a deep and fundamental level."))
           ),
           div(
             class = "position-absolute pt-5  px-5",
             tags$img(
               src = "inst/images/arrow_left.png",
               width = "100%",
-              style = "max-width: 100px;"
+              style = "max-width: 100px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
             )
           ),
           h5(
@@ -199,7 +241,7 @@ company_website <- div(
                     "Topic Reviews:"
                   ),
                   p(
-                    "In-depth 2-3 page reviews of
+                    "In-depth 1-2 page reviews of
                                             specific topics, like introductory
                                             algebra, to reinforce key
                                             concepts."
@@ -260,6 +302,21 @@ company_website <- div(
     `data-aos-delay` = "100",
     class = "bg-white",
     div(
+      style = "
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:url('logo/cheatsheet.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.1;  /* Damped opacity */
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        "
+    ),
+    div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "  px-4",
@@ -296,7 +353,8 @@ company_website <- div(
               tags$img(
                 src = "inst/images/parent_student.png",
                 width = "100%",
-                style = "max-width: 700px;"
+                style = "max-width: 700px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
               )
             ),
             div(
@@ -304,7 +362,8 @@ company_website <- div(
               tags$img(
                 src = "inst/images/arrow_right.png",
                 width = "100%",
-                style = "max-width: 100px;"
+                style = "max-width: 100px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
               )
             )
           )
@@ -317,7 +376,8 @@ company_website <- div(
               tags$img(
                 src = "inst/images/child_2.png",
                 width = "100%",
-                style = "max-width: 400px;"
+                style = "max-width: 400px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
               )
             )
           ),
@@ -340,7 +400,7 @@ company_website <- div(
               "With limited classroom time and varying
                                 student learning speeds, traditional
                                 methods may not suit everyone.
-                                Keytabu offers additional, tailored
+                                Candidate offers additional, tailored
                                 learning materials that students can
                                 access anytime, bridging gaps and
                                 reinforcing classroom learning."
@@ -367,7 +427,8 @@ company_website <- div(
         tags$img(
           src = "inst/images/partners.png",
           width = "100%",
-          style = "max-width: 1000px;"
+          style = "max-width: 1000px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
         )
       )
     )
@@ -448,7 +509,8 @@ company_website <- div(
               tags$img(
                 src = file.path("logo", "logo_white.svg"),
                 height = "100%",
-                style = "max-height: 180px;"
+                style = "max-height: 180px; filter:
+               drop-shadow(2px 4px 6px var(--primary));"
               )
             )
           )

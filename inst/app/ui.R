@@ -142,7 +142,7 @@ ui <- shiny::bootstrapPage(
         HTML(
           '
                 Copyright &copy;<span id = "year"></span>
-                KEYTABU LTD.
+                CANDIDATE LTD.
                 '
         ),
         style = "text-align: center;"
