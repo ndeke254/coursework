@@ -15,8 +15,8 @@
 #' check_confirm_password(password, confirm_password)
 #' }
 check_confirm_password <- \(password, confirm_password) {
-    if (!identical(password, confirm_password)) {
-        return(FALSE)
-    }
-    invisible(TRUE)
+  if (!identical(password, confirm_password)) {
+    return(FALSE)
+  }
+  invisible(TRUE)
 }

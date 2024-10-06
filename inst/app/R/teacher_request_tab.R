@@ -1,5 +1,5 @@
 teacher_request_tab <- div(
-  class = "container pt-5",
+  class = "container pt-5 mt-5",
   div(
     class = "mb-5",
     uiOutput("signed_teacher")
@@ -16,7 +16,7 @@ teacher_request_tab <- div(
         class = "card card-body p-4",
         p("Fill all the fields:"),
         p("Requests for unclear images will be cancelled.",
-          class = "fa small"
+          class = "text-red text-bold"
         ),
         div(
           class = "d-flex justify-content-center",
@@ -43,7 +43,18 @@ teacher_request_tab <- div(
             shinyWidgets::pickerInput(
               inputId = "request_learning_area",
               label = label_mandatory(" Search a Learning Area:"),
-              options = list(maxOptions = 5),
+              options = list(
+                size = 5,
+                title = "Eg. Creative Arts",
+                `live-search` = TRUE,
+                `live-search-placeholder` = "Type here..."
+              ),
+              choicesOpt = list(
+                content = stringr::str_trunc(
+                  learning_areas,
+                  width = 25
+                )
+              ),
               choices = NULL
             )
           ),
@@ -65,12 +76,30 @@ teacher_request_tab <- div(
             )
           )
         ),
+        fluidRow(
+          column(
+            width = 12,
+            class = "pt-2",
+            textAreaInput(
+              inputId = "request_description",
+              label = "Other details: (Optional)",
+              placeholder = "What should we know about your work?"
+            )
+          )
+        ),
+        fluidRow(
+          column(
+            width = 12,
+            uiOutput("char_count")
+          )
+        ),
         div(
           class = "d-flex justify-content-center",
           actionButton(
             inputId = "request_btn",
             label = "Send",
-            class = "mt-5 w-25 mb-2"
+            width = "300px",
+            class = "mt-2 mb-2"
           ) |>
             basic_primary_btn()
         )

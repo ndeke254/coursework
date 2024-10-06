@@ -9,54 +9,74 @@
 #' @seealso [mod_auth_ui()], [register_form()]
 #' @return [shiny::tags$form()]
 login_form <- \(ns) {
-    email_input <- shiny::textInput(
-        inputId = ns("signin_email"),
-        label = "Email address",
-        placeholder = "johndoe@example.com"
-    ) |> make_input_required()
-    password_input_id <- ns("signin_password")
-    password_input <- shiny::passwordInput(
-        inputId = password_input_id,
-        label = "Password",
-        placeholder = "Password"
-    ) |> make_input_required()
+  email_input <- shiny::textInput(
+    inputId = ns("signin_email"),
+    label = "Email address",
+    placeholder = "johndoe@example.com"
+  ) |> make_input_required()
+  password_input_id <- ns("signin_password")
+  password_input <- shiny::passwordInput(
+    inputId = password_input_id,
+    label = "Password",
+    placeholder = "Password"
+  ) |> make_input_required()
 
-    # show/hide passwords
-    on_click <- password_input_id |>
-        sprintf(fmt = "toggle_password('%s')") |>
-        paste0(collapse = ";")
-    show_password_input <- shiny::checkboxInput(
-        inputId = ns("signin_show_password"),
-        label = div(
-            "Show password",
-            class = "mx-2"
-        )
-    ) |> make_input_required()
+  # show/hide passwords
+  checkbox_input <- \(..., on_click = NULL) {
+    tag <- checkboxInput(...)
+    if (is.null(on_click)) {
+      return(tag)
+    }
+    tag_q <- htmltools::tagQuery(tag)
+    tag_q$find("input")$addAttrs(onclick = on_click)
+    tag_q$allTags()
+  }
 
-    submit_btn_id <- ns("signin_submit")
-    submit_btn <- actionButton(
-        inputId = submit_btn_id,
-        label = "Login",
-        type = "submit",
-        width = "300px",
-        onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
-    ) |>
-        basic_primary_btn()
-
-    div(
-        class = "card-body",
-        fluidRow(
-            column(
-                width = 12,
-                email_input
-            )
-        ),
-        fluidRow(
-            column(
-                width = 12,
-                password_input
-            )
-        ),
-        tags$div(class = "d-flex justify-content-center", submit_btn)
+  show_password_input <- tags$div(
+    class = "form-check",
+    tags$input(
+      type = "checkbox",
+      class = "form-check-input",
+      id = ns("show_password"),
+      onclick = sprintf("togglePassword('%s')", ns("signin_password"))
+    ),
+    tags$label(
+      class = "form-check-label pb-3 small",
+      `for` = ns("show_password"),
+      "Show Password"
     )
+  )
+
+  submit_btn_id <- ns("signin_submit")
+  submit_btn <- actionButton(
+    inputId = submit_btn_id,
+    label = "Login",
+    type = "submit",
+    width = "300px",
+    onclick = sprintf("disable_auth_btn('%s')", submit_btn_id)
+  ) |>
+    basic_primary_btn()
+
+  tags$form(
+    class = "card-body",
+    fluidRow(
+      column(
+        width = 12,
+        email_input
+      )
+    ),
+    fluidRow(
+      column(
+        width = 12,
+        password_input
+      )
+    ),
+    fluidRow(
+      column(
+        width = 12,
+        show_password_input
+      )
+    ),
+    tags$div(class = "d-flex justify-content-center", submit_btn)
+  )
 }

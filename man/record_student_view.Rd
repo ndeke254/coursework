@@ -11,17 +11,18 @@ record_student_view(student_id, teacher_id, pdf_id)
 
 \item{teacher_id}{The ID of the teacher associated with the PDF.}
 
-\item{pdf_id}{The ID of the PDF being viewed.
-#' @examples
+\item{pdf_id}{The ID of the PDF being viewed.}
+}
+\description{
+This function logs a student's view of a PDF and updates
+total teacher's views
+}
+\examples{
 \dontrun{
   record_student_view(
     student_id = "student123",
     teacher_id = "teacher456",
     pdf_id = "pdf789"
   )
-}}
 }
-\description{
-This function logs a student's view of a PDF and updates
-total teacher's views
 }

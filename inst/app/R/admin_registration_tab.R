@@ -71,7 +71,11 @@ admin_registration_tab <- div(
               shinyWidgets::pickerInput(
                 inputId = "doc_request",
                 label = label_mandatory("Request ID:"),
-                options = list(maxOptions = 3),
+                options = list(
+                  style = "btn-outline-light",
+                  title = "Eg. REQ-001",
+                  maxOptions = 3
+                ),
                 choices = NULL
               )
             ),
