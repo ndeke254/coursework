@@ -124,7 +124,7 @@ teacher_registration_tab <- div(
 
             # Show Password toggle
             div(
-                class = "mt-2 mb-3",
+                class = "mb-3",
                 tags$div(
                     class = "form-check",
                     tags$input(
@@ -179,6 +179,17 @@ teacher_registration_tab <- div(
                     actionLink(
                         inputId = "already_member",
                         label = "Login"
+                    )
+                )
+            ),
+            tags$div(
+                class = "text-center",
+                tags$p(
+                    class = "mt-4 small text-bold",
+                    "Terms of partnership?",
+                    actionLink(
+                        inputId = "top",
+                        label = "Click here"
                     )
                 )
             )

@@ -51,6 +51,7 @@ button#register_now {
 }
 
 button#lets_partner,
+button#register_teacher,
 button#register_now_1 {
   line-height: 2.2 !important;
   font-size: large !important;
@@ -63,6 +64,7 @@ button#register_now_1 {
 
 button#register_now:hover,
 button#lets_partner:hover,
+button#register_teacher:hover,
 button#register_now_1:hover {
   color: white;
   border: 0;
@@ -1025,4 +1027,14 @@ button:focus {
 
 button.btn.btn-light.dropdown-toggle {
   line-height: 1.4;
+}
+
+a.d-block.w-100 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #E86A31;
+}
+
+.accordion>.card>.card-header {
+  background-color: var(--primary);
 }
