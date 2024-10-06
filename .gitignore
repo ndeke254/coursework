@@ -9,7 +9,9 @@
 .lintr
 *.png
 *.pdf
-.test.R
 .history
 *.rds
 *.json
+gmail_creds.json
+gmail_creds.json
+test.R
