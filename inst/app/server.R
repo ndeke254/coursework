@@ -159,7 +159,7 @@ server <- function(input, output, session) {
   ivt$add_rule("teacher_password", function(value) {
     # Check if the password is at least 8 characters long
     if (nchar(value) < 8) {
-      return("Password must be at least 8 characters long")
+      return("Must be at least 8 characters long")
     }
 
     # Check if the password contains at least one letter
@@ -409,7 +409,7 @@ server <- function(input, output, session) {
   ivst$add_rule("student_password", function(value) {
     # Check if the password is at least 8 characters long
     if (nchar(value) < 8) {
-      return("Password must be at least 8 characters long")
+      return("Must be at least 8 characters long")
     }
 
     # Check if the password contains at least one letter
@@ -1018,7 +1018,7 @@ server <- function(input, output, session) {
                     cover_image <- ifelse(
                       length(cover_image) > 0,
                       sub("^www/", "", cover_image[1]),
-                      "images/default_cover.png"
+                      "logo/default_cover.png"
                     )
 
                     # Create PDF card
