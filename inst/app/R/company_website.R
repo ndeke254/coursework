@@ -7,37 +7,11 @@ company_website <- div(
     `data-aos` = "fade-up",
     `data-aos-delay` = "100",
     div(
-      div(
-        style = "
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('logo/cover.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.1;  /* Damped opacity */
-        "
-      ),
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "px-5",
         column(
-          width = 4,
-          div(
-            class = "d-flex justify-content-center",
-            tags$img(
-              src = "logo/girl_tablet.png",
-              width = "100%",
-              style = "margin-top: 90px;
-              background: radial-gradient(#50BD8C -72%, #00000000 70%);"
-            )
-          )
-        ),
-        column(
-          width = 4,
+          width = 6,
           div(
             class = "h1 text-bold text-white mt-5 pt-5",
             "Learn Quick",
@@ -62,13 +36,13 @@ company_website <- div(
           )
         ),
         column(
-          width = 4,
+          width = 6,
           div(
             class = "d-flex justify-content-center",
             tags$img(
               src = "logo/child_1.png",
               width = "100%",
-              style = "max-width: 250px;
+              style = "max-width: 300px;
               background: radial-gradient(#fff -72%, #00000000 70%);"
             )
           )
@@ -82,37 +56,21 @@ company_website <- div(
     `data-aos-delay` = "100",
     class = "bg-white",
     div(
-      style = "
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:url('logo/login_background.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.1;  /* Damped opacity */
-            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-        "
-    ),
-    div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "  px-4",
         column(
-          width = 4,
+          width = 6,
           div(
             tags$img(
               src = "logo/teacher_1.png",
               width = "100%",
-              style = "max-width: 430px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+              style = "max-width: 430px;"
             )
           )
         ),
         column(
-          width = 8,
+          width = 6,
           class = "pt-5",
           h1(
             class = "text-bold text-body-1",
@@ -131,8 +89,7 @@ company_website <- div(
             tags$img(
               src = "logo/arrow_left.png",
               width = "100%",
-              style = "max-width: 100px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+              style = "max-width: 100px;"
             )
           ),
           h5(
@@ -299,21 +256,6 @@ company_website <- div(
     `data-aos-delay` = "100",
     class = "bg-white",
     div(
-      style = "
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:url('logo/cheatsheet.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.1;  /* Damped opacity */
-            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-        "
-    ),
-    div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
         class = "  px-4",
@@ -350,8 +292,7 @@ company_website <- div(
               tags$img(
                 src = "logo/parent_student.png",
                 width = "100%",
-                style = "max-width: 700px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+                style = "max-width: 700px;"
               )
             ),
             div(
@@ -359,8 +300,7 @@ company_website <- div(
               tags$img(
                 src = "logo/arrow_right.png",
                 width = "100%",
-                style = "max-width: 100px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+                style = "max-width: 100px;"
               )
             )
           )
@@ -373,8 +313,7 @@ company_website <- div(
               tags$img(
                 src = "logo/child_2.png",
                 width = "100%",
-                style = "max-width: 400px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+                style = "max-width: 400px;"
               )
             )
           ),
@@ -424,8 +363,7 @@ company_website <- div(
         tags$img(
           src = "logo/partners.png",
           width = "100%",
-          style = "max-width: 1000px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+          style = "max-width: 1000px;"
         )
       )
     )
@@ -491,12 +429,12 @@ company_website <- div(
     )
   ),
   div(
-    class = "pt-5 bg-default text-center",
+    class = "pt-5 bg-default",
     id = "footer_section",
     div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
-        class = "align-items-center   px-4",
+        class = "",
         column(
           width = 6,
           tags$h1(

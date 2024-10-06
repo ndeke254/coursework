@@ -72,6 +72,22 @@ server <- function(input, output, session) {
     shinyjs::hide("company_copyright")
   })
 
+  observeEvent(input$lets_partner, {
+    updateTabsetPanel(
+      inputId = "app_pages",
+      selected = "teachers_info"
+    )
+    shinyjs::show("company_copyright")
+  })
+
+  observeEvent(input$register_teacher, {
+    updateTabsetPanel(
+      inputId = "app_pages",
+      selected = "reg_teacher_page"
+    )
+    shinyjs::hide("company_copyright")
+  })
+
   observeEvent(input$home_link, {
     updateTabsetPanel(
       inputId = "app_pages",
@@ -110,14 +126,18 @@ server <- function(input, output, session) {
     shinyjs::hide("company_copyright")
   })
 
-  observeEvent(input$teachers_link, {
-    updateTabsetPanel(
-      session = session,
-      inputId = "app_pages",
-      selected = "reg_teacher_page"
-    )
-    shinyjs::hide("company_copyright")
-  })
+  observeEvent(
+    list(input$top, input$teachers_link),
+    {
+      updateTabsetPanel(
+        session = session,
+        inputId = "app_pages",
+        selected = "teachers_info"
+      )
+      shinyjs::show("company_copyright")
+    },
+    ignoreInit = TRUE
+  )
 
   observeEvent(input$login_link, {
     updateTabsetPanel(
@@ -159,7 +179,7 @@ server <- function(input, output, session) {
   ivt$add_rule("teacher_password", function(value) {
     # Check if the password is at least 8 characters long
     if (nchar(value) < 8) {
-      return("Password must be at least 8 characters long")
+      return("Must be at least 8 characters long")
     }
 
     # Check if the password contains at least one letter
@@ -409,7 +429,7 @@ server <- function(input, output, session) {
   ivst$add_rule("student_password", function(value) {
     # Check if the password is at least 8 characters long
     if (nchar(value) < 8) {
-      return("Password must be at least 8 characters long")
+      return("Must be at least 8 characters long")
     }
 
     # Check if the password contains at least one letter
@@ -771,7 +791,7 @@ server <- function(input, output, session) {
               inputId = "pay_alert",
               imageUrl = "logo/mpesa_poster.jpg",
               imageWidth = 100,
-              imageHeight = 50, 
+              imageHeight = 50,
               session = session,
               confirmButtonText = "PAY",
               confirmButtonCol = "#163142",
@@ -1018,7 +1038,7 @@ server <- function(input, output, session) {
                     cover_image <- ifelse(
                       length(cover_image) > 0,
                       sub("^www/", "", cover_image[1]),
-                      "images/default_cover.png"
+                      "logo/default_cover.png"
                     )
 
                     # Create PDF card
@@ -1392,7 +1412,7 @@ server <- function(input, output, session) {
           type = "",
           inputId = "error_alert",
           imageWidth = 100,
-                    imageHeight = 50,
+          imageHeight = 50,
           session = session,
           confirmButtonText = "OK",
           confirmButtonCol = "#163142",

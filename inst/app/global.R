@@ -24,7 +24,7 @@ library(magrittr)
 library(uuid)
 library(data.table)
 library(gmailr)
-library(markdown)
+
 
 # counties in Kenya
 # used as a choices input in school registration tab
