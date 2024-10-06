@@ -16,5 +16,6 @@ A label with a red asterisk
 Add a red star after an input label
 }
 \examples{
-shiny::actionButton(inputId = "confirm_btn", label = label_mandatory("Confirm"), icon = icon("check"))
+shiny::actionButton(inputId = "confirm_btn", 
+label = label_mandatory("Confirm"), icon = icon("check"))
 }

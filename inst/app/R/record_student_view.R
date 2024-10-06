@@ -5,13 +5,13 @@
 #' @param student_id The ID of the student viewing the PDF.
 #' @param teacher_id The ID of the teacher associated with the PDF.
 #' @param pdf_id The ID of the PDF being viewed.
-#' #' @examples
+#' @examples
 #' \dontrun{
-#'   record_student_view(
-#'     student_id = "student123",
-#'     teacher_id = "teacher456",
-#'     pdf_id = "pdf789"
-#'   )
+#' record_student_view(
+#'   student_id = "student123",
+#'   teacher_id = "teacher456",
+#'   pdf_id = "pdf789"
+#' )
 #' }
 #' @export
 record_student_view <- \(

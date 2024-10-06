@@ -15,6 +15,8 @@ update_school_details(school_id, new_values)
 Update school details
 }
 \examples{
-# update_school_details(school_id = "SCH-001", new_values = list(name = "New School Name", email = "newemail@example.com"))
+# update_school_details(school_id = "SCH-001", 
+new_values = list(name = "New School Name", 
+email = "newemail@example.com"))
 
 }
