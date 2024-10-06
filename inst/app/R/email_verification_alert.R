@@ -31,11 +31,11 @@ email_verification_alert <- \(email_address, session) {
     ),
     type = "",
     inputId = "verification_alert",
-    imageUrl = "logo/logo.png",
+    imageUrl = "logo/logo_icon_blue.png",
     imageWidth = 180,
     session = session,
     html = TRUE,
     confirmButtonText = "OK",
-    confirmButtonCol = "#07334F"
+    confirmButtonCol = "#163142"
   )
 }

@@ -12,7 +12,7 @@ dashboard_header <- function() {
     ),
     title = bs4Dash::bs4DashBrand(
       tags$img(
-        src = file.path("logo", "keytabu.svg"),
+        src = file.path("logo", "logo_full.png"),
         style = "height: 45px;"
       )
     )
