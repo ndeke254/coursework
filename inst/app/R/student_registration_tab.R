@@ -122,7 +122,7 @@ student_registration_tab <- div(
 
             # Show Password toggle
             div(
-                class = "mt-2 mb-3",
+                class = "mb-3",
                 tags$div(
                     class = "form-check",
                     tags$input(
