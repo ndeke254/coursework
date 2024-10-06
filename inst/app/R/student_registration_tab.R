@@ -1,28 +1,8 @@
 student_registration_tab <- div(
     id = "registration_form",
-    class = "p-2 d-flex mt-5 pt-5
-    justify-content-center align-items-center",
-
-
-    # Masked image on 1/3 of the screen with damped opacity
-    div(
-        style = "
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('logo/background_image.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.4;  /* Damped opacity */
-            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-        "
-    ),
+    class = "p-2 d-flex mt-5 pt-5 justify-content-center align-items-center",
 
     # Form card container
-
     div(
         class = "card",
         style = "max-width: 900px; margin: auto; border-radius: 5px;",
@@ -105,17 +85,21 @@ student_registration_tab <- div(
                 )
             ),
 
-            # Third row of inputs
+            # Full-width email input
             fluidRow(
                 column(
-                    width = 6,
+                    width = 12,
                     shiny::textInput(
                         inputId = "student_email",
                         label = label_mandatory("Email Address"),
                         placeholder = "E.g., johndoe@example.com",
                         width = "100%"
                     )
-                ),
+                )
+            ),
+
+            # Password and Confirm Password on the same row
+            fluidRow(
                 column(
                     width = 6,
                     shiny::passwordInput(
@@ -124,11 +108,7 @@ student_registration_tab <- div(
                         placeholder = "Enter your password",
                         width = "100%"
                     )
-                )
-            ),
-
-            # Password confirmation and visibility toggle
-            fluidRow(
+                ),
                 column(
                     width = 6,
                     shiny::passwordInput(
@@ -137,36 +117,37 @@ student_registration_tab <- div(
                         placeholder = "Re-enter your password",
                         width = "100%"
                     )
-                ),
-                column(
-                    width = 6,
-                    div(
-                        class = "form-check mb-3",
-                        tags$input(
-                            type = "checkbox",
-                            class = "form-check-input",
-                            id = "show_password",
-                            onclick = sprintf(
-                                "togglePassword('%s')",
-                                "student_password"
-                            )
-                        ),
-                        tags$label(
-                            class = "form-check-label text-muted small",
-                            `for` = "show_password",
-                            "Show Password"
+                )
+            ),
+
+            # Show Password toggle
+            div(
+                class = "mt-2 mb-3",
+                tags$div(
+                    class = "form-check",
+                    tags$input(
+                        type = "checkbox",
+                        class = "form-check-input",
+                        id = "show_password",
+                        onclick = sprintf(
+                            "togglePassword('%s', '%s')",
+                            "student_password", "student_confirm_password"
                         )
+                    ),
+                    tags$label(
+                        class = "form-check-label text-muted small",
+                        `for` = "show_password",
+                        "Show Password"
                     )
                 )
             ),
 
             # Privacy policy agreement
             div(
-                class = "mt-2 d-flex justify-content-center",
-                shinyWidgets::awesomeCheckbox(
+                class = "mt-2",
+                shiny::checkboxInput(
                     inputId = "s_privacy_link_tos",
-                    status = "success",
-                    label = tags$p(
+                    label = tags$label(
                         class = "small text-muted text-center",
                         "By continuing, you agree to our",
                         actionLink("s_privacy_policy_link", "Privacy Policy"),
@@ -185,6 +166,8 @@ student_registration_tab <- div(
                     width = "300px"
                 ) |> basic_primary_btn()
             ),
+
+            # Already a member?
             tags$div(
                 class = "text-center",
                 tags$p(
