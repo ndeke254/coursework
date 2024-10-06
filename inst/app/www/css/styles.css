@@ -6,12 +6,11 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: Montserrat !important;
-
+  font-family: Montserrat, sans-serif !important;
 }
 
 body {
-  font-family: Montserrat !important;
+  font-family: Montserrat, sans-serif !important;
   color: #444444;
 }
 
@@ -52,6 +51,7 @@ button#register_now {
 }
 
 button#lets_partner,
+button#register_teacher,
 button#register_now_1 {
   line-height: 2.2 !important;
   font-size: large !important;
@@ -64,6 +64,7 @@ button#register_now_1 {
 
 button#register_now:hover,
 button#lets_partner:hover,
+button#register_teacher:hover,
 button#register_now_1:hover {
   color: white;
   border: 0;
@@ -80,6 +81,7 @@ a#log_link {
   color: white;
   background-color: transparent;
   font-weight: 900;
+  font-size: medium;
 }
 
 a#home_link:hover,
@@ -766,15 +768,6 @@ select dropdowns
 /*--------------------------------------------------------------
 shiny input containers
 --------------------------------------------------------------*/
-.shiny-input-container:not(.shiny-input-container-inline) {
-  width: 100%;
-  max-width: 450px;
-}
-
-div.card-body .shiny-input-container {
-  width: 100%;
-}
-
 .btn-outline-light:not(:disabled):not(.disabled).active,
 .btn-outline-light:not(:disabled):not(.disabled):active,
 .show>.btn-outline-light.dropdown-toggle {
@@ -952,7 +945,7 @@ a#auth-reset_password {
 }
 
 .sweet-alert {
-  font-family: 'Montserrat' !important;
+  font-family: Montserrat, sans-serif !important;
 }
 
 .sweet-alert button {
@@ -1032,12 +1025,16 @@ button:focus {
   margin-left: 0px !important;
 }
 
-.mask {
-  position: absolute;
-  background-position: 50%;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: .8;
+button.btn.btn-light.dropdown-toggle {
+  line-height: 1.4;
+}
+
+a.d-block.w-100 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #E86A31;
+}
+
+.accordion>.card>.card-header {
+  background-color: var(--primary);
 }

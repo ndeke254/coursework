@@ -106,7 +106,10 @@ ui <- shiny::bootstrapPage(
             basic_primary_btn()
         )
       ),
-
+      tabPanelBody(
+        value = "teachers_info",
+        teachers_faqs
+      ),
       # tos and privacy policy
 
       tabPanelBody(

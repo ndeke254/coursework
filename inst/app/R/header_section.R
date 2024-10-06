@@ -8,7 +8,7 @@ header_section <- tags$header(
         href = "",
         tags$img(
           id = "header_logo",
-          src = file.path("logo", "logo_full.png"),
+          src = file.path("logo", "logo_icon.png"),
           height = "50px"
         )
       )
