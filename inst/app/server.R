@@ -567,11 +567,11 @@ server <- function(input, output, session) {
           ),
           type = "",
           inputId = "roles_alert",
-          imageUrl = "logo/logo.png",
+          imageUrl = "logo/logo_icon_blue.png",
           imageWidth = 180,
           session = session,
           confirmButtonText = "OK",
-          confirmButtonCol = "#07334F"
+          confirmButtonCol = "#163142"
         )
       } else {
         alert_fail_ui(
@@ -772,7 +772,7 @@ server <- function(input, output, session) {
               imageWidth = 180,
               session = session,
               confirmButtonText = "PAY",
-              confirmButtonCol = "#07334F",
+              confirmButtonCol = "#163142",
               callbackR = function() {
                 shinyjs::show("payment_required")
                 updateTabsetPanel(
@@ -1197,9 +1197,9 @@ server <- function(input, output, session) {
                   style = function(status) {
                     color <- case_when(
                       status == "DECLINED" ~ "#e00000",
-                      status == "PENDING" ~ "#F9D62E",
+                      status == "PENDING" ~ "#50BD8C",
                       status == "APPROVED" ~ "#008000",
-                      .default = "#07334F"
+                      .default = "#163142"
                     )
                     list(color = color, fontWeight = "bold")
                   }
@@ -1303,7 +1303,7 @@ server <- function(input, output, session) {
                 table_html
               ),
               showCancelButton = TRUE,
-              confirmButtonCol = "#07334F",
+              confirmButtonCol = "#163142",
               html = TRUE
             )
           })
@@ -1392,7 +1392,7 @@ server <- function(input, output, session) {
           imageWidth = 180,
           session = session,
           confirmButtonText = "OK",
-          confirmButtonCol = "#07334F",
+          confirmButtonCol = "#163142",
           callbackR = function() {
             session$reload()
           }
@@ -1517,9 +1517,9 @@ server <- function(input, output, session) {
                 style = function(status) {
                   color <- case_when(
                     status == "CANCELLED" ~ "#e00000",
-                    status == "PENDING" ~ "#F9D62E",
+                    status == "PENDING" ~ "#50BD8C",
                     status == "APPROVED" ~ "#008000",
-                    .default = "#07334F"
+                    .default = "#163142"
                   )
                   list(color = color, fontWeight = "bold")
                 }
@@ -2076,9 +2076,9 @@ server <- function(input, output, session) {
                 style = function(status) {
                   color <- case_when(
                     status == "DECLINED" ~ "#e00000",
-                    status == "PENDING" ~ "#F9D62E",
+                    status == "PENDING" ~ "#50BD8C",
                     status == "APPROVED" ~ "#008000",
-                    .default = "#07334F"
+                    .default = "#163142"
                   )
                   list(color = color, fontWeight = "bold")
                 }
@@ -2164,9 +2164,9 @@ server <- function(input, output, session) {
             style = function(status) {
               color <- case_when(
                 status == "DECLINED" ~ "#e00000",
-                status == "PENDING" ~ "#F9D62E",
+                status == "PENDING" ~ "#50BD8C",
                 status == "APPROVED" ~ "#008000",
-                .default = "#07334F"
+                .default = "#163142"
               )
               list(color = color, fontWeight = "bold")
             }
@@ -2421,7 +2421,7 @@ server <- function(input, output, session) {
         table_html
       ),
       showCancelButton = TRUE,
-      confirmButtonCol = "#07334F",
+      confirmButtonCol = "#163142",
       html = TRUE
     )
   })
@@ -2577,7 +2577,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_status",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -2646,7 +2646,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_delete",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = NULL,
       text = paste(
         "Are you sure you want to delete",
@@ -2944,7 +2944,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_teacher_status",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3053,7 +3053,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_student_status",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3120,7 +3120,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_set_end_date",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = "Set new term",
       text = paste(
         "Current payments will be reset on",
@@ -3249,7 +3249,7 @@ server <- function(input, output, session) {
     ask_confirmation(
       session = session,
       inputId = "confirm_flag_action",
-      btn_colors = c("#F9D62E", "#07334F"),
+      btn_colors = c("#50BD8C", "#163142"),
       title = NULL,
       text = paste(
         "Are you sure you want to",
@@ -3998,7 +3998,7 @@ a {
   padding: 10px 20px;
   font-size: 16px;
   color: white;
-  background-color: #07334F;
+  background-color: #163142;
     border-radius: 5px;
   text-align: center;
   text-decoration: none;
@@ -4014,7 +4014,7 @@ a {
             <div class="split-background">
             <div class="container">
             <div class="logo">
-            <img src="https://ndekejefferson.shinyapps.io/Candidate/_w_d812c45f/logo/logo.png" alt="CANDIDATE Logo">
+            <img src="https://ndekejefferson.shinyapps.io/Candidate/_w_d812c45f/logo/logo_icon_blue.png" alt="CANDIDATE Logo">
             </div>
             <h1>Database Back-up report</h1>')
 
@@ -4074,7 +4074,8 @@ a {
   observeEvent(
     list(
       input$s_privacy_policy_link,
-      input$t_privacy_policy_link
+      input$t_privacy_policy_link,
+      input$privacy_link
     ),
     {
       updateTabsetPanel(
@@ -4090,7 +4091,8 @@ a {
   observeEvent(
     list(
       input$s_terms_service_link,
-      input$t_terms_service_link
+      input$t_terms_service_link,
+      input$tos
     ),
     {
       updateTabsetPanel(
