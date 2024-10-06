@@ -40,7 +40,7 @@ mod_auth_ui <- \(id) {
         .split-card-left-reset {
           width: 50%;
           background: url('logo/girl_forgot.png') no-repeat center center;
-          background-size: 100%;
+          background-size: 90%;
         }
 
         /* Right side with form */
@@ -145,14 +145,14 @@ mod_auth_ui <- \(id) {
                                         class = "auth_form_loader shinyjs-hide bg-default"
                                     ),
                                     div(
-                                        class = "text-center pb-3",
+                                        class = "text-center pt-2",
                                         tags$img(
-                                            src = file.path("logo", "logo.png"),
-                                            width = "80px",
-                                            class = "rounded-circle"
+                                            src = file.path("logo", "logo_icon_blue.png"),
+                                            width = "70px"
                                         ),
-                                        h4("Log in Candidate",
-                                            class = "text-body_1 text-bold mt-3"
+                                        h5("Log in Candidate",
+                                            class = "text-body-1 text-bold
+                                            pt-3"
                                         )
                                     ),
                                     login_form(ns = ns),
@@ -181,31 +181,35 @@ mod_auth_ui <- \(id) {
                                         class = "auth_form_loader shinyjs-hide bg-default"
                                     ),
                                     tags$div(
-                                        class = "d-flex justify-content-center",
+                                        class = "d-flex justify-content-center pt-2",
                                         tags$img(
-                                            src = file.path("logo", "logo.png"),
-                                            width = "100px"
+                                            src = file.path("logo", "logo_icon_blue.png"),
+                                            width = "70px"
                                         )
                                     ),
                                     h5("Reset Password",
-                                        class = "text-bold text-center pb-3"
+                                        class = "text-bold text-center 
+                                        text-body-1 pt-3"
                                     ),
                                     div(
-                                        class = "card-body",
+                                        class = "card-body text-center",
                                         shiny::textInput(
                                             inputId = ns("reset_email"),
                                             label = "Email address",
                                             placeholder = "johndoe@example.com"
                                         ) |> make_input_required(),
-                                        actionButton(
-                                            inputId = reset_btn_id,
-                                            label = "Reset",
-                                            type = "submit",
-                                            width = "300px",
-                                            onclick = sprintf(
-                                                "disable_auth_btn('%s')", reset_btn_id
-                                            )
-                                        ) |> basic_primary_btn()
+                                        div(
+                                            class = "d-flex justify-content-center",
+                                            actionButton(
+                                                inputId = reset_btn_id,
+                                                label = "Reset",
+                                                type = "submit",
+                                                width = "300px",
+                                                onclick = sprintf(
+                                                    "disable_auth_btn('%s')", reset_btn_id
+                                                )
+                                            ) |> basic_primary_btn()
+                                        )
                                     ),
                                     tags$div(
                                         class = "text-center",

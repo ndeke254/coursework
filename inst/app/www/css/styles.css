@@ -16,8 +16,8 @@ body {
 }
 
 :root {
-  --primary: #07334F;
-  --secondary: #F9D62E;
+  --primary: #163142;
+  --secondary: #50BD8C;
   --greyfont: #414042;
 }
 
@@ -25,16 +25,20 @@ body {
   background-color: var(--primary) !important;
 }
 
-.text-body_1 {
-  color: #07334F;
+.text-body-1 {
+  color: #163142;
 }
 
-.bg-orange_1 {
-  background-color: #F9D62E;
+.bg-orange-1 {
+  background-color: #50BD8C;
 }
 
-.text-orange_1 {
-  color: #F9D62E;
+.text-orange-1 {
+  color: #50BD8C;
+}
+
+.text-secondary-1 {
+  color: #E86A31;
 }
 
 button#register_now {

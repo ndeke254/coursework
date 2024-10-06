@@ -7,7 +7,8 @@ header_section <- tags$header(
       tags$a(
         href = "",
         tags$img(
-          src = file.path("logo", "logo_white.svg"),
+          id = "header_logo",
+          src = file.path("logo", "logo_full.png"),
           height = "50px"
         )
       )
@@ -70,5 +71,18 @@ header_section <- tags$header(
         class = "bi bi-list mobile-nav-toggle text-white"
       )
     )
+  ),
+  tags$head(
+    tags$style(HTML("
+      /* For smaller screens*/
+      @media (max-width: 768px) {
+        #header_logo {
+          content: url('logo/logo_icon.png');
+          width: 50px;
+          height: auto;
+          margin-left: 20px;
+        }
+      }
+    "))
   )
 )

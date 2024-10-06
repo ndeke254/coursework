@@ -32,7 +32,7 @@ company_website <- div(
               src = "logo/girl_tablet.png",
               width = "100%",
               style = "margin-top: 90px;
-              background: radial-gradient(#F9D62E -72%, #00000000 70%);"
+              background: radial-gradient(#50BD8C -72%, #00000000 70%);"
             )
           )
         ),
@@ -47,7 +47,7 @@ company_website <- div(
             "Learn Alot..."
           ),
           div(
-            class = "p lead text-orange_1 pt-3 pb-4",
+            class = "p lead text-orange-1 pt-3 pb-4",
             "With High Quality, Quick Reference",
             br(),
             "Content for Students"
@@ -66,7 +66,7 @@ company_website <- div(
           div(
             class = "d-flex justify-content-center",
             tags$img(
-              src = "inst/images/child_1.png",
+              src = "logo/child_1.png",
               width = "100%",
               style = "max-width: 250px;
               background: radial-gradient(#fff -72%, #00000000 70%);"
@@ -104,7 +104,7 @@ company_website <- div(
           width = 4,
           div(
             tags$img(
-              src = "inst/images/teacher_1.png",
+              src = "logo/teacher_1.png",
               width = "100%",
               style = "max-width: 430px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -115,7 +115,7 @@ company_website <- div(
           width = 8,
           class = "pt-5",
           h1(
-            class = "text-bold text-body_1",
+            class = "text-bold text-body-1",
             "What is Candidate?"
           ),
           tags$div(
@@ -129,7 +129,7 @@ company_website <- div(
           div(
             class = "position-absolute pt-5  px-5",
             tags$img(
-              src = "inst/images/arrow_left.png",
+              src = "logo/arrow_left.png",
               width = "100%",
               style = "max-width: 100px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -162,7 +162,7 @@ company_website <- div(
       style = "max-width: 1200px; margin: 0 auto;",
       class = "pt-5 pb-5",
       h1(
-        class = "text-bold text-body_1 text-center",
+        class = "text-bold text-body-1 text-center",
         "Content Categories"
       ),
       fluidRow(
@@ -181,8 +181,7 @@ company_website <- div(
                   class = "d-flex justify-content-center
                                          align-items-center shadow bg-default
                                           rounded-circle",
-                  style = "width: 50px;
-                                         height: 50px;",
+                  style = "width: 50px; height: 50px;",
                   bsicons::bs_icon(
                     name = "list-check",
                     size = "24px",
@@ -195,7 +194,7 @@ company_website <- div(
                 div(
                   class = "mx-2 pt-4",
                   p(
-                    class = "text-bold lead text-body_1",
+                    class = "text-bold lead text-body-1",
                     "Subject Matter Review:"
                   ),
                   p(
@@ -221,10 +220,9 @@ company_website <- div(
                 class = "mt-3 mx-3",
                 div(
                   class = "d-flex justify-content-center
-                                         align-items-center shadow bg-orange_1
+                                         align-items-center shadow bg-orange-1
                                          rounded-circle",
-                  style = "width: 50px;
-                                         height: 50px;",
+                  style = "width: 50px; height: 50px;",
                   bsicons::bs_icon(
                     name = "file-earmark-fill",
                     size = "24px",
@@ -237,7 +235,7 @@ company_website <- div(
                 div(
                   class = "mx-2 pt-4",
                   p(
-                    class = "text-bold lead text-orange_1",
+                    class = "text-bold lead text-orange-1",
                     "Topic Reviews:"
                   ),
                   p(
@@ -265,8 +263,7 @@ company_website <- div(
                   class = "d-flex justify-content-center
                                          align-items-center shadow bg-secondary
                                          rounded-circle",
-                  style = "width: 50px;
-                                         height: 50px;",
+                  style = "width: 50px; height: 50px;",
                   bsicons::bs_icon(
                     name = "clipboard-check-fill",
                     size = "24px",
@@ -325,12 +322,12 @@ company_website <- div(
           div(
             class = "d-flex pt-5",
             h1(
-              class = "text-bold text-body_1",
+              class = "text-bold text-body-1",
               display = 5,
               "Our"
             ),
             h1(
-              class = "text-bold text-orange_1 px-3",
+              class = "text-bold text-orange-1 px-3",
               display = 5,
               "Mission"
             )
@@ -351,7 +348,7 @@ company_website <- div(
             class = "justify-content-end d-flex pt-5 ",
             div(
               tags$img(
-                src = "inst/images/parent_student.png",
+                src = "logo/parent_student.png",
                 width = "100%",
                 style = "max-width: 700px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -360,7 +357,7 @@ company_website <- div(
             div(
               class = "position-absolute",
               tags$img(
-                src = "inst/images/arrow_right.png",
+                src = "logo/arrow_right.png",
                 width = "100%",
                 style = "max-width: 100px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -374,7 +371,7 @@ company_website <- div(
             class = "justify-content-center",
             div(
               tags$img(
-                src = "inst/images/child_2.png",
+                src = "logo/child_2.png",
                 width = "100%",
                 style = "max-width: 400px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -385,11 +382,11 @@ company_website <- div(
             div(
               class = "d-flex pt-5",
               h1(
-                class = "text-bold text-body_1",
+                class = "text-bold text-body-1",
                 "Our"
               ),
               h1(
-                class = "text-bold text-orange_1 px-3",
+                class = "text-bold text-orange-1 px-3",
                 "Premise"
               )
             )
@@ -419,13 +416,13 @@ company_website <- div(
       class = "pt-5 pb-5   px-4",
       style = "max-width: 1200px; margin: 0 auto;",
       h1(
-        class = "text-bold text-body_1 text-center",
+        class = "text-bold text-body-1 text-center",
         "Our Partners"
       ),
       div(
         class = "d-flex justify-content-center",
         tags$img(
-          src = "inst/images/partners.png",
+          src = "logo/partners.png",
           width = "100%",
           style = "max-width: 1000px; filter:
                drop-shadow(2px 4px 6px var(--primary));"
@@ -507,10 +504,9 @@ company_website <- div(
             tags$a(
               href = "",
               tags$img(
-                src = file.path("logo", "logo_white.svg"),
+                src = file.path("logo", "logo_full.png"),
                 height = "100%",
-                style = "max-height: 180px; filter:
-               drop-shadow(2px 4px 6px var(--primary));"
+                style = "max-height: 50px;"
               )
             )
           )

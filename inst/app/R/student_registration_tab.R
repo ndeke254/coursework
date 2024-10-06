@@ -32,13 +32,12 @@ student_registration_tab <- div(
         ),
         # Header image and title
         div(
-            class = "rounded bg-light text-center pb-3",
+            class = "rounded bg-light text-center pb-3 pt-2",
             tags$img(
-                src = file.path("logo", "logo.png"),
-                width = "80px",
-                class = "rounded-circle"
+                src = file.path("logo", "logo_icon_blue.png"),
+                width = "70px"
             ),
-            h4("Welcome to Candidate", class = "text-body_1 text-bold mt-3")
+            h5("Welcome to Candidate", class = "text-body-1 text-bold mt-3")
         ),
 
         # Form body

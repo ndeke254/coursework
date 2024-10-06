@@ -91,8 +91,8 @@ ui <- shiny::bootstrapPage(
           class = "container text-center col-2",
           p("Your are an Administrator", class = "text-bold mt-5"),
           tags$img(
-            src = "logo/logo.png",
-            width = "100px"
+            src = "logo/logo_icon_blue.png",
+            width = "70px"
           ),
           textInput(
             inputId = "admin_name",
