@@ -19,10 +19,10 @@ total teacher's views
 }
 \examples{
 \dontrun{
-  record_student_view(
-    student_id = "student123",
-    teacher_id = "teacher456",
-    pdf_id = "pdf789"
-  )
+record_student_view(
+  student_id = "student123",
+  teacher_id = "teacher456",
+  pdf_id = "pdf789"
+)
 }
 }
