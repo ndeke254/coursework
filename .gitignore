@@ -13,5 +13,4 @@
 *.rds
 *.json
 gmail_creds.json
-gmail_creds.json
 test.R
