@@ -16,12 +16,12 @@ update_school_details <- function(school_id, new_values) {
   
   # Build the SET part of the query
   set_clause <- paste0(
-    names(new_values), 
+    names(new_values),
     " = :",
-     names(new_values), 
+     names(new_values),
      collapse = ", "
      )
-  
+
   # Build the full query
   query <- paste0("UPDATE schools SET ", set_clause, " WHERE id = :id")
   

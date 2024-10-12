@@ -5,12 +5,12 @@ student_content_tab <- div(
     uiOutput("signed"),
   ),
   uiOutput("term_end_student_table"),
-  argonTabSet(
+  argonR::argonTabSet(
     id = "student_content_tabset",
     horizontal = TRUE,
     size = "lg",
     width = 12,
-    argonTab(
+    argonR::argonTab(
       tabName = "Library",
       active = TRUE,
       p("Welcome to your library:", class = "lead text-bold mt-3"),
@@ -25,14 +25,14 @@ student_content_tab <- div(
         uiOutput("selected_pdf_frame")
       )
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Payments",
       div(
         class = "pt-5",
         fluidRow(
           column(
             width = 3,
-            value_box(
+            bslib::value_box(
               title = "Your invoice",
               value = textOutput("school_ticket"),
               showcase = bsicons::bs_icon("bank"),
@@ -41,7 +41,7 @@ student_content_tab <- div(
           ),
           column(
             width = 3,
-            value_box(
+            bslib::value_box(
               title = "Paid amount",
               value = textOutput("paid_amount"),
               showcase = bsicons::bs_icon("credit-card-fill"),
@@ -50,7 +50,7 @@ student_content_tab <- div(
           ),
           column(
             width = 3,
-            value_box(
+            bslib::value_box(
               title = "Balance",
               value = textOutput("balance"),
               showcase = bsicons::bs_icon("cash-coin"),
@@ -59,19 +59,19 @@ student_content_tab <- div(
           ),
           column(
             width = 3,
-            value_box(
+            bslib::value_box(
               title = "Progress",
               class = "pb-4",
               showcase = bsicons::bs_icon("percent"),
               showcase_layout = "top right",
-              value = progressBar(
+              value = shinyWidgets::progressBar(
                 value = 0,
                 display_pct = TRUE,
                 id = "payment_progress"
               )
             )
           )
-        ),
+        ), 
         div(
           p("Create a payment ticket", class = "mb-3 lead text-bold"),
           class = "card card-body",
@@ -88,7 +88,7 @@ student_content_tab <- div(
             ),
             column(
               width = 3,
-              autonumericInput(
+              shinyWidgets::autonumericInput(
                 inputId = "payment_tel_number",
                 label = label_mandatory("Phone:"),
                 value = 123456789,
@@ -99,18 +99,18 @@ student_content_tab <- div(
             ),
             column(
               width = 3,
-              autonumericInput(
+              shinyWidgets::autonumericInput(
                 inputId = "amount",
                 label_mandatory("Amount paid:"),
-                value = 500,
+                value = 799,
                 currencySymbol = "Ksh ",
                 decimalPlaces = 0,
                 minimumValue = 1
-              )
+              ) 
             ),
             column(
               width = 3,
-              airDatepickerInput(
+              shinyWidgets::airDatepickerInput(
                 inputId = "payment_time",
                 label = label_mandatory("Select Date and Time:"),
                 timepicker = TRUE,

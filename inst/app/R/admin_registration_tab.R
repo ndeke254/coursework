@@ -4,7 +4,7 @@ admin_registration_tab <- div(
   fluidRow(
     column(
       width = 4,
-      airDatepickerInput(
+      shinyWidgets::airDatepickerInput(
         inputId = "term_end_date",
         label = "Current Term End Date:",
         value = Sys.Date(),
@@ -38,18 +38,18 @@ admin_registration_tab <- div(
     class = "pb-3",
     uiOutput("term_end_table")
   ),
-  argonTabSet(
+  argonR::argonTabSet(
     id = "registration_tabset",
     horizontal = TRUE,
     size = "lg",
     width = 12,
     iconList = list(
-      icon = argonIcon("cloud-upload-96", color = "body"),
-      icon = argonIcon("caps-small", color = "body"),
-      icon = argonIcon("settings", color = "body"),
-      icon = argonIcon("books", color = "body")
+      icon = argonR::argonIcon("cloud-upload-96", color = "body"),
+      icon = argonR::argonIcon("caps-small", color = "body"),
+      icon = argonR::argonIcon("settings", color = "body"),
+      icon = argonR::argonIcon("books", color = "body")
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Upload",
       active = TRUE,
       fluidRow(
@@ -79,42 +79,57 @@ admin_registration_tab <- div(
                 choices = NULL
               )
             ),
-            column(width = 3, disabled(
-              shiny::textInput(
-                inputId = "doc_teacher_id",
-                label = label_mandatory("Teacher:"),
-                placeholder = "Eg. John Kamau"
+            column(
+              width = 3,
+              shinyjs::disabled(
+                shiny::textInput(
+                  inputId = "doc_teacher_id",
+                  label = label_mandatory("Teacher:"),
+                  placeholder = "Eg. John Kamau"
+                )
               )
-            )),
-            column(width = 3, disabled(
-              shiny::textInput(
-                inputId = "doc_grade",
-                label = label_mandatory("Grade:"),
-                placeholder = "Eg. Grade 6"
+            ),
+            column(
+              width = 3,
+              shinyjs::disabled(
+                shiny::textInput(
+                  inputId = "doc_grade",
+                  label = label_mandatory("Grade:"),
+                  placeholder = "Eg. Grade 6"
+                )
               )
-            )),
-            column(width = 3, disabled(
-              shiny::textInput(
-                inputId = "doc_learning_area",
-                label = label_mandatory("Learning Area:"),
-                placeholder = "Eg. Mathematics"
+            ),
+            column(
+              width = 3,
+              shinyjs::disabled(
+                shiny::textInput(
+                  inputId = "doc_learning_area",
+                  label = label_mandatory("Learning Area:"),
+                  placeholder = "Eg. Mathematics"
+                )
               )
-            ))
+            )
           ),
-          fluidRow(column(width = 3, disabled(
-            shiny::textInput(
-              inputId = "doc_topic",
-              label = label_mandatory("Topic:"),
-              placeholder = "Eg. Addition"
+          fluidRow(column(
+            width = 3,
+            shinyjs::disabled(
+              shiny::textInput(
+                inputId = "doc_topic",
+                label = label_mandatory("Topic:"),
+                placeholder = "Eg. Addition"
+              )
             )
-          )), column(width = 3, disabled(
-            shiny::textInput(
-              inputId = "doc_sub_topic",
-              label_mandatory("Sub-topic:"),
-              value = "",
-              placeholder = "Eg. Long division method"
+          ), column(
+            width = 3,
+            shinyjs::disabled(
+              shiny::textInput(
+                inputId = "doc_sub_topic",
+                label_mandatory("Sub-topic:"),
+                value = "",
+                placeholder = "Eg. Long division method"
+              )
             )
-          ))),
+          )),
           div(
             class = "d-flex justify-content-center",
             actionButton(
@@ -128,7 +143,7 @@ admin_registration_tab <- div(
         )
       )
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Registration",
       bslib::card(
         p("School Registration", class = "text-bold mt-3"),
@@ -234,10 +249,10 @@ admin_registration_tab <- div(
               ),
               column(
                 width = 3,
-                autonumericInput(
+                shinyWidgets::autonumericInput(
                   inputId = "doc_price",
                   label_mandatory("Price:"),
-                  value = 1000,
+                  value = 799,
                   currencySymbol = "Ksh ",
                   decimalPlaces = 0,
                   minimumValue = 50
@@ -285,10 +300,10 @@ admin_registration_tab <- div(
         )
       )
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Manage",
       bslib::card(
-        argonTabSet(
+        argonR::argonTabSet(
           id = "users",
           circle = TRUE,
           width = 12,
@@ -300,23 +315,23 @@ admin_registration_tab <- div(
             icon = icon("file-pdf"),
             icon = icon("sack-dollar")
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "School",
             active = TRUE,
             p("Existing schools data", class = " text-bold mt-3"),
             uiOutput("school_data")
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "Teacher",
             p("Existing teachers data", class = " text-bold mt-3"),
             uiOutput("teachers_data")
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "Student",
             p("Existing students data", class = " text-bold mt-3"),
             uiOutput("students_data")
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "Requests",
             p("Pending requests:", class = " text-bold mt-3"),
             actionButton(
@@ -329,7 +344,7 @@ admin_registration_tab <- div(
             p(class = "text-body-tertiary mb-2", textOutput("requests_refresh_time")),
             uiOutput("requests_data")
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "Content",
             p("Published content:", class = " text-bold mt-3"),
             bslib::layout_sidebar(
@@ -343,7 +358,7 @@ admin_registration_tab <- div(
               uiOutput("pdf_data")
             )
           ),
-          argonTab(
+          argonR::argonTab(
             tabName = "Payments",
             p("Payments records:", class = " text-bold mt-3"),
             actionButton(
@@ -359,7 +374,7 @@ admin_registration_tab <- div(
         )
       )
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Timeline",
       class = "card card-body",
       p("Administrator actions:",

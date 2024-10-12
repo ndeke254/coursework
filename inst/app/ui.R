@@ -34,7 +34,7 @@ ui <- shiny::bootstrapPage(
   ),
 
   # Load dependencies
-  useSweetAlert(),
+  shinyWidgets::useSweetAlert(),
   shinyjs::useShinyjs(),
   shinybusy::add_busy_spinner(
     spin = "fading-circle",
