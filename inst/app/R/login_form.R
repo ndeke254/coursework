@@ -22,16 +22,6 @@ login_form <- \(ns) {
   ) |> make_input_required()
 
   # show/hide passwords
-  checkbox_input <- \(..., on_click = NULL) {
-    tag <- checkboxInput(...)
-    if (is.null(on_click)) {
-      return(tag)
-    }
-    tag_q <- htmltools::tagQuery(tag)
-    tag_q$find("input")$addAttrs(onclick = on_click)
-    tag_q$allTags()
-  }
-
   show_password_input <- tags$div(
     class = "form-check",
     tags$input(

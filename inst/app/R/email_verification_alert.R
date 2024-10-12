@@ -19,7 +19,7 @@
 #'   }
 #' )
 email_verification_alert <- \(email_address, session) {
-  modal <- shinyalert(
+  shinyalert::shinyalert(
     title = "Email verification required",
     text = paste0(
       "Click the link we just sent to ",

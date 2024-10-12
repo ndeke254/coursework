@@ -442,13 +442,13 @@ company_website <- div(
             tags$a(
               href = "",
               tags$img(
-                src = file.path("logo", "logo_full.png"),
+                src = file.path("logo", "full_logo_white.png"),
                 height = "100%",
                 style = "max-height: 50px;"
               )
             )
           )
-        ),
+        ), 
         column(
           width = 2,
           actionLink(

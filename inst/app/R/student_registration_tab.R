@@ -62,7 +62,7 @@ student_registration_tab <- div(
                     shinyWidgets::pickerInput(
                         inputId = "student_grade",
                         label = label_mandatory("Grade"),
-                        options = pickerOptions(
+                        options = shinyWidgets::pickerOptions(
                             title = "Select grade",
                             size = 5
                         ),
@@ -72,7 +72,7 @@ student_registration_tab <- div(
                 ),
                 column(
                     width = 6,
-                    autonumericInput(
+                    shinyWidgets::autonumericInput(
                         inputId = "student_tel_number",
                         label = label_mandatory("Phone Number"),
                         value = NULL,

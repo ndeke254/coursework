@@ -74,7 +74,7 @@ teacher_registration_tab <- div(
                 ),
                 column(
                     width = 6,
-                    autonumericInput(
+                    shinyWidgets::autonumericInput(
                         inputId = "teacher_tel_number",
                         label = label_mandatory("Phone Number"),
                         value = NULL,

@@ -18,7 +18,7 @@ record_student_view <- \(
   student_id,
   teacher_id,
   pdf_id
-){
+) {
   current_date <- format(Sys.time(), format = "%Y-%m-%d")
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")

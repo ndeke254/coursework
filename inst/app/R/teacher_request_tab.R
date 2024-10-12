@@ -4,12 +4,12 @@ teacher_request_tab <- div(
     class = "mb-5",
     uiOutput("signed_teacher")
   ),
-  argonTabSet(
+  argonR::argonTabSet(
     id = "teacher_tabset",
     horizontal = TRUE,
     size = "lg",
     width = 12,
-    argonTab(
+    argonR::argonTab(
       tabName = "Share your content",
       active = TRUE,
       div(
@@ -110,7 +110,7 @@ teacher_request_tab <- div(
         reactable::reactableOutput("teacher_requests")
       )
     ),
-    argonTab(
+    argonR::argonTab(
       tabName = "Your students",
       div(
         class = "card card-body",

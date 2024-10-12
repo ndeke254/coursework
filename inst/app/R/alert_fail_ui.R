@@ -8,7 +8,7 @@
 #' alert_fail_ui("User delete failed!", "top-end", session)
 #' @export
 alert_fail_ui <- \(info, position = "top-end", session, timer = 3000) {
-  show_toast(
+  shinyWidgets::show_toast(
     session = session,
     title = NULL,
     text = info,
