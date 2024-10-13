@@ -1,3 +1,5 @@
+library(markdown)
+
 # counties in Kenya
 # used as a choices input in school registration tab
 kenyan_counties <- c(

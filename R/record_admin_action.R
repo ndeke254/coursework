@@ -25,7 +25,7 @@ record_admin_action <- \(user, action, description) {
     time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
     stringsAsFactors = FALSE
   )
-  dbAppendTable(
+  DBI::dbAppendTable(
     conn = conn,
     name = "timeline",
     value = new_action

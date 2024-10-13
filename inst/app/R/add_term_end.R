@@ -14,7 +14,7 @@ add_term_end <- \(term_end_date) {
                      SET value = :new_end_date
                      WHERE input_col = 'term_end_date'"
 
-  result_end_date <- dbExecute(
+  result_end_date <- DBI::dbExecute(
     conn,
     query_end_date,
     params = list(new_end_date = as.character(term_end_date))
@@ -30,7 +30,7 @@ add_term_end <- \(term_end_date) {
   current_year <- format(as.Date(term_end_date), "%Y")
   term_label <- paste(current_month, end_month, current_year, sep = "-")
 
-  result_term_label <- dbExecute(
+  result_term_label <- DBI::dbExecute(
     conn,
     query_term_label,
     params = list(new_term_label = term_label)

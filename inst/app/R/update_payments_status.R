@@ -27,7 +27,7 @@ update_payments_status <- \(
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # Construct the SQL query to update the status
-  res <- dbSendQuery(
+  res <- DBI::dbSendQuery(
     conn,
     "UPDATE payments
     SET status = :new_status,
@@ -35,7 +35,7 @@ update_payments_status <- \(
     total = :total
     WHERE ticket_id = :ticket_id"
   )
-  dbBind(
+  DBI::dbBind(
     res,
     params = list(
       new_status = new_status,
@@ -46,13 +46,13 @@ update_payments_status <- \(
   )
 
   if (balance <= 0) {
-    res <- dbSendQuery(
+    res <- DBI::dbSendQuery(
       conn,
       "UPDATE students
     SET paid = :paid
     WHERE id = :student_id"
     )
-    dbBind(
+   DBI::dbBind(
       res,
       params = list(
         paid = 1,
@@ -62,5 +62,5 @@ update_payments_status <- \(
   }
 
 
-  dbClearResult(res)
+  DBI::dbClearResult(res)
 }

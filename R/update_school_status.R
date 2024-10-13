@@ -16,5 +16,5 @@ update_school_status <- \(user_id, new_status) {
 
   # Update the status in the database
   query <- "UPDATE schools SET status = :status WHERE id = :id"
-  dbExecute(conn, query, params = list(id = user_id, status = new_status))
+  DBI::dbExecute(conn, query, params = list(id = user_id, status = new_status))
 }

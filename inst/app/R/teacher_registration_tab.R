@@ -62,7 +62,7 @@ teacher_registration_tab <- div(
                         inputId = "teacher_grades",
                         label = label_mandatory("Grades"),
                         multiple = TRUE,
-                        options = pickerOptions(
+                        options = shinyWidgets::pickerOptions(
                             title = "Select grades",
                             maxOptions = 3,
                             size = 5,

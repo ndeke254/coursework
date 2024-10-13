@@ -19,9 +19,9 @@ add_new_request <- function(table_name, data) {
 
   # Check if the request already exists (e.g., by request ID or other unique identifier)
   available <- table_data |>
-    select(teacher_id, grade, learning_area, topic, sub_topic)
+    dplyr::select(teacher_id, grade, learning_area, topic, sub_topic)
   new_data <- data |>
-    select(teacher_id, grade, learning_area, topic, sub_topic)
+    dplyr::select(teacher_id, grade, learning_area, topic, sub_topic)
 
   # check for a row with a matching request ID
   match <- prodlim::row.match(new_data, available)
