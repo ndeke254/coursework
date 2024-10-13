@@ -15,5 +15,5 @@ delete_school_records <- \(user_id) {
 
   # Update the status in the database
   query <- "DELETE from schools WHERE id = :id"
-  dbExecute(conn, query, params = list(id = user_id))
+  DBI::dbExecute(conn, query, params = list(id = user_id))
 }

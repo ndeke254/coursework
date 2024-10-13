@@ -27,14 +27,14 @@ server <- function(input, output, session) {
   # Create reactive values for tables
   rvs <- reactiveValues(
     message = NULL,
-    school_data = dbReadTable(conn, "schools"),
-    pdf_data = dbReadTable(conn, "content"),
-    teachers_data = dbReadTable(conn, "teachers"),
-    students_data = dbReadTable(conn, "students"),
-    payments_data = dbReadTable(conn, "payments"),
-    requests_data = dbReadTable(conn, "requests"),
-    administrator_data = dbReadTable(conn, "administrator"),
-    views_data = dbReadTable(conn, "views"),
+    school_data = DBI::dbReadTable(conn, "schools"),
+    pdf_data = DBI::dbReadTable(conn, "content"),
+    teachers_data = DBI::dbReadTable(conn, "teachers"),
+    students_data = DBI::dbReadTable(conn, "students"),
+    payments_data = DBI::dbReadTable(conn, "payments"),
+    requests_data = DBI::dbReadTable(conn, "requests"),
+    administrator_data = DBI::dbReadTable(conn, "administrator"),
+    views_data = DBI::dbReadTable(conn, "views"),
     idx = NULL,
     status = NULL
   )
@@ -621,7 +621,10 @@ server <- function(input, output, session) {
       # get signed user details
       signed_email <- user_details$email
 
-      pol_signed_user <- polished::get_app_users(email = signed_email)
+      pol_signed_user <- polished::get_app_users(
+        app_uid = app_uid,
+        email = signed_email
+      )
       user_uid <- pol_signed_user$content$user_uid
       is_admin <- pol_signed_user$content$is_admin
 
@@ -747,20 +750,20 @@ server <- function(input, output, session) {
           # check if user has paid
           price <- rvs$school_data |>
             filter(school_name == signed_user$school_name) |>
-            select(price) |>
+            dplyr::select(price) |>
             as.numeric()
 
           paid_amount <- rvs$payments_data |>
             filter(status == "APPROVED" &
               user_id == signed_user$id) |>
-            select(amount) |>
+            dplyr::select(amount) |>
             unlist() |>
             as.numeric() |>
             sum()
 
           # Check if the user has paid for the year
           user_paid <- signed_user %>%
-            select(paid) %>%
+            dplyr::select(paid) %>%
             pull(paid) %>%
             as.character()
 
@@ -854,7 +857,7 @@ server <- function(input, output, session) {
           output$term_end_student_table <- renderUI({
             data <- rvs$administrator_data
             values <- data |>
-              select(value) |>
+              dplyr::select(value) |>
               as.vector()
 
             if (is.na(values$value[1]) || is.na(values$value[2])) {
@@ -887,7 +890,7 @@ server <- function(input, output, session) {
           # Filter the student content based on the signed-in user's grade and school
           signed_student_teachers <- rvs$teachers_data |>
             filter(school_name == signed_user$school_name) |>
-            select(user_name) |>
+            dplyr::select(user_name) |>
             unlist() |>
             as.vector()
 
@@ -1184,7 +1187,7 @@ server <- function(input, output, session) {
             # Filter and arrange the data as needed
             data <- rvs$requests_data |>
               filter(teacher_id == signed_user$id) |>
-              select(-c(teacher_id, request_description)) |>
+              dplyr::select(-c(teacher_id, request_description)) |>
               arrange(desc(time))
 
             # Set the column names
@@ -1228,7 +1231,7 @@ server <- function(input, output, session) {
             data <- rvs$students_data |>
               filter(school_name == signed_user$school_name &
                 grade %in% grades) |>
-              select(id, user_name, grade, paid)
+              dplyr::select(id, user_name, grade, paid)
 
             # Set the column names
             colnames(data) <- c("ID", "Name", "Grade", "Paid")
@@ -1440,7 +1443,7 @@ server <- function(input, output, session) {
       if (nrow(rvs$school_data) > 0) {
         requests <- rvs$requests_data |>
           filter(status == "PROCESSING") |>
-          select(id) |>
+          dplyr::select(id) |>
           unlist() |>
           as.vector()
         shinyWidgets::updatePickerInput(
@@ -2056,7 +2059,7 @@ server <- function(input, output, session) {
       # get the payments data
       payments_data <- rvs$payments_data |>
         arrange(desc(time)) |>
-        select(-term) |>
+        dplyr::select(-term) |>
         mutate(details = NA)
 
       colnames(payments_data) <- c(
@@ -2151,7 +2154,7 @@ server <- function(input, output, session) {
       # Filter and arrange the data as needed
       data <- rvs$payments_data |>
         filter(user_id == signed_user$id) |>
-        select(-c(user_id, total, balance)) |>
+        dplyr::select(-c(user_id, total, balance)) |>
         arrange(desc(time))
 
       # Set the column names
@@ -2446,7 +2449,7 @@ server <- function(input, output, session) {
 
       teacher_name <- rvs$teachers_data |>
         filter(id == input$doc_teacher_id) |>
-        select(user_name) |>
+        dplyr::select(user_name) |>
         unlist() |>
         as.vector()
 
@@ -3155,7 +3158,7 @@ server <- function(input, output, session) {
         )
         data <- refresh_table_data("administrator")
         values <- data |>
-          select(value) |>
+          dplyr::select(value) |>
           as.vector()
 
         output$term_end_table <- renderUI({
@@ -3186,7 +3189,7 @@ server <- function(input, output, session) {
   output$term_end_table <- renderUI({
     data <- rvs$administrator_data
     values <- data |>
-      select(value) |>
+      dplyr::select(value) |>
       as.vector()
 
     if (is.na(values$value[1]) || is.na(values$value[2])) {
@@ -3319,7 +3322,7 @@ server <- function(input, output, session) {
 
     teacher_grades <- rvs$teachers_data |>
       filter(user_name == teacher_name) |>
-      select(grade) |>
+      dplyr::select(grade) |>
       unlist() |>
       as.vector()
 
@@ -3540,7 +3543,7 @@ server <- function(input, output, session) {
     if (input$confirm_ticket_details) {
       data <- rvs$administrator_data
       values <- data |>
-        select(value) |>
+        dplyr::select(value) |>
         as.vector()
 
       unique_ticket_id <- paste0(
@@ -3657,19 +3660,19 @@ server <- function(input, output, session) {
         data <- rvs$administrator_data
 
         values <- data |>
-          select(value) |>
+          dplyr::select(value) |>
           as.vector()
 
         price <- rvs$school_data |>
           filter(school_name == student_data$school_name) |>
-          select(price) |>
+          dplyr::select(price) |>
           as.numeric()
 
         paid_amount <- rvs$payments_data |>
           filter(status == "APPROVED" &
             user_id == details$`Student ID` &
             term == values$value[2]) |>
-          select(amount) |>
+          dplyr::select(amount) |>
           unlist() |>
           as.numeric() |>
           sum()
@@ -3928,7 +3931,7 @@ server <- function(input, output, session) {
     minute_now <- as.numeric(format(current_time, "%M"))
 
     # Check if it's 12 AM
-    if (hour_now == 0 && minute_now == 10) {
+    if (hour_now == 03 && minute_now == 25) {
       temp_file <- tempfile(fileext = ".xlsx")
 
       writexl::write_xlsx(
@@ -3946,7 +3949,7 @@ server <- function(input, output, session) {
 
 
       admin_emails <- rvs$administrator_data |>
-        select(input_col) |>
+        dplyr::select(input_col) |>
         filter(grepl("@gmail\\.com$", input_col)) |>
         unlist() |>
         as.vector()
@@ -3968,7 +3971,7 @@ body {
   height: 100vh;
 }
 .split-background {
-        background: whitesmoke;
+  background: whitesmoke;
   padding: 40px 0;
   width: 100%;
 }
@@ -3986,11 +3989,11 @@ body {
   margin-bottom: 20px;
 }
 .logo img {
-  max-width: 150px;
+  max-width: 300px;
   height: auto;
 }
 h1 {
-  font-size: 24px;
+  font-size: 20px;
   color: #333333;
 }
 p {
@@ -4017,15 +4020,16 @@ a {
   font-size: 14px;
   color: #777777;
   margin-top: 30px;
-}            </style>
-            </head>
-            <body>
-            <div class="split-background">
-            <div class="container">
-            <div class="logo">
-            <img src="https://ndekejefferson.shinyapps.io/Candidate/_w_d812c45f/logo/logo_icon_blue.png" alt="CANDIDATE Logo">
-            </div>
-            <h1>Database Back-up report</h1>')
+}
+  </style>
+  </head>
+  <body>
+  <div class="split-background">
+        <div class="container">
+        <div class="logo">
+        <img src="https://ndekejefferson.shinyapps.io/candidate/_w_70987ccd/logo/logo_full.png" alt="CANDIDATE LOGO">
+        </div>
+        <h1>Database Back-up report</h1>')
 
       for (email in admin_emails) {
         admin_name <- rvs$administrator_data |>

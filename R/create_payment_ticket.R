@@ -18,7 +18,7 @@ create_payment_ticket <- function(table_name, data) {
 
   # Check if the school name or email already exists
   available <- table_data |>
-    select(user_id, code)
+    dplyr::select(user_id, code)
   new_data <- c(data$user_id, data$code)
   print(available)
   # check for a row with match
