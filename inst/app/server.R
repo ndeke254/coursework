@@ -203,7 +203,6 @@ server <- function(input, output, session) {
 
   observeEvent(input$submit_teacher_details, {
     ivt$enable() # enable validation check
-
     req(ivt$is_valid()) # ensure checks are valid
 
     password <- input$teacher_password
@@ -227,7 +226,7 @@ server <- function(input, output, session) {
     tryCatch(
       expr = {
         # Get the list of app users
-        app_users <- polished::get_app_users()[1]$content$email
+        app_users <- polished::get_users()[1]$content$email
         # Check if the input email exists in the email column
         email_exists <- input$teacher_email %in% app_users
 
@@ -291,7 +290,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$confirm_teacher_details, {
-    shinyjs::disable("confirm_teacher_details")
+    shinyjs::disable("submit_teacher_details")
     shinyjs::show("t_auth_loader")
 
     # if has confirmed details
@@ -305,6 +304,8 @@ server <- function(input, output, session) {
           )
 
           if (!is.null(user$error)) {
+            shinyjs::enable("confirm_teacher_details")
+            shinyjs::hide("t_auth_loader")
             stop("An error occured with your email", call. = FALSE)
           }
           name <- stringr::word(input$teacher_username, 1)
@@ -369,6 +370,8 @@ server <- function(input, output, session) {
               info = "Name or email or phone already exists!",
               session = session
             )
+            frbs::frbs_delete_account(id_token = id_token)
+            polished::delete_user(user_uid = user_uid)
           }
         },
         error = \(e) {
@@ -386,7 +389,7 @@ server <- function(input, output, session) {
         session = session
       )
     }
-    shinyjs::enable("confirm_teacher_details")
+    shinyjs::enable("submit_teacher_details")
     shinyjs::hide("t_auth_loader")
   })
 
@@ -447,10 +450,8 @@ server <- function(input, output, session) {
     }
   })
 
-
   observeEvent(input$submit_student_details, {
     ivst$enable() # enable validation check
-
     req(ivst$is_valid()) # ensure checks are valid
 
     password <- input$student_password
@@ -463,49 +464,75 @@ server <- function(input, output, session) {
 
     if (!is_match) {
       return(
-        alert_fail_ui(session = session, info = "Password do not match")
+        alert_fail_ui(
+          session = session,
+          info = "Password do not match",
+          position = "bottom"
+        )
       )
     }
-    table_html <- reactable::reactable(
-      data = data.frame(
-        Input = c(
-          "Name", "School", "Grade",
-          "Contact", "Email"
-        ),
-        Value = stringr::str_trunc(
-          c(
-            stringr::str_to_title(input$student_username),
-            input$student_school,
-            input$student_grade,
-            input$student_tel_number,
-            input$student_email
-          ),
-          width = 25
-        )
-      ),
-      columns = list(
-        Input = reactable::colDef(name = "Input"),
-        Value = reactable::colDef(name = "Value")
-      ),
-      borderless = TRUE,
-      bordered = FALSE,
-      striped = FALSE,
-      outlined = TRUE,
-      wrap = FALSE,
-      resizable = FALSE,
-      class = "text-gray-dark"
-    )
 
-    # Show confirmation dialog with reactable table
-    shinyWidgets::ask_confirmation(
-      session = session,
-      inputId = "confirm_student_details",
-      title = NULL,
-      text = tags$div(
-        table_html
-      ),
-      btn_labels = c("Cancel", "Yes"),
-      html = TRUE
+    tryCatch(
+      expr = {
+        # Get the list of app users
+        app_users <- polished::get_users()[1]$content$email
+        # Check if the input email exists in the email column
+        email_exists <- input$student_email %in% app_users
+
+        if (email_exists) {
+          msg <- "User email already exists!"
+          stop(msg, call. = FALSE)
+        }
+
+        table_html <- reactable::reactable(
+          data = data.frame(
+            Input = c(
+              "Name", "School", "Grade",
+              "Contact", "Email"
+            ),
+            Value = stringr::str_trunc(
+              c(
+                stringr::str_to_title(input$student_username),
+                input$student_school,
+                input$student_grade,
+                input$student_tel_number,
+                input$student_email
+              ),
+              width = 25
+            )
+          ),
+          columns = list(
+            Input = reactable::colDef(name = "Input"),
+            Value = reactable::colDef(name = "Value")
+          ),
+          borderless = TRUE,
+          bordered = FALSE,
+          striped = FALSE,
+          outlined = TRUE,
+          wrap = FALSE,
+          resizable = FALSE,
+          class = "text-gray-dark"
+        )
+
+        # Show confirmation dialog with reactable table
+        shinyWidgets::ask_confirmation(
+          session = session,
+          inputId = "confirm_student_details",
+          title = NULL,
+          text = tags$div(
+            table_html
+          ),
+          btn_labels = c("Cancel", "Yes"),
+          html = TRUE
+        )
+      },
+      error = \(e) {
+        alert_fail_ui(
+          session = session,
+          position = "bottom",
+          info = conditionMessage(e)
+        )
+      }
     )
   })
 
@@ -515,79 +542,94 @@ server <- function(input, output, session) {
 
     # if has confirmed details
     if (input$confirm_student_details) {
-      # Convert the vector of grades to a single string
-      grades <- paste(input$student_grade, collapse = ", ")
-
-      # Create data to append
-      new_user <- data.frame(
-        id = next_user_id("students", "student"),
-        user_name = stringr::str_to_title(input$student_username),
-        school_name = input$student_school,
-        grade = grades,
-        phone = input$student_tel_number,
-        email = input$student_email,
-        time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
-        status = "Enabled",
-        paid = 0
-      )
-
-      # Call the register_new_user function
-      success <- register_new_user(
-        table_name = "students",
-        data = new_user
-      )
-      if (success == 1) {
-        name <- stringr::word(input$student_username, 1)
-        updateTabsetPanel(
-          inputId = "app_pages",
-          selected = "auth_page"
-        )
-
-        # add user to firebase
-        user <- frbs::frbs_sign_up(
-          input$student_email,
-          input$student_password
-        )
-        # add user to polished
-        polished::add_app_user(
-          app_uid = app_uid,
-          email = input$student_email
-        )
-        id_token <- user$idToken
-        frbs::frbs_send_email_verification(
-          id_token = id_token
-        )
-        # get user details
-        get_new_user <- polished::get_users(email = input$student_email)
-        user_uid <- get_new_user$content$uid
-
-        # add role to the user
-        polished::add_user_role(
-          user_uid = user_uid,
-          role_name = "student"
-        )
-        shinyalert::shinyalert(
-          title = paste0(name, ", Welcome to Candidate"),
-          text = paste0(
-            "Click the link we just sent to ",
+      tryCatch(
+        expr = {
+          # add user to firebase
+          user <- frbs::frbs_sign_up(
             input$student_email,
-            " to verify your email address, then Log in."
-          ),
-          type = "",
-          inputId = "roles_alert",
-          imageUrl = "logo/logo_icon_blue.png",
-          imageWidth = 100,
-          imageHeight = 50,
-          session = session,
-          confirmButtonText = "OK",
-          confirmButtonCol = "#163142"
-        )
-      } else {
-        alert_fail_ui(
-          info = "Name or email or phone already exists!",
-          session = session
-        )
-      }
+            input$student_password
+          )
+
+          if (!is.null(user$error)) {
+            shinyjs::enable("confirm_student_details")
+            shinyjs::hide("s_auth_loader")
+            stop("An error occured with your email", call. = FALSE)
+          }
+          name <- stringr::word(input$student_username, 1)
+
+          id_token <- user$idToken
+          frbs::frbs_send_email_verification(
+            id_token = id_token
+          )
+
+          # add user to polished
+          polished::add_app_user(
+            app_uid = app_uid,
+            email = input$student_email
+          )
+
+          # get user details
+          get_new_user <- polished::get_users(
+            email = input$student_email
+          )
+          user_uid <- get_new_user$content$uid
+
+          # add role to the user
+          polished::add_user_role(
+            user_uid = user_uid,
+            role_name = "student"
+          )
+
+          # Convert the vector of grades to a single string
+          grades <- paste(input$student_grade, collapse = ", ")
+
+          # Create data to append
+          new_user <- data.frame(
+            id = next_user_id("students", "student"),
+            user_name = stringr::str_to_title(input$student_username),
+            school_name = input$student_school,
+            grade = grades,
+            phone = input$student_tel_number,
+            email = input$student_email,
+            time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
+            status = "Enabled",
+            paid = 0
+          )
+
+          # Call the register_new_user function
+          success <- register_new_user(
+            table_name = "students",
+            data = new_user
+          )
+
+          if (success == 1) {
+            name <- stringr::word(input$student_username, 1)
+            updateTabsetPanel(
+              inputId = "app_pages",
+              selected = "auth_page"
+            )
+
+            email_verification_alert(
+              email_address = input$student_email,
+              session = session
+            )
+          } else {
+            alert_fail_ui(
+              info = "Name or email or phone already exists!",
+              session = session
+            )
+            frbs::frbs_delete_account(id_token = id_token)
+            polished::delete_user(user_uid = user_uid)
+          }
+        },
+        error = \(e) {
+          alert_fail_ui(
+            session = session,
+            position = "bottom",
+            info = conditionMessage(e)
+          )
+        }
+      )
     } else {
       # if has declined to confirm
       alert_warn_ui(
@@ -595,8 +637,8 @@ server <- function(input, output, session) {
         session = session
       )
     }
-    shinyjs::hide("t_auth_loader")
-    shinyjs::enable("submit_student_details")
+    shinyjs::enable("confirm_student_details")
+    shinyjs::hide("s_auth_loader")
   })
 
   # now output signed user
@@ -634,7 +676,7 @@ server <- function(input, output, session) {
 
         if (exists) {
           signed_user <- admin_data |>
-            filter(input_col == signed_email)
+            dplyr::filter(input_col == signed_email)
 
           user_name <- signed_user$value
           user_status <- "Enabled"
@@ -749,12 +791,12 @@ server <- function(input, output, session) {
         } else if (user_role == "student") {
           # check if user has paid
           price <- rvs$school_data |>
-            filter(school_name == signed_user$school_name) |>
+            dplyr::filter(school_name == signed_user$school_name) |>
             dplyr::select(price) |>
             as.numeric()
 
           paid_amount <- rvs$payments_data |>
-            filter(status == "APPROVED" &
+            dplyr::filter(status == "APPROVED" &
               user_id == signed_user$id) |>
             dplyr::select(amount) |>
             unlist() |>
@@ -889,13 +931,13 @@ server <- function(input, output, session) {
           )
           # Filter the student content based on the signed-in user's grade and school
           signed_student_teachers <- rvs$teachers_data |>
-            filter(school_name == signed_user$school_name) |>
+            dplyr::filter(school_name == signed_user$school_name) |>
             dplyr::select(user_name) |>
             unlist() |>
             as.vector()
 
           student_content <- rvs$pdf_data %>%
-            filter(grade == signed_user$grade &
+            dplyr::filter(grade == signed_user$grade &
               teacher %in% signed_student_teachers &
               status == "Available")
 
@@ -948,7 +990,8 @@ server <- function(input, output, session) {
               selected_values <- input[[paste0("filter_", col)]]
 
               if (!is.null(selected_values) && length(selected_values) > 0) {
-                filtered_data <- student_content |> dplyr::filter(get(col) %in% selected_values)
+                filtered_data <- student_content |>
+                  dplyr::filter(get(col) %in% selected_values)
                 return(filtered_data)
               }
             }
@@ -979,8 +1022,8 @@ server <- function(input, output, session) {
               # Create card decks for each teacher
               card_decks <- lapply(student_teachers, function(s_teacher) {
                 # Filter data for the current teacher
-                teacher_data <- filter(filtered_data, teacher == !!s_teacher)
-                teacher_data <- arrange(teacher_data, desc(time))
+                teacher_data <- dplyr::filter(filtered_data, teacher == !!s_teacher)
+                teacher_data <- dplyr::arrange(teacher_data, desc(time))
 
                 # Set payment status
                 div(
@@ -1071,11 +1114,11 @@ server <- function(input, output, session) {
 
             if (spend_time > 2) {
               selected_pdf_details <- rvs$pdf_data |>
-                filter(pdf_name == input$selected_pdf &
+                dplyr::filter(pdf_name == input$selected_pdf &
                   grade == signed_user$grade)
 
               teacher_data <- rvs$teachers_data |>
-                filter(
+                dplyr::filter(
                   user_name == selected_pdf_details$teacher
                 )
 
@@ -1184,11 +1227,11 @@ server <- function(input, output, session) {
             tags$span(paste("Character count:", nchar(input$request_description), "/ 100 characters"), class = "small text-gray")
           })
           output$teacher_requests <- reactable::renderReactable({
-            # Filter and arrange the data as needed
+            # Filter and dplyr::arrange the data as needed
             data <- rvs$requests_data |>
-              filter(teacher_id == signed_user$id) |>
+              dplyr::filter(teacher_id == signed_user$id) |>
               dplyr::select(-c(teacher_id, request_description)) |>
-              arrange(desc(time))
+              dplyr::arrange(desc(time))
 
             # Set the column names
             colnames(data) <- c("ID", "No. photos", "Grade", "Learning Area", "Topic", "Sub Topic", "Time", "Status")
@@ -1207,7 +1250,7 @@ server <- function(input, output, session) {
               columns = list(
                 Status = reactable::colDef(
                   style = function(status) {
-                    color <- case_when(
+                    color <- dplyr::case_when(
                       status == "DECLINED" ~ "#e00000",
                       status == "PENDING" ~ "#50BD8C",
                       status == "APPROVED" ~ "#008000",
@@ -1229,7 +1272,7 @@ server <- function(input, output, session) {
           output$teacher_students <- reactable::renderReactable({
             # Filter and arrange the data as needed
             data <- rvs$students_data |>
-              filter(school_name == signed_user$school_name &
+              dplyr::filter(school_name == signed_user$school_name &
                 grade %in% grades) |>
               dplyr::select(id, user_name, grade, paid)
 
@@ -1442,7 +1485,7 @@ server <- function(input, output, session) {
     observe({
       if (nrow(rvs$school_data) > 0) {
         requests <- rvs$requests_data |>
-          filter(status == "PROCESSING") |>
+          dplyr::filter(status == "PROCESSING") |>
           dplyr::select(id) |>
           unlist() |>
           as.vector()
@@ -1459,7 +1502,7 @@ server <- function(input, output, session) {
 
     observeEvent(input$doc_request, {
       request <- rvs$requests_data |>
-        filter(id == input$doc_request)
+        dplyr::filter(id == input$doc_request)
       updateTextInput(
         session = session,
         inputId = "doc_topic",
@@ -1489,10 +1532,10 @@ server <- function(input, output, session) {
     })
 
     output$requests_data <- renderUI({
-      # Filter and arrange the data as needed
+      # Filter and dplyr::arrange the data as needed
       data <- rvs$requests_data |>
-        arrange(desc(time)) |>
-        mutate(details = NA)
+        dplyr::arrange(desc(time)) |>
+        dplyr::mutate(details = NA)
 
       # Set the column names
       colnames(data) <- c(
@@ -1527,7 +1570,7 @@ server <- function(input, output, session) {
               `Additional info` = reactable::colDef(show = FALSE),
               Status = reactable::colDef(
                 style = function(status) {
-                  color <- case_when(
+                  color <- dplyr::case_when(
                     status == "CANCELLED" ~ "#e00000",
                     status == "PENDING" ~ "#50BD8C",
                     status == "APPROVED" ~ "#008000",
@@ -1679,8 +1722,8 @@ server <- function(input, output, session) {
     output$school_data <- renderUI({
       # get the school data
       table_data <- rvs$school_data |>
-        arrange(desc(time)) |>
-        mutate(details = NA)
+        dplyr::arrange(desc(time)) |>
+        dplyr::mutate(details = NA)
 
       if (nrow(table_data) > 0) {
         # Set the column names
@@ -1762,8 +1805,8 @@ server <- function(input, output, session) {
     output$teachers_data <- renderUI({
       # get the teachers data
       teachers_data <- rvs$teachers_data |>
-        arrange(desc(time)) |>
-        mutate(details = NA)
+        dplyr::arrange(desc(time)) |>
+        dplyr::mutate(details = NA)
 
       colnames(teachers_data) <- c(
         "ID", "Name", "School", "Grade", "Phone",
@@ -1844,8 +1887,8 @@ server <- function(input, output, session) {
     output$students_data <- renderUI({
       # get the student data
       students_data <- rvs$students_data |>
-        arrange(desc(time)) |>
-        mutate(details = NA)
+        dplyr::arrange(desc(time)) |>
+        dplyr::mutate(details = NA)
 
       colnames(students_data) <- c(
         "ID", "Name", "School", "Grade", "Phone",
@@ -1973,8 +2016,8 @@ server <- function(input, output, session) {
     output$pdf_data <- renderUI({
       # get the teachers data
       pdf_data <- rvs$pdf_data |>
-        arrange(desc(time)) |>
-        mutate(details = NA)
+        dplyr::arrange(desc(time)) |>
+        dplyr::mutate(details = NA)
 
       colnames(pdf_data) <- c(
         "ID", "Name", "Teacher", "Grade", "Learning Area",
@@ -2058,9 +2101,9 @@ server <- function(input, output, session) {
     output$payments_data <- renderUI({
       # get the payments data
       payments_data <- rvs$payments_data |>
-        arrange(desc(time)) |>
+        dplyr::arrange(desc(time)) |>
         dplyr::select(-term) |>
-        mutate(details = NA)
+        dplyr::mutate(details = NA)
 
       colnames(payments_data) <- c(
         "Ticket ID", "Student ID", "Code", "Amount",
@@ -2086,7 +2129,7 @@ server <- function(input, output, session) {
               ),
               Status = reactable::colDef(
                 style = function(status) {
-                  color <- case_when(
+                  color <- dplyr::case_when(
                     status == "DECLINED" ~ "#e00000",
                     status == "PENDING" ~ "#50BD8C",
                     status == "APPROVED" ~ "#008000",
@@ -2153,9 +2196,9 @@ server <- function(input, output, session) {
     output$payments_tickets_data <- reactable::renderReactable({
       # Filter and arrange the data as needed
       data <- rvs$payments_data |>
-        filter(user_id == signed_user$id) |>
+        dplyr::filter(user_id == signed_user$id) |>
         dplyr::select(-c(user_id, total, balance)) |>
-        arrange(desc(time))
+        dplyr::arrange(desc(time))
 
       # Set the column names
       colnames(data) <- c(
@@ -2174,7 +2217,7 @@ server <- function(input, output, session) {
         columns = list(
           Status = reactable::colDef(
             style = function(status) {
-              color <- case_when(
+              color <- dplyr::case_when(
                 status == "DECLINED" ~ "#e00000",
                 status == "PENDING" ~ "#50BD8C",
                 status == "APPROVED" ~ "#008000",
@@ -2329,7 +2372,7 @@ server <- function(input, output, session) {
     })
 
     signed_admin_user <- rvs$administrator_data |>
-      filter(input_col == user_details$email)
+      dplyr::filter(input_col == user_details$email)
     record_admin_action(
       user = signed_admin_user$value,
       action = "View",
@@ -2351,7 +2394,7 @@ server <- function(input, output, session) {
       )
       rvs$requests_data <- refresh_table_data("requests")
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Update",
@@ -2448,7 +2491,7 @@ server <- function(input, output, session) {
       pdf_path <- file.path("www/pdf", input$pdfFile$name)
 
       teacher_name <- rvs$teachers_data |>
-        filter(id == input$doc_teacher_id) |>
+        dplyr::filter(id == input$doc_teacher_id) |>
         dplyr::select(user_name) |>
         unlist() |>
         as.vector()
@@ -2500,7 +2543,7 @@ server <- function(input, output, session) {
         rvs$pdf_data <- refresh_table_data(table_name = "content")
         rvs$requests_data <- refresh_table_data(table_name = "requests")
         signed_admin_user <- rvs$administrator_data |>
-          filter(input_col == user_details$email)
+          dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
           action = "Upload",
@@ -2546,7 +2589,7 @@ server <- function(input, output, session) {
       # refresh added data
       rvs$school_data <- refresh_table_data(table_name = "schools")
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Add",
@@ -2559,6 +2602,14 @@ server <- function(input, output, session) {
       )
     }
 
+    shinyjs::addCssClass(
+      id = "tab_buttons",
+      class = "justify-content-end"
+    )
+    shinyjs::removeCssClass(
+      id = "tab_buttons",
+      class = "justify-content-between"
+    ) 
     shinyjs::hide("tab_2")
     shinyjs::show("tab_1")
     shinyjs::hide(
@@ -2632,7 +2683,7 @@ server <- function(input, output, session) {
         session = session
       )
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Update",
@@ -2809,7 +2860,7 @@ server <- function(input, output, session) {
         session = session
       )
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Update",
@@ -2846,7 +2897,7 @@ server <- function(input, output, session) {
         session = session
       )
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Delete",
@@ -2953,11 +3004,11 @@ server <- function(input, output, session) {
 
     total_pdfs_per_grade <- pdf_data |>
       dplyr::group_by(grade) |>
-      dplyr::summarise(total_pdfs_in_grade = n(), .groups = "drop")
+      dplyr::summarise(total_pdfs_in_grade = dplyr::n(), .groups = "drop")
 
     pdf_counts <- pdf_data |>
       dplyr::group_by(teacher, grade) |>
-      dplyr::summarise(pdf_count = n(), .groups = "drop")
+      dplyr::summarise(pdf_count = dplyr::n(), .groups = "drop")
 
     teacher_data_with_content <- teachers_data |>
       dplyr::left_join(
@@ -3168,7 +3219,7 @@ server <- function(input, output, session) {
         session = session
       )
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Update",
@@ -3273,7 +3324,7 @@ server <- function(input, output, session) {
       )
 
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Update",
@@ -3339,7 +3390,7 @@ server <- function(input, output, session) {
         })
 
         signed_admin_user <- rvs$administrator_data |>
-          filter(input_col == user_details$email)
+          dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
           action = "Update",
@@ -3468,7 +3519,7 @@ server <- function(input, output, session) {
         session = session
       )
       signed_admin_user <- rvs$administrator_data |>
-        filter(input_col == user_details$email)
+        dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Flag",
@@ -3491,7 +3542,7 @@ server <- function(input, output, session) {
     teacher_name <- details$Teacher
 
     teacher_grades <- rvs$teachers_data |>
-      filter(user_name == teacher_name) |>
+      dplyr::filter(user_name == teacher_name) |>
       dplyr::select(grade) |>
       unlist() |>
       as.vector()
@@ -3633,7 +3684,7 @@ server <- function(input, output, session) {
 
         rvs$pdf_data <- refresh_table_data("content")
         signed_admin_user <- rvs$administrator_data |>
-          filter(input_col == user_details$email)
+          dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
           action = "Update",
@@ -3708,7 +3759,7 @@ server <- function(input, output, session) {
     # if has confirmed details
     signed_email <- user_details$email
     student_data <- rvs$students_data |>
-      filter(email == signed_email)
+      dplyr::filter(email == signed_email)
 
     if (input$confirm_ticket_details) {
       data <- rvs$administrator_data
@@ -3810,7 +3861,7 @@ server <- function(input, output, session) {
   observeEvent(input$change_payment_status, {
     details <- input$student_payments_details$info
     earlier_pending_tickets <- rvs$payments_data |>
-      filter(status == "PENDING" &
+      dplyr::filter(status == "PENDING" &
         user_id == details$`Student ID` &
         time < details$Time)
     if (nrow(earlier_pending_tickets) > 0) {
@@ -3824,7 +3875,7 @@ server <- function(input, output, session) {
       )
     } else {
       student_data <- rvs$students_data |>
-        filter(id == details$`Student ID`)
+        dplyr::filter(id == details$`Student ID`)
 
       if (input$edit_payment_status == "APPROVED") {
         data <- rvs$administrator_data
@@ -3834,12 +3885,12 @@ server <- function(input, output, session) {
           as.vector()
 
         price <- rvs$school_data |>
-          filter(school_name == student_data$school_name) |>
+          dplyr::filter(school_name == student_data$school_name) |>
           dplyr::select(price) |>
           as.numeric()
 
         paid_amount <- rvs$payments_data |>
-          filter(status == "APPROVED" &
+          dplyr::filter(status == "APPROVED" &
             user_id == details$`Student ID` &
             term == values$value[2]) |>
           dplyr::select(amount) |>
@@ -3878,7 +3929,7 @@ server <- function(input, output, session) {
         )
         rvs$payments_data <- refresh_table_data("payments")
         signed_admin_user <- rvs$administrator_data |>
-          filter(input_col == user_details$email)
+          dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
           action = "Update",
@@ -4101,7 +4152,7 @@ server <- function(input, output, session) {
     minute_now <- as.numeric(format(current_time, "%M"))
 
     # Check if it's 12 AM
-    if (hour_now == 23 && minute_now == 35) {
+    if (hour_now == 00 && minute_now == 25) {
       temp_file <- tempfile(fileext = ".xlsx")
 
       writexl::write_xlsx(
@@ -4120,7 +4171,7 @@ server <- function(input, output, session) {
 
       admin_emails <- rvs$administrator_data |>
         dplyr::select(input_col) |>
-        filter(grepl("@gmail\\.com$", input_col)) |>
+        dplyr::filter(grepl("@gmail\\.com$", input_col)) |>
         unlist() |>
         as.vector()
 
@@ -4203,7 +4254,7 @@ a {
 
       for (email in admin_emails) {
         admin_name <- rvs$administrator_data |>
-          filter(grepl(email, input_col)) |>
+          dplyr::filter(grepl(email, input_col)) |>
           pull(value)
 
         first_name <- strsplit(admin_name, " ")[[1]][1]
