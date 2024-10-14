@@ -1038,3 +1038,7 @@ a.d-block.w-100 {
 .accordion>.card>.card-header {
   background-color: var(--primary);
 }
+
+button.btn.btn-outline-light.dropdown-toggle {
+  line-height: 1.4;
+}
