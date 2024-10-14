@@ -1,27 +1,26 @@
 teachers_faqs <- div(
   id = "teachers_faqs_page",
-  class = "mt-5 pt-5 container lead bg-gray-light p-3 rounded",
-  tags$h3("Terms of Partnership",
+  class = "container mt-5 pt-5 px-3 bg-gray-light rounded pb-3 lead",
+  tags$h4("TERMS OF PARTNERSHIP",
     class = "text-center text-bold pb-2 text-body-1"
   ),
-  tags$h6(
-    tags$span("Dear", class = "lead"),
-    tags$span("Teacher, ", class = "lead text-bold"),
-    tags$span(" Welcome to ", class = "lead"),
-    tags$span("CANDIDATE", class = "text-bold lead")
+  p(
+    tags$span("Dear"),
+    tags$span("Teacher, ", class = "text-bold"),
+    tags$span(" Welcome to "),
+    tags$span("CANDIDATE", class = "text-bold")
   ),
 
   # First FAQ Panel: Partnership Info
-  tags$h6(
+  p(
     "We want to partner with you to develop quick study content for your students.",
-    class = "lead mb-4"
+    class = "mb-4"
   ),
-  tags$h6(
+  p(
     tags$span("How does it work?"),
-    class = "lead text-bold"
+    class = "text-bold"
   ),
   tags$ol(
-    class = "lead",
     tags$li("Pick a subject e.g., mathematics."),
     tags$li("Select a topic you feel needs additional attention e.g., Decimals and percentages."),
     tags$li("Clearly divide the topic into the main concepts."),
@@ -44,7 +43,7 @@ teachers_faqs <- div(
     bs4Dash::accordionItem(
       title = "What happens next?",
       class = "bg-secondary",
-      collapsed = FALSE,
+      collapsed = TRUE,
       tags$div(
         "Our graphic designer will retrieve your uploaded content, create a well-formatted digital version that is uploaded into CANDIDATE."
       )
@@ -54,7 +53,7 @@ teachers_faqs <- div(
     bs4Dash::accordionItem(
       title = "Then?",
       class = "bg-secondary",
-      collapsed = FALSE,
+      collapsed = TRUE,
       tags$div(
         "Then parents and students are alerted via email that new content has been availed on the portal. If they have already fully subscribed, the content is immediately viewable along with all other content previously uploaded for their grade."
       )
@@ -64,7 +63,7 @@ teachers_faqs <- div(
     bs4Dash::accordionItem(
       title = "How about revenue share?",
       class = "bg-secondary",
-      collapsed = FALSE,
+      collapsed = TRUE,
       tags$div(
         tags$p("Students pay a termly fixed fee of Ksh. 799 to access all content for their grade. This is divided on a 50/50 basis between ourselves and you."),
         tags$ul(
@@ -81,7 +80,7 @@ teachers_faqs <- div(
     bs4Dash::accordionItem(
       title = "How is the money sent?",
       class = "bg-secondary",
-      collapsed = FALSE,
+      collapsed = TRUE,
       tags$div(
         "Every 1st day of the month, all monies due to teachers are sent via MPESA."
       )

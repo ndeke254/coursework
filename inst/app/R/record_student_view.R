@@ -31,7 +31,7 @@ record_student_view <- \(
   teachers_data <- DBI::dbReadTable(conn, "teachers")
   # check if view exists for today
   exists <- views_data |>
-    filter(
+    dplyr::filter(
       student_id == student_id &&
         teacher_id == teacher_id &&
         pdf_id == pdf_id &&
@@ -50,7 +50,7 @@ record_student_view <- \(
 
     # update the teachers' total views
     teacher_data <- teachers_data |>
-      filter(
+      dplyr::filter(
         id == teacher_id
       )
     no_views <- as.numeric(teacher_data$views) + 1
@@ -69,6 +69,6 @@ record_student_view <- \(
         teacher_id = teacher_id
       )
     )
-   DBI::dbClearResult(res)
+    DBI::dbClearResult(res)
   }
 }
