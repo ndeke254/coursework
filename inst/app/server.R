@@ -1238,7 +1238,7 @@ server <- function(input, output, session) {
 
             # Create a reactable with customization
             reactable::reactable(
-              data,
+              data = data,
               searchable = TRUE,
               defaultPageSize = 10,
               wrap = FALSE,
@@ -2880,15 +2880,23 @@ server <- function(input, output, session) {
           inline = TRUE
         ) |>
           modified_switch(),
-        actionButton(
-          inputId = paste0("delete_school_btn"),
-          label = "Delete",
-          class = "bg-default mt-0"
-        ),
-        actionButton(
-          inputId = paste0("edit_school_btn"),
-          label = "Edit",
-          class = "bg-default mt-0"
+        div(
+          class = "row justify-content-center",
+          actionButton(
+            inputId = paste0("delete_school_btn"),
+            label = "Delete",
+            class = "bg-default mt-0"
+          ),
+          actionButton(
+            inputId = paste0("edit_school_btn"),
+            label = "Edit",
+            class = "bg-default mt-0"
+          ),
+          actionButton(
+            inputId = paste0("view_school_btn"),
+            label = "Details",
+            class = "bg-default mt-0"
+          )
         )
       )
     )
@@ -2903,6 +2911,168 @@ server <- function(input, output, session) {
       showCancelButton = TRUE,
       showConfirmButton = FALSE,
       html = TRUE
+    )
+  })
+
+  # School details button
+  observeEvent(input$view_school_btn, {
+    details <- input$school_menu_details$info
+
+    # Show the details modal dialog
+    showModal(modalDialog(
+      title = paste(details$ID, ":", details$Name),
+      size = "l",
+      reactable::reactableOutput("school_teachers_details"),
+      footer = tagList(
+        downloadButton(
+          outputId = "download_school_payments",
+          label = ""
+        ),
+        modalButton("Cancel")
+      )
+    ))
+  })
+
+
+  output$school_teachers_details <- reactable::renderReactable({
+    details <- input$school_menu_details$info
+
+    school_data <- rvs$school_data |>
+      dplyr::filter(school_name == details$Name)
+    term_fees <- as.numeric(school_data$price)
+
+    teachers_data <- rvs$teachers_data |>
+      dplyr::filter(school_name == details$Name) |>
+      tidyr::separate_rows(grade, sep = ", ")
+
+    pdf_data <- rvs$pdf_data |>
+      dplyr::filter(teacher %in% teachers_data$user_name)
+
+    student_data <- rvs$students_data |>
+      dplyr::filter(school_name == details$Name)
+
+    total_pdfs_per_grade <- pdf_data |>
+      dplyr::group_by(grade) |>
+      dplyr::summarise(total_pdfs_in_grade = n(), .groups = "drop")
+
+    pdf_counts <- pdf_data |>
+      dplyr::group_by(teacher, grade) |>
+      dplyr::summarise(pdf_count = n(), .groups = "drop")
+
+    teacher_data_with_content <- teachers_data |>
+      dplyr::left_join(
+        pdf_counts,
+        by = c("user_name" = "teacher", "grade" = "grade")
+      ) |>
+      dplyr::left_join(total_pdfs_per_grade, by = "grade") |>
+      dplyr::mutate(
+        per_cent = pdf_count / total_pdfs_in_grade
+      ) |>
+      tidyr::replace_na(list(per_cent = 0))
+
+    teacher_data_with_content <- teacher_data_with_content |>
+      dplyr::select(user_name, grade, views, per_cent)
+
+    students_paid <- student_data |>
+      dplyr::group_by(grade) |>
+      dplyr::summarise(paid_students = sum(paid), .groups = "drop")
+
+    teacher_data_with_content <- teacher_data_with_content |>
+      dplyr::left_join(students_paid, by = "grade") |>
+      tidyr::replace_na(list(paid_students = 0)) |>
+      dplyr::mutate(
+        revenue = term_fees * paid_students * 0.5 * per_cent
+      )
+
+    colnames(teacher_data_with_content) <- c(
+      "Name", "Grade", "Views", "% Content", "Paid students", "Revenue"
+    )
+
+    output$download_school_payments <- downloadHandler(
+      filename = function() {
+        paste(details$Name, "-", Sys.Date(), ".xlsx", sep = "")
+      },
+      content = function(file) {
+        writexl::write_xlsx(teacher_data_with_content, file)
+      }
+    )
+    reactable::reactable(
+      data = teacher_data_with_content,
+      defaultPageSize = 10,
+      outlined = TRUE,
+      searchable = TRUE,
+      wrap = FALSE,
+      highlight = TRUE,
+      theme = reactable::reactableTheme(
+        borderColor = "#ddd",
+        cellPadding = "8px",
+        borderWidth = "1px",
+        highlightColor = "#f0f0f0"
+      ),
+      groupBy = "Grade",
+      onClick = "expand",
+      columns = list(
+        Grade = reactable::colDef(footer = "Total"),
+        `% Content` = reactable::colDef(
+          na = "–",
+          format = reactable::colFormat(percent = TRUE, digits = 2)
+        ),
+        `Paid students` = reactable::colDef(
+          aggregate = "unique",
+          cell = function(value) {
+            return("")
+          },
+          align = "center",
+          footer = reactable::JS("function(column, state) {
+    let total = 0;
+    state.sortedData.forEach(function(row) {
+      let value = parseFloat(row[column.id]);  // Convert to a number
+      if (!isNaN(value)) {  // Ensure the value is a valid number
+        total += value;
+      }
+    });
+    return total.toLocaleString();  // Return total as formatted number
+  }"),
+          footerStyle = htmltools::css(
+            font_weight = 600,
+            border_top = "2px solid black"
+          )
+        ),
+        Revenue = reactable::colDef(
+          aggregate = "sum",
+          footer = reactable::JS("function(column, state) {
+          let total = 0
+          state.sortedData.forEach(function(row) {
+            total += row[column.id]
+          })
+          return 'Ksh ' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        }"),
+          format = reactable::colFormat(
+            prefix = "Ksh ",
+            digits = 2,
+            separators = TRUE
+          ),
+          footerStyle = htmltools::css(
+            font_weight = 600,
+            border_top = "2px solid black"
+          )
+        )
+      ),
+      rowStyle = reactable::JS(
+        "function(rowInfo) {
+        if (rowInfo && rowInfo.level == 0) {
+          return {
+            background: '#16314214',
+            borderLeft: '2px solid #50BD8C',
+            fontWeight: 600
+          }
+        }
+        return {};
+      }"
+      ),
+      defaultColDef = reactable::colDef(
+        footerStyle = list(fontWeight = "bold")
+      )
     )
   })
 
@@ -3931,7 +4101,7 @@ server <- function(input, output, session) {
     minute_now <- as.numeric(format(current_time, "%M"))
 
     # Check if it's 12 AM
-    if (hour_now == 03 && minute_now == 25) {
+    if (hour_now == 23 && minute_now == 35) {
       temp_file <- tempfile(fileext = ".xlsx")
 
       writexl::write_xlsx(
