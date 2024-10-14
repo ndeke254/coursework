@@ -20,7 +20,6 @@ create_payment_ticket <- function(table_name, data) {
   available <- table_data |>
     dplyr::select(user_id, code)
   new_data <- c(data$user_id, data$code)
-  print(available)
   # check for a row with match
   match <- prodlim::row.match(new_data, available)
 

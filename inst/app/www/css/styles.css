@@ -1042,3 +1042,11 @@ a.d-block.w-100 {
 button.btn.btn-outline-light.dropdown-toggle {
   line-height: 1.4;
 }
+
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+  background-color: var(--secondary) !important;
+}
+
+div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
+  background-color: var(--primary) !important;
+}

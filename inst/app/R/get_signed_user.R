@@ -25,8 +25,8 @@ get_signed_user <- function(user_email, user_type) {
 
   # Get the user details from the database
   result <- DBI::dbGetQuery(
-    conn,
-    query,
+    conn = conn,
+    statement = query,
     params = list(email = user_email)
   )
 

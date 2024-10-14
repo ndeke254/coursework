@@ -117,6 +117,7 @@ ui <- shiny::bootstrapPage(
         div(
           class = "container mt-5 pt-5 px-3
            bg-gray-light rounded pb-3",
+          style = "font-size: 1.25rem",
           includeMarkdown("www/privacy_policy.md")
         )
       ),
@@ -125,6 +126,7 @@ ui <- shiny::bootstrapPage(
         div(
           class = "container mt-5 pt-5 px-3
            bg-gray-light rounded pb-3",
+          style = "font-size: 1.25rem",
           includeMarkdown("www/terms_of_service.md")
         )
       ),
