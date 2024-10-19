@@ -48,6 +48,7 @@ appId <- Sys.getenv("appId")
 authDomain <- Sys.getenv("authDomain")
 storageBucket <- Sys.getenv("storageBucket")
 app_uid <- Sys.getenv("POLISHED_UID")
+admin_email <- Sys.getenv("admin_email")
 
 # configure polished auth
 polished::polished_config(
