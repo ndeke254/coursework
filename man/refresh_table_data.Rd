@@ -14,5 +14,5 @@ Refresh table data
 }
 \examples{
 # Example of refreshing table data (commented out due to missing file)
-# refresh_table_data(reactive_data = rv$school_data, table_name = "schools")
+# refresh_table_data(reactive_data = rv$schools_data, table_name = "schools")
 }

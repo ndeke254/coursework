@@ -47,6 +47,7 @@ admin_registration_tab <- div(
       icon = argonR::argonIcon("cloud-upload-96", color = "body"),
       icon = argonR::argonIcon("caps-small", color = "body"),
       icon = argonR::argonIcon("settings", color = "body"),
+      icon = argonR::argonIcon("envelope", color = "body"),
       icon = argonR::argonIcon("books", color = "body")
     ),
     argonR::argonTab(
@@ -263,7 +264,7 @@ admin_registration_tab <- div(
           shinyjs::hidden(div(
             id = "tab_2",
             p("Confirm school details", class = "mb-3 text-bold"),
-            uiOutput("confirm_school_data")
+            uiOutput("confirm_schools_data")
           )),
           div(
             style = "overflow: auto; margin-top: 20px;",
@@ -319,7 +320,7 @@ admin_registration_tab <- div(
             tabName = "School",
             active = TRUE,
             p("Existing schools data", class = " text-bold mt-3"),
-            uiOutput("school_data")
+            uiOutput("schools_data")
           ),
           argonR::argonTab(
             tabName = "Teacher",
@@ -372,6 +373,74 @@ admin_registration_tab <- div(
             uiOutput("payments_data")
           )
         )
+      )
+    ),
+    argonR::argonTab(
+      tabName = "Emails",
+      bslib::card(
+        fluidRow(
+          column(
+            width = 3,
+            shinyWidgets::pickerInput(
+              inputId = "receipient_group",
+              label = label_mandatory("Group:"),
+              options = list(
+                style = "btn-outline-light",
+                title = "Eg. Student",
+                maxOptions = 3
+              ),
+              choices = c("Students", "Teachers", "Administrators", "Schools")
+            )
+          ),
+          column(
+            width = 5,
+            shinyWidgets::pickerInput(
+              inputId = "select_receipient",
+              label = label_mandatory("Emails:"),
+              multiple = TRUE,
+              options = shinyWidgets::pickerOptions(
+                style = "btn-outline-light",
+                title = "Eg. johndoe@gmail.com",
+                maxOptions = 3,
+                actionsBox = TRUE,
+                liveSearch = TRUE,
+                header = "Search emails",
+                noneResultsText = "No email matched",
+                selectedTextFormat = "count",
+                virtualScroll = 10
+              ),
+              choices = NULL
+            )
+          ),
+          column(
+            width = 4,
+            shinyWidgets::pickerInput(
+              inputId = "email_template",
+              label = label_mandatory("Template:"),
+              options = list(
+                style = "btn-outline-light",
+                title = "Eg. Payment reminders",
+                maxOptions = 3
+              ),
+              choices = NULL
+            )
+          )
+        ),
+        fluidRow(
+          class = "justify-content-end",
+          column(
+            width = 3,
+            class = "pt-3",
+            actionButton(
+              inputId = "push_emails",
+              label = "Push",
+              width = "175px",
+              class = "mt-2"
+            ) |>
+              basic_primary_btn()
+          )
+        ),
+        uiOutput("emails_data")
       )
     ),
     argonR::argonTab(
