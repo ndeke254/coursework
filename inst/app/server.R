@@ -27,14 +27,15 @@ server <- function(input, output, session) {
   # Create reactive values for tables
   rvs <- reactiveValues(
     message = NULL,
-    school_data = DBI::dbReadTable(conn, "schools"),
+    schools_data = DBI::dbReadTable(conn, "schools"),
     pdf_data = DBI::dbReadTable(conn, "content"),
     teachers_data = DBI::dbReadTable(conn, "teachers"),
     students_data = DBI::dbReadTable(conn, "students"),
     payments_data = DBI::dbReadTable(conn, "payments"),
     requests_data = DBI::dbReadTable(conn, "requests"),
-    administrator_data = DBI::dbReadTable(conn, "administrator"),
+    administrators_data = DBI::dbReadTable(conn, "administrator"),
     views_data = DBI::dbReadTable(conn, "views"),
+    emails_data = DBI::dbReadTable(conn, "emails"),
     idx = NULL,
     status = NULL
   )
@@ -645,16 +646,16 @@ server <- function(input, output, session) {
   observe({
     shinyWidgets::updatePickerInput(
       inputId = "teacher_school",
-      choices = rvs$school_data$school_name,
+      choices = rvs$schools_data$school_name,
       choicesOpt = list(
-        subtext = rvs$school_data$level
+        subtext = rvs$schools_data$level
       )
     )
     shinyWidgets::updatePickerInput(
       inputId = "student_school",
-      choices = rvs$school_data$school_name,
+      choices = rvs$schools_data$school_name,
       choicesOpt = list(
-        subtext = rvs$school_data$level
+        subtext = rvs$schools_data$level
       )
     )
 
@@ -671,7 +672,7 @@ server <- function(input, output, session) {
       is_admin <- pol_signed_user$content$is_admin
 
       if (is_admin) {
-        admin_data <- rvs$administrator_data
+        admin_data <- rvs$administrators_data
         exists <- signed_email %in% admin_data$input_col
 
         if (exists) {
@@ -790,7 +791,7 @@ server <- function(input, output, session) {
           )
         } else if (user_role == "student") {
           # check if user has paid
-          price <- rvs$school_data |>
+          price <- rvs$schools_data |>
             dplyr::filter(school_name == signed_user$school_name) |>
             dplyr::select(price) |>
             as.numeric()
@@ -897,7 +898,7 @@ server <- function(input, output, session) {
           })
 
           output$term_end_student_table <- renderUI({
-            data <- rvs$administrator_data
+            data <- rvs$administrators_data
             values <- data |>
               dplyr::select(value) |>
               as.vector()
@@ -1483,7 +1484,7 @@ server <- function(input, output, session) {
 
     # Update field choices
     observe({
-      if (nrow(rvs$school_data) > 0) {
+      if (nrow(rvs$schools_data) > 0) {
         requests <- rvs$requests_data |>
           dplyr::filter(status == "PROCESSING") |>
           dplyr::select(id) |>
@@ -1683,7 +1684,7 @@ server <- function(input, output, session) {
       )
 
       # output table for entered data confirmation
-      output$confirm_school_data <- renderUI({
+      output$confirm_schools_data <- renderUI({
         table_html <- reactable::reactable(
           data = data.frame(
             Input = c(
@@ -1719,9 +1720,9 @@ server <- function(input, output, session) {
     })
 
     # output table for already exisiting school data
-    output$school_data <- renderUI({
+    output$schools_data <- renderUI({
       # get the school data
-      table_data <- rvs$school_data |>
+      table_data <- rvs$schools_data |>
         dplyr::arrange(desc(time)) |>
         dplyr::mutate(details = NA)
 
@@ -2371,7 +2372,7 @@ server <- function(input, output, session) {
       })
     })
 
-    signed_admin_user <- rvs$administrator_data |>
+    signed_admin_user <- rvs$administrators_data |>
       dplyr::filter(input_col == user_details$email)
     record_admin_action(
       user = signed_admin_user$value,
@@ -2393,7 +2394,7 @@ server <- function(input, output, session) {
         session = session
       )
       rvs$requests_data <- refresh_table_data("requests")
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -2542,7 +2543,7 @@ server <- function(input, output, session) {
         # refresh added data
         rvs$pdf_data <- refresh_table_data(table_name = "content")
         rvs$requests_data <- refresh_table_data(table_name = "requests")
-        signed_admin_user <- rvs$administrator_data |>
+        signed_admin_user <- rvs$administrators_data |>
           dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
@@ -2562,7 +2563,7 @@ server <- function(input, output, session) {
   # Observe confirm button
   observeEvent(input$confirmBtn, {
     # Create data to append
-    school_data <- data.frame(
+    schools_data <- data.frame(
       id = next_school_id("schools"),
       school_name = stringr::str_to_sentence(input$school_name),
       level = input$school_level,
@@ -2578,7 +2579,7 @@ server <- function(input, output, session) {
     # Call the register_new_school function
     success <- register_new_school(
       table_name = "schools",
-      data = school_data
+      data = schools_data
     )
 
     if (success == 1) {
@@ -2587,13 +2588,13 @@ server <- function(input, output, session) {
         session = session
       )
       # refresh added data
-      rvs$school_data <- refresh_table_data(table_name = "schools")
-      signed_admin_user <- rvs$administrator_data |>
+      rvs$schools_data <- refresh_table_data(table_name = "schools")
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
         action = "Add",
-        description = paste("Added a new school:", school_data$id)
+        description = paste("Added a new school:", schools_data$id)
       )
     } else {
       alert_fail_ui(
@@ -2609,7 +2610,7 @@ server <- function(input, output, session) {
     shinyjs::removeCssClass(
       id = "tab_buttons",
       class = "justify-content-between"
-    ) 
+    )
     shinyjs::hide("tab_2")
     shinyjs::show("tab_1")
     shinyjs::hide(
@@ -2670,7 +2671,7 @@ server <- function(input, output, session) {
         new_status = new_status
       )
       # Refresh data
-      rvs$school_data <- refresh_table_data(table_name = "schools")
+      rvs$schools_data <- refresh_table_data(table_name = "schools")
       confirm_message <- if (new_status == "Enabled") {
         "enabled..."
       } else {
@@ -2682,7 +2683,7 @@ server <- function(input, output, session) {
         info = paste(details$Name, "has been", confirm_message),
         session = session
       )
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -2852,14 +2853,14 @@ server <- function(input, output, session) {
       removeModal()
 
       # Refresh data
-      rvs$school_data <- refresh_table_data(table_name = "schools")
+      rvs$schools_data <- refresh_table_data(table_name = "schools")
 
       # Show success message
       alert_success_ui(
         info = "School details updated...",
         session = session
       )
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -2889,14 +2890,14 @@ server <- function(input, output, session) {
       # Dlete school records
       delete_school_records(user_id = details$ID)
       # Refresh data
-      rvs$school_data <- refresh_table_data(table_name = "schools")
+      rvs$schools_data <- refresh_table_data(table_name = "schools")
 
       alert_success_ui(
         position = "top-end",
         info = paste(details$Name, "has been deleted..."),
         session = session
       )
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -2988,9 +2989,9 @@ server <- function(input, output, session) {
   output$school_teachers_details <- reactable::renderReactable({
     details <- input$school_menu_details$info
 
-    school_data <- rvs$school_data |>
+    schools_data <- rvs$schools_data |>
       dplyr::filter(school_name == details$Name)
-    term_fees <- as.numeric(school_data$price)
+    term_fees <- as.numeric(schools_data$price)
 
     teachers_data <- rvs$teachers_data |>
       dplyr::filter(school_name == details$Name) |>
@@ -3218,7 +3219,7 @@ server <- function(input, output, session) {
         info = paste(details$Name, "has been", confirm_message),
         session = session
       )
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -3323,7 +3324,7 @@ server <- function(input, output, session) {
         session = session
       )
 
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -3389,7 +3390,7 @@ server <- function(input, output, session) {
           )
         })
 
-        signed_admin_user <- rvs$administrator_data |>
+        signed_admin_user <- rvs$administrators_data |>
           dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
@@ -3408,7 +3409,7 @@ server <- function(input, output, session) {
   })
 
   output$term_end_table <- renderUI({
-    data <- rvs$administrator_data
+    data <- rvs$administrators_data
     values <- data |>
       dplyr::select(value) |>
       as.vector()
@@ -3518,7 +3519,7 @@ server <- function(input, output, session) {
         info = paste(details$Name, "has been", message),
         session = session
       )
-      signed_admin_user <- rvs$administrator_data |>
+      signed_admin_user <- rvs$administrators_data |>
         dplyr::filter(input_col == user_details$email)
       record_admin_action(
         user = signed_admin_user$value,
@@ -3683,7 +3684,7 @@ server <- function(input, output, session) {
         )
 
         rvs$pdf_data <- refresh_table_data("content")
-        signed_admin_user <- rvs$administrator_data |>
+        signed_admin_user <- rvs$administrators_data |>
           dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
@@ -3762,7 +3763,7 @@ server <- function(input, output, session) {
       dplyr::filter(email == signed_email)
 
     if (input$confirm_ticket_details) {
-      data <- rvs$administrator_data
+      data <- rvs$administrators_data
       values <- data |>
         dplyr::select(value) |>
         as.vector()
@@ -3878,13 +3879,13 @@ server <- function(input, output, session) {
         dplyr::filter(id == details$`Student ID`)
 
       if (input$edit_payment_status == "APPROVED") {
-        data <- rvs$administrator_data
+        data <- rvs$administrators_data
 
         values <- data |>
           dplyr::select(value) |>
           as.vector()
 
-        price <- rvs$school_data |>
+        price <- rvs$schools_data |>
           dplyr::filter(school_name == student_data$school_name) |>
           dplyr::select(price) |>
           as.numeric()
@@ -3928,7 +3929,7 @@ server <- function(input, output, session) {
           session = session
         )
         rvs$payments_data <- refresh_table_data("payments")
-        signed_admin_user <- rvs$administrator_data |>
+        signed_admin_user <- rvs$administrators_data |>
           dplyr::filter(input_col == user_details$email)
         record_admin_action(
           user = signed_admin_user$value,
@@ -4144,166 +4145,6 @@ server <- function(input, output, session) {
     }
   })
 
-  observe({
-    invalidateLater(60000, session)
-
-    current_time <- Sys.time()
-    hour_now <- as.numeric(format(current_time, "%H"))
-    minute_now <- as.numeric(format(current_time, "%M"))
-
-    # Check if it's 12 AM
-    if (hour_now == 00 && minute_now == 25) {
-      temp_file <- tempfile(fileext = ".xlsx")
-
-      writexl::write_xlsx(
-        list(
-          Schools = rvs$school_data,
-          Teachers = rvs$teachers_data,
-          Students = rvs$students_data,
-          Content = rvs$pdf_data,
-          Views = rvs$views_data,
-          Payments = rvs$payments_data,
-          Requests = rvs$requests_data
-        ),
-        temp_file
-      )
-
-
-      admin_emails <- rvs$administrator_data |>
-        dplyr::select(input_col) |>
-        dplyr::filter(grepl("@gmail\\.com$", input_col)) |>
-        unlist() |>
-        as.vector()
-
-      email_body <- paste0('
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <style>
-body {
-  font-family: Montserrat, sans-serif;
-  color: #333333;
-    margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.split-background {
-  background: whitesmoke;
-  padding: 40px 0;
-  width: 100%;
-}
-.container {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #ffffff;
-    border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.logo {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.logo img {
-  max-width: 300px;
-  height: auto;
-}
-h1 {
-  font-size: 20px;
-  color: #333333;
-}
-p {
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 16px 0;
-}
-a {
-  color: white !important;
-    text-decoration: none;
-}
-.button {
-  display: inline-block;
-  padding: 10px 20px;
-  font-size: 16px;
-  color: white;
-  background-color: #163142;
-    border-radius: 5px;
-  text-align: center;
-  text-decoration: none;
-  margin-top: 20px;
-}
-.footer {
-  font-size: 14px;
-  color: #777777;
-  margin-top: 30px;
-}
-  </style>
-  </head>
-  <body>
-  <div class="split-background">
-        <div class="container">
-        <div class="logo">
-        <img src="https://ndekejefferson.shinyapps.io/candidate/_w_70987ccd/logo/logo_full.png" alt="CANDIDATE LOGO">
-        </div>
-        <h1>Database Back-up report</h1>')
-
-      for (email in admin_emails) {
-        admin_name <- rvs$administrator_data |>
-          dplyr::filter(grepl(email, input_col)) |>
-          pull(value)
-
-        first_name <- strsplit(admin_name, " ")[[1]][1]
-        email_body <- paste0(email_body, "<p>Hello ", first_name, ",</p>")
-      }
-
-      email_body <- paste0(email_body, '
-            <p>Attached are CANDIDATE records:</p>
-            <ul>
-            <li>Schools</li>
-            <li>Teachers</li>
-            <li>Students</li>
-            <li>Content</li>
-            <li>Views</li>
-            <li>Payments</li>
-            <li>Requests</li>
-            </ul>
-            <div class="footer">
-            <p>Happy working,<br>Candidate Technical Team</p>
-            </div>
-            </div>
-            </div>
-            </body>
-            </html>
-        ')
-
-      email <- gmailr::gm_mime() |>
-        gmailr::gm_to(admin_emails) |>
-        gmailr::gm_from(admin_emails[1]) |>
-        gmailr::gm_subject(
-          paste(
-            "Candidate Daily Report",
-            toupper(format(Sys.Date(),
-              format = "%d-%b-%Y"
-            ))
-          )
-        ) |>
-        gmailr::gm_attach_file(temp_file) |>
-        gmailr::gm_html_body(email_body)
-
-      gmailr::gm_auth(token = gmailr::gm_token_read(
-        path = "gmailr-token.rds",
-        key = "GMAILR_KEY"
-      ))
-
-      gmailr::gm_send_message(email)
-      file.remove(temp_file)
-    }
-  })
 
   observeEvent(
     list(
@@ -4350,4 +4191,199 @@ a {
     },
     ignoreInit = TRUE
   )
+
+  # show emails sent:
+  output$emails_data <- renderUI({
+    # get the payments data
+    emails_data <- rvs$emails_data |>
+      dplyr::arrange(desc(time)) |>
+      dplyr::mutate(details = NA)
+
+    colnames(emails_data) <- c(
+      "Sender", "Receipient", "Template", "Status", "Time", "details"
+    )
+
+    if (nrow(emails_data) > 0) {
+      output$table7 <- reactable::renderReactable({
+        reactable::reactable(
+          data = emails_data,
+          searchable = TRUE,
+          sortable = TRUE,
+          defaultPageSize = 10,
+          resizable = TRUE,
+          wrap = FALSE,
+          highlight = TRUE,
+          columns = list(
+            Time = reactable::colDef(
+              minWidth = 150
+            ),
+            Status = reactable::colDef(
+              cell = function(value) {
+                if (value == "Failed") {
+                  "\u274c"
+                } else if (value == "Pending") {
+                  "\u23f3"
+                } else {
+                  "\u2714\ufe0f"
+                }
+              }
+            ),
+            details = reactable::colDef(
+              name = "",
+              sortable = FALSE,
+              align = "center",
+              cell = function(value, rowInfo) {
+                if (rowInfo$Status == "Sent") {
+                  htmltools::tags$button(
+                    id = "",
+                    class = "bi bi-arrow-repeat border-0 bg-transparent mt-3",
+                    `aria-hidden` = "true",
+                    title = "Resend",
+                    disabled = "disabled"
+                  )
+                } else {
+                  htmltools::tags$button(
+                    id = "",
+                    class = "bi bi-arrow-repeat border-0 bg-transparent mt-3",
+                    `aria-hidden` = "true",
+                    title = "Resend"
+                  )
+                }
+              }
+            )
+          ),
+          theme = reactable::reactableTheme(
+            borderColor = "#ddd",
+            cellPadding = "8px",
+            borderWidth = "1px",
+            highlightColor = "#f0f0f0"
+          ),
+          onClick = reactable::JS("function(rowInfo, column) {
+                     if (column.id !== 'details') {
+                     return
+                         }
+                      Shiny.setInputValue('resend_email', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
+                      }")
+        )
+      })
+    } else {
+      # show empty status div
+      show_empty_state_ui
+    }
+  })
+
+  observeEvent(input$receipient_group, {
+    group <- input$receipient_group
+    if (group != "") {
+      admin_emails <- rvs$administrators_data |>
+        dplyr::select(input_col) |>
+        dplyr::filter(grepl("*@gmail\\.com$", input_col)) |>
+        unlist() |>
+        as.vector()
+
+      email_map <- list(
+        Students = rvs$students_data$email,
+        Teachers = rvs$teachers_data$email,
+        Administrators = admin_emails,
+        Schools = rvs$schools_data$email
+      )
+
+      emails <- email_map[[group]]
+
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "select_receipient",
+        choices = emails
+      )
+
+      group_templates <- list(
+        Students = c("Payment reminders"),
+        Teachers = c("Earnings Report"),
+        Administrators = c("Database report"),
+        Schools = NULL
+      )
+      template <- group_templates[[group]]
+
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "email_template",
+        choices = template
+      )
+    }
+  })
+
+  observeEvent(input$push_emails, {
+    template <- input$email_template
+
+    receipient_emails <- input$select_receipient
+    receipient_group <- input$receipient_group
+
+    for (email in receipient_emails) {
+      if (receipient_group == "Administrators") {
+        receipient_name <- rvs$administrators_data |>
+          dplyr::filter(grepl(email, input_col)) |>
+          pull(value)
+      } else if (receipient_group == "Students") {
+        receipient_name <- rvs$students_data |>
+          dplyr::filter(grepl(email, user_name)) |>
+          pull(value)
+      } else {
+        receipient_name <- rvs$teachers_data |>
+          dplyr::filter(grepl(email, user_name)) |>
+          pull(value)
+      }
+
+      first_name <- strsplit(receipient_name, " ")[[1]][1]
+      email_salutation <- paste0("<p>Hello ", first_name, ",</p>")
+    }
+
+    if (input$email_template == "Database report") {
+      current_time <- Sys.time()
+      hour_now <- as.numeric(format(current_time, "%H"))
+      minute_now <- as.numeric(format(current_time, "%M"))
+
+      temp_file <- tempfile(fileext = ".xlsx")
+
+      writexl::write_xlsx(
+        list(
+          Schools = rvs$schools_data,
+          Teachers = rvs$teachers_data,
+          Students = rvs$students_data,
+          Content = rvs$pdf_data,
+          Views = rvs$views_data,
+          Payments = rvs$payments_data,
+          Requests = rvs$requests_data
+        ),
+        temp_file
+      )
+
+      email_body <- email_body_template(
+        salutation = email_salutation,
+        email_body = admin_report_body,
+        email_footer = admin_email_footer
+      )
+
+      email <- gmailr::gm_mime() |>
+        gmailr::gm_to(receipient_emails) |>
+        gmailr::gm_from(admin_email) |>
+        gmailr::gm_subject(
+          paste(
+            "Candidate Daily Report",
+            toupper(format(Sys.Date(),
+              format = "%d-%b-%Y"
+            ))
+          )
+        ) |>
+        gmailr::gm_attach_file(temp_file) |>
+        gmailr::gm_html_body(email_body)
+
+      gmailr::gm_auth(token = gmailr::gm_token_read(
+        path = "gmailr-token.rds",
+        key = "GMAILR_KEY"
+      ))
+
+        gmailr::gm_send_message(email)
+      file.remove(temp_file)
+    }
+  })
 }
