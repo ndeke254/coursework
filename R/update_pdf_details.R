@@ -34,7 +34,7 @@ update_pdf_details <- \(
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # Construct the SQL query to update the status
-  res <-  DBI::dbSendQuery(
+  res <- DBI::dbSendQuery(
     conn,
     "UPDATE content
     SET grade = :grade,
@@ -44,7 +44,7 @@ update_pdf_details <- \(
     WHERE id = :pdf_id"
   )
 
-   DBI::dbBind(
+  DBI::dbBind(
     res,
     params = list(
       grade = grade,
@@ -55,5 +55,5 @@ update_pdf_details <- \(
     )
   )
 
-   DBI::dbClearResult(res)
+  DBI::dbClearResult(res)
 }

@@ -52,7 +52,7 @@ update_payments_status <- \(
     SET paid = :paid
     WHERE id = :student_id"
     )
-   DBI::dbBind(
+    DBI::dbBind(
       res,
       params = list(
         paid = 1,
