@@ -8,7 +8,7 @@ header_section <- tags$header(
         href = "",
         tags$img(
           id = "header_logo",
-          src = file.path("logo", "logo_icon.png"),
+          src = file.path("logo", "full_logo_white.png"),
           height = "50px"
         )
       )
@@ -77,8 +77,8 @@ header_section <- tags$header(
       /* For smaller screens*/
       @media (max-width: 768px) {
         #header_logo {
-          content: url('logo/logo_icon.png');
-          width: 50px;
+          content:url('logo/full_logo_white.png');
+          width: 140px;
           height: auto;
           margin-left: 20px;
         }

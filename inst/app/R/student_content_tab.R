@@ -71,7 +71,7 @@ student_content_tab <- div(
               )
             )
           )
-        ), 
+        ),
         div(
           p("Create a payment ticket", class = "mb-3 lead text-bold"),
           class = "card card-body",
@@ -106,7 +106,7 @@ student_content_tab <- div(
                 currencySymbol = "Ksh ",
                 decimalPlaces = 0,
                 minimumValue = 1
-              ) 
+              )
             ),
             column(
               width = 3,
