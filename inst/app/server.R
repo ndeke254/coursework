@@ -668,8 +668,32 @@ server <- function(input, output, session) {
         app_uid = app_uid,
         email = signed_email
       )
+
+      user_not_found <- identical(nrow(pol_signed_user$content), 0L)
+      if (user_not_found) {
+        return(
+          shinyalert::shinyalert(
+            title = "Contact Administrator",
+            text = paste(
+              "An error occurred with your account."
+            ),
+            html = TRUE,
+            inputId = "error_alert",
+            imageUrl = "logo/logo_icon_blue.png",
+            imageWidth = 80,
+            imageHeight = 50,
+            session = session,
+            confirmButtonText = "OK",
+            confirmButtonCol = "#163142",
+            callbackR = function() {
+              session$reload()
+            }
+          )
+        )
+      }
       user_uid <- pol_signed_user$content$user_uid
       is_admin <- pol_signed_user$content$is_admin
+      shinyjs::hide("login_link")
 
       if (is_admin) {
         admin_data <- rvs$administrators_data
@@ -704,27 +728,19 @@ server <- function(input, output, session) {
               email = signed_email,
               name = input$admin_name
             )
-            if (update == 1) {
+
+            if (identical(update, 1L)) {
               alert_success_ui(
                 session = session,
-                info = "Name updated..."
+                timer = 0,
+                info = "Name updated...Now log in"
               )
-              output$signed_user <- renderText({
-                input$admin_name[1]
-              })
-              updateTabsetPanel(
-                inputId = "app_pages",
-                selected = "admin_page"
-              )
-              # hide login link
-              shinyjs::hide("login_link")
-              shinyjs::hide("teachers_link")
-              shinyjs::hide("students_link")
-              shinyjs::show("user_profile_tab")
+                Sys.sleep(3)
+              session$reload()
             } else {
               alert_fail_ui(
                 session = session,
-                info = "An error occurred"
+                info = "Name exists! Try another one."
               )
             }
           })
@@ -734,6 +750,28 @@ server <- function(input, output, session) {
         # get roles
         user_role <- polished::get_user_roles(user_uid = user_uid)
         user_role <- user_role$content$role_name
+
+        if (!identical(length(user_role), 1L)) {
+          return(
+            shinyalert::shinyalert(
+              title = "Contact Administrator",
+              text = paste(
+                "An error occurred with your account."
+              ),
+              html = TRUE,
+              inputId = "error_alert",
+              imageUrl = "logo/logo_icon_blue.png",
+              imageWidth = 80,
+              imageHeight = 50,
+              session = session,
+              confirmButtonText = "OK",
+              confirmButtonCol = "#163142",
+              callbackR = function() {
+                session$reload()
+              }
+            )
+          )
+        }
 
         # get the DB details of signed user
         signed_user <- get_signed_user(signed_email, user_role)
@@ -805,9 +843,9 @@ server <- function(input, output, session) {
             sum()
 
           # Check if the user has paid for the year
-          user_paid <- signed_user %>%
-            dplyr::select(paid) %>%
-            pull(paid) %>%
+          user_paid <- signed_user |>
+            dplyr::select(paid) |>
+            dplyr::pull(paid) |>
             as.character()
 
           balance <- price - paid_amount
@@ -937,7 +975,7 @@ server <- function(input, output, session) {
             unlist() |>
             as.vector()
 
-          student_content <- rvs$pdf_data %>%
+          student_content <- rvs$pdf_data |>
             dplyr::filter(grade == signed_user$grade &
               teacher %in% signed_student_teachers &
               status == "Available")
@@ -1442,9 +1480,10 @@ server <- function(input, output, session) {
           text = paste(
             "An error occurred with your account."
           ),
-          type = "",
+          html = TRUE,
           inputId = "error_alert",
-          imageWidth = 100,
+          imageUrl = "logo/logo_icon_blue.png",
+          imageWidth = 80,
           imageHeight = 50,
           session = session,
           confirmButtonText = "OK",
@@ -3366,7 +3405,6 @@ server <- function(input, output, session) {
 
   observeEvent(input$confirm_set_end_date, {
     action <- input$confirm_set_end_date
-
     req(!is.null(action))
 
     if (action) {
@@ -3392,6 +3430,7 @@ server <- function(input, output, session) {
 
         signed_admin_user <- rvs$administrators_data |>
           dplyr::filter(input_col == user_details$email)
+
         record_admin_action(
           user = signed_admin_user$value,
           action = "Update",
@@ -4322,15 +4361,15 @@ server <- function(input, output, session) {
       if (receipient_group == "Administrators") {
         receipient_name <- rvs$administrators_data |>
           dplyr::filter(grepl(email, input_col)) |>
-          pull(value)
+          dplyr::pull(value)
       } else if (receipient_group == "Students") {
         receipient_name <- rvs$students_data |>
           dplyr::filter(grepl(email, user_name)) |>
-          pull(value)
+          dplyr::pull(value)
       } else {
         receipient_name <- rvs$teachers_data |>
           dplyr::filter(grepl(email, user_name)) |>
-          pull(value)
+          dplyr::pull(value)
       }
 
       first_name <- strsplit(receipient_name, " ")[[1]][1]
@@ -4382,7 +4421,7 @@ server <- function(input, output, session) {
         key = "GMAILR_KEY"
       ))
 
-        gmailr::gm_send_message(email)
+      gmailr::gm_send_message(email)
       file.remove(temp_file)
     }
   })
