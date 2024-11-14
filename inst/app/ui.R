@@ -87,23 +87,39 @@ ui <- shiny::bootstrapPage(
       ),
       tabPanelBody(
         value = "admin_reg",
-        div(
-          class = "container text-center col-2",
-          p("Your are an Administrator", class = "text-bold mt-5"),
-          tags$img(
-            src = "logo/logo_icon_blue.png",
-            width = "70px"
-          ),
-          textInput(
-            inputId = "admin_name",
-            label = "Name:",
-            placeholder = "Enter your name"
-          ),
-          actionButton(
-            inputId = "admin_name_set",
-            label = "SUBMIT"
-          ) |>
-            basic_primary_btn()
+        column(
+          width = 6, offset = 5,
+          class = "pt-5",
+          div(
+            class = "card d-inline-block mt-5",
+            tags$div(
+              class = "text-center bg-light pb-2 pt-3",
+              tags$img(
+                src = file.path("logo", "logo_icon_blue.png"),
+                width = "70px"
+              ),
+              h5("Administrator",
+                class = "text-bold text-center text-body-1 pt-3"
+              )
+            ),
+            div(
+              class = "card-body",
+              shiny::textInput(
+                inputId = "admin_name",
+                label = label_mandatory("Name:"),
+                placeholder = "Enter your name"
+              ),
+              div(
+                class = "d-flex justify-content-center",
+                actionButton(
+                  inputId = "admin_name_set",
+                  label = "Submit",
+                  type = "submit",
+                  width = "300px"
+                ) |> basic_primary_btn()
+              )
+            )
+          )
         )
       ),
       tabPanelBody(
