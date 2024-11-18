@@ -13,7 +13,7 @@ student_content_tab <- div(
     argonR::argonTab(
       tabName = "Library",
       active = TRUE,
-      p("Welcome to your library:", class = "lead text-bold mt-3"),
+      p("Welcome to your Candidate:", class = "lead text-bold mt-3"),
       uiOutput("balance_required"),
       div(
         id = "content_pdfs",
