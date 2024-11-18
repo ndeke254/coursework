@@ -19,7 +19,7 @@ add_new_pdf <- function(table_name, data) {
 
   # Check if the school name or email already exists
   available <- table_data |>
-    select(pdf_name, grade)
+    dplyr::select(pdf_name, grade)
   new_data <- c(data$pdf_name, data$grade)
 
   # check for a row with match

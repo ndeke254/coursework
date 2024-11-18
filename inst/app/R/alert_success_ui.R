@@ -9,7 +9,7 @@
 #' @export
 #'
 alert_success_ui <- \(info, position = "top-end", session, timer = 3000) {
-  show_toast(
+  shinyWidgets::show_toast(
     session = session,
     title = NULL,
     text = info,

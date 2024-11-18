@@ -13,11 +13,11 @@ next_school_id <- function(table_name) {
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # Read the table from the database
-  school_data <- DBI::dbReadTable(conn, table_name)
+  schools_data <- DBI::dbReadTable(conn, table_name)
 
   # Check if the table has rows
-  if (nrow(school_data) > 0) {
-    id_col <- school_data$id
+  if (nrow(schools_data) > 0) {
+    id_col <- schools_data$id
 
     # Extract numeric part of the ID
     numeric_part <- sub("SCH-", "", id_col)

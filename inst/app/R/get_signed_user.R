@@ -14,8 +14,8 @@ get_signed_user <- function(user_email, user_type) {
   db_name <- Sys.getenv("DATABASE_NAME")
 
   # Make SQLite connection
-  conn <- dbConnect(drv = RSQLite::SQLite(), dbname = db_name)
-  on.exit(dbDisconnect(conn), add = TRUE)
+  conn <- DBI::dbConnect(drv = RSQLite::SQLite(), dbname = db_name)
+  on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # Determine the table name based on user_type
   table_name <- ifelse(user_type == "student", "students", "teachers")
@@ -24,9 +24,9 @@ get_signed_user <- function(user_email, user_type) {
   query <- paste0("SELECT * FROM ", table_name, " WHERE email = :email")
 
   # Get the user details from the database
-  result <- dbGetQuery(
-    conn,
-    query,
+  result <- DBI::dbGetQuery(
+    conn = conn,
+    statement = query,
     params = list(email = user_email)
   )
 

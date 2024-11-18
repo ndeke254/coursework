@@ -1,30 +1,4 @@
-library(shiny)
-library(htmltools)
-library(shinyjs)
-library(argonDash)
-library(argonR)
-library(bs4Dash)
-library(shinyjs)
-library(shinyWidgets)
-library(RSQLite)
-library(shinyvalidate)
-library(plyr)
-library(magick)
-library(dplyr)
-library(reactable)
-library(prodlim)
-library(bslib)
-library(polished)
-library(lubridate)
-library(shinyalert)
-library(polished)
-library(frbs)
-library(stringr)
-library(magrittr)
-library(uuid)
-library(data.table)
-library(gmailr)
-
+library(markdown)
 
 # counties in Kenya
 # used as a choices input in school registration tab
@@ -74,9 +48,10 @@ appId <- Sys.getenv("appId")
 authDomain <- Sys.getenv("authDomain")
 storageBucket <- Sys.getenv("storageBucket")
 app_uid <- Sys.getenv("POLISHED_UID")
+admin_email <- Sys.getenv("admin_email")
 
 # configure polished auth
-polished_config(
+polished::polished_config(
   app_name = app_name,
   api_key = api_key,
   is_invite_required = FALSE
@@ -90,7 +65,7 @@ polished_config(
 # )
 
 # Set App api_key
-set_api_key(api_key = api_key)
+polished::set_api_key(api_key = api_key)
 
 label_mandatory <- \(label) {
   tagList(
