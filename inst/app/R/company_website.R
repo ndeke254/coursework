@@ -65,7 +65,7 @@ company_website <- div(
             tags$img(
               src = "logo/teacher_1.png",
               width = "100%",
-              style = "max-width: 430px;"
+              style = "max-width: 530px;"
             )
           )
         ),
@@ -84,25 +84,15 @@ company_website <- div(
             p(HTML("The revision material is intentionally made short (often limited to a page or two). Additionally, we emphasize the use of pictures and illustrations that complement traditional notes, enhancing both the understanding and retention of basic and advanced topics.")),
             p(HTML("As a final note, <em>Candidate</em> does not focus on exam preparation. We prefer the higher goal of helping students understand lessons at a deep and fundamental level."))
           ),
-          div(
-            class = "position-absolute pt-5  px-5",
-            tags$img(
-              src = "logo/arrow_left.png",
-              width = "100%",
-              style = "max-width: 100px;"
-            )
-          ),
-          h5(
-            class = "pb-5 mt-4 text-bold",
-            "Are you a teacher?"
-          ),
-          column(
-            width = 6,
-            class = "pt-4",
+          fluidRow(
+            h5(
+              class = "m-3 text-bold",
+              "Are you a teacher?"
+            ),
             actionButton(
               inputId = "lets_partner",
               label = "Let's Partner",
-              class = "mt-5 mb-5 fw-bold",
+              class = "mb-5 fw-bold",
               width = "230px"
             )
           )
@@ -294,14 +284,6 @@ company_website <- div(
                 width = "100%",
                 style = "max-width: 700px;"
               )
-            ),
-            div(
-              class = "position-absolute",
-              tags$img(
-                src = "logo/arrow_right.png",
-                width = "100%",
-                style = "max-width: 100px;"
-              )
             )
           )
         ),
@@ -442,7 +424,7 @@ company_website <- div(
             tags$a(
               href = "",
               tags$img(
-                src = file.path("logo", "logo_full.png"),
+                src = file.path("logo", "full_logo_white.png"),
                 height = "100%",
                 style = "max-height: 50px;"
               )

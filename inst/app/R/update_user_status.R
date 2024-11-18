@@ -17,5 +17,5 @@ update_user_status <- \(table_name, user_id, new_status) {
 
   # Update the status in the specified table
   query <- paste0("UPDATE ", table_name, " SET status = :status WHERE id = :id")
-  dbExecute(conn, query, params = list(id = user_id, status = new_status))
+  DBI::dbExecute(conn, query, params = list(id = user_id, status = new_status))
 }

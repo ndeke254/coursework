@@ -14,7 +14,7 @@ alert_warn_ui <- \(
   session,
   timer = 3000
 ) {
-  show_toast(
+  shinyWidgets::show_toast(
     session = session,
     title = NULL,
     text = info,

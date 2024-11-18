@@ -21,16 +21,16 @@ update_request_status <- function(request_id, new_status) {
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
   # Construct the SQL query to update the status
-  res <- dbSendQuery(
+  res <- DBI::dbSendQuery(
     conn,
     "UPDATE requests
     SET status = :new_status
     WHERE id = :request_id"
   )
-  dbBind(
+  DBI::dbBind(
     res,
     params = list(new_status = new_status, request_id = request_id)
   )
 
-  dbClearResult(res)
+  DBI::dbClearResult(res)
 }

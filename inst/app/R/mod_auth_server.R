@@ -4,21 +4,6 @@ mod_auth_server <- \(id) {
     module = \(input, output, session) {
       ns <- session$ns
 
-      enable_signin_btn <- \() {
-        session$sendCustomMessage(
-          type = "enable_auth_btn",
-          list(id = ns("signin_submit"))
-        )
-      }
-
-      enable_reset_btn <- \() {
-        session$sendCustomMessage(
-          type = "enable_auth_btn",
-          list(id = ns("reset_password_btn"))
-        )
-      }
-
-
       # Handle send reset link
       observeEvent(input$reset_password, {
         shinyjs::show("reset_background_image")

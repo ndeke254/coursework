@@ -18,7 +18,7 @@ record_student_view <- \(
   student_id,
   teacher_id,
   pdf_id
-){
+) {
   current_date <- format(Sys.time(), format = "%Y-%m-%d")
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")
@@ -27,11 +27,11 @@ record_student_view <- \(
   conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
   on.exit(DBI::dbDisconnect(conn), add = TRUE)
 
-  views_data <- dbReadTable(conn, "views")
-  teachers_data <- dbReadTable(conn, "teachers")
+  views_data <- DBI::dbReadTable(conn, "views")
+  teachers_data <- DBI::dbReadTable(conn, "teachers")
   # check if view exists for today
   exists <- views_data |>
-    filter(
+    dplyr::filter(
       student_id == student_id &&
         teacher_id == teacher_id &&
         pdf_id == pdf_id &&
@@ -50,25 +50,25 @@ record_student_view <- \(
 
     # update the teachers' total views
     teacher_data <- teachers_data |>
-      filter(
+      dplyr::filter(
         id == teacher_id
       )
     no_views <- as.numeric(teacher_data$views) + 1
 
-    res <- dbSendQuery(
+    res <- DBI::dbSendQuery(
       conn,
       "UPDATE teachers
     SET views = :views
     WHERE id = :teacher_id"
     )
 
-    dbBind(
+    DBI::dbBind(
       res,
       params = list(
         views = no_views,
         teacher_id = teacher_id
       )
     )
-    dbClearResult(res)
+    DBI::dbClearResult(res)
   }
 }
