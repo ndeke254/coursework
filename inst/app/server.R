@@ -735,7 +735,7 @@ server <- function(input, output, session) {
                 timer = 0,
                 info = "Name updated...Now log in"
               )
-                Sys.sleep(3)
+              Sys.sleep(3)
               session$reload()
             } else {
               alert_fail_ui(
@@ -854,17 +854,17 @@ server <- function(input, output, session) {
             shinyjs::hide("content_pdfs")
 
             shinyalert::shinyalert(
-              title = "Subscription expired",
+              title = "Subscription Required",
               text = paste(
-                "Please clear your balance of KES", clear
+                "Please pay your balance of KES", clear, "to access Candidate content"
               ),
               type = "",
               inputId = "pay_alert",
               imageUrl = "logo/mpesa_poster.jpg",
               imageWidth = 100,
-              imageHeight = 50,
+              imageHeight = 60,
               session = session,
-              confirmButtonText = "PAY",
+              confirmButtonText = "OK",
               confirmButtonCol = "#163142",
               callbackR = function() {
                 shinyjs::show("payment_required")
@@ -1955,6 +1955,11 @@ server <- function(input, output, session) {
                   )
                 }
               ),
+              Paid = reactable::colDef(
+                cell = function(value) {
+                  if (value == "0") "\u274c" else "\u2714\ufe0f"
+                }
+              ),
               Phone = reactable::colDef(format = reactable::colFormat(
                 prefix = "+254"
               )),
@@ -2886,7 +2891,17 @@ server <- function(input, output, session) {
       )
 
       # Run the update function
-      update_school_details(details$ID, new_values)
+      updated <- update_school_details(details$ID, new_values)
+      print(updated)
+      if (!identical(updated, 0L)) {
+        removeModal()
+        return(
+          alert_fail_ui(
+            info = "An error occured!",
+            session = session
+          )
+        )
+      }
 
       # Close the confirmation modal
       removeModal()
@@ -3919,10 +3934,10 @@ server <- function(input, output, session) {
 
       if (input$edit_payment_status == "APPROVED") {
         data <- rvs$administrators_data
-
         values <- data |>
           dplyr::select(value) |>
           as.vector()
+        term_end_date <- values$value[1] |> as.Date()
 
         price <- rvs$schools_data |>
           dplyr::filter(school_name == student_data$school_name) |>
