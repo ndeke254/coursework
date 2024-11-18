@@ -1,4 +1,4 @@
 #' @export
-reset_payments <- \(student_id, ) {
+reset_payments <- \(student_id) {
 
 }
