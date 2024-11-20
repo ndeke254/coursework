@@ -2,7 +2,7 @@
 % Please edit documentation in R/update_school_details.R
 \name{update_school_details}
 \alias{update_school_details}
-\title{Update school details}
+\title{Update school details and propagate changes}
 \usage{
 update_school_details(school_id, new_values)
 }
@@ -12,9 +12,9 @@ update_school_details(school_id, new_values)
 \item{new_values}{A named list of new values to update in the school record}
 }
 \description{
-Update school details
+Update school details and propagate changes
 }
 \examples{
-# update_school_details(school_id = "SCH-001", new_values = list(name = "NewSchool Name", ' email = "newemail@example.com"))
+# update_school_details(school_id = "SCH-001", new_values = list(name = "New School Name", email = "newemail@example.com"))
 
 }
