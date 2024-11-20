@@ -2,15 +2,16 @@
 % Please edit documentation in R/add_term_end.R
 \name{add_term_end}
 \alias{add_term_end}
-\title{admin to create current term/semester}
+\title{Add reset payment rows for each student}
 \usage{
 add_term_end(term_end_date)
 }
 \arguments{
-\item{term_end_date}{String. the end date for current term.
-#' @return An integer indicating the number of rows affected
-(typically \code{1} for a successful insert).}
+\item{term_end_date}{String. The end date for the current term.}
+}
+\value{
+An integer indicating the number of rows affected.
 }
 \description{
-admin to create current term/semester
+Add reset payment rows for each student
 }
