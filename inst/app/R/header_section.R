@@ -78,7 +78,7 @@ header_section <- tags$header(
       @media (max-width: 768px) {
         #header_logo {
           content:url('logo/full_logo_white.png');
-          width: 140px;
+          width: 170px;
           height: auto;
           margin-left: 20px;
         }

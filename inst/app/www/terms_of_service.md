@@ -5,7 +5,7 @@
 
 ❖ **<span style="color:#163142">Acceptance of Terms</span>**
 
- By accessing or using **CANDIDATE**, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use the application.
+ By accessing or using **CANDIDATE™**, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use the application.
 
 ❖ **<span style="color:#163142">Use of the Application</span>**
 
@@ -17,7 +17,7 @@
 
 ❖ **<span style="color:#163142">Intellectual Property</span>**
 
- All content provided through **CANDIDATE**, including text, images and software, is the property of **CANDIDATE LTD.** or its content providers. You may not reproduce, distribute or create derivative works from this content without our express written permission.
+ All content provided through **CANDIDATE™**, including text, images and software, is the property of **CANDIDATE™ LTD.** or its content providers. You may not reproduce, distribute or create derivative works from this content without our express written permission.
 
 ❖ **<span style="color:#163142">User Conduct</span>**
 
@@ -25,7 +25,7 @@
 
 - **<span style="color:#50BD8C">Content Submission</span>**: If you submit any content to the application, you grant us a non-exclusive, worldwide, royalty-free license to use, display and distribute that content.
 
-- **<span style="color:#50BD8C">Content Sharing</span>**: You agree not to distribute whatsoever any premium content available on **CANDIDATE**, availed to you for free or at a pay, unless with our express written permission.
+- **<span style="color:#50BD8C">Content Sharing</span>**: You agree not to distribute whatsoever any premium content available on **CANDIDATE™**, availed to you for free or at a pay, unless with our express written permission.
 
 ❖ **<span style="color:#163142">Termination</span>**
 
@@ -37,7 +37,7 @@
 
 ❖ **<span style="color:#163142">Limitation of Liability</span>**
 
- In no event shall **CANDIDATE LTD.** be liable for any indirect, incidental or consequential damages arising out of your use of the application.
+ In no event shall **CANDIDATE™ LTD.** be liable for any indirect, incidental or consequential damages arising out of your use of the application.
 
 ❖ **<span style="color:#163142">Changes to Terms</span>**
 

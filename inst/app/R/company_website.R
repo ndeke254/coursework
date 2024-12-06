@@ -26,17 +26,23 @@ company_website <- div(
             br(),
             "Content for Students"
           ),
-          div(
+          fluidRow(
+            class = "mt-5",
+            h5(
+              class = "text-white m-3 text-bold",
+              "Are you a student?"
+            ),
             actionButton(
               inputId = "register_now",
-              label = "Register Now",
-              class = "mt-5 mb-5",
+              label = "Register Here",
+              class = "mt-1 mb-5",
               width = "230px"
             )
           )
         ),
         column(
           width = 6,
+          class = "student-intro",
           div(
             class = "d-flex justify-content-center",
             tags$img(
@@ -58,9 +64,10 @@ company_website <- div(
     div(
       style = "max-width: 1200px; margin: 0 auto;",
       fluidRow(
-        class = "  px-4",
+        class = "px-4",
         column(
           width = 6,
+          class = "teacher-image-column",
           div(
             tags$img(
               src = "logo/teacher_1.png",
@@ -74,15 +81,16 @@ company_website <- div(
           class = "pt-5",
           h1(
             class = "text-bold text-body-1",
-            "What is Candidate?"
+            "What is Candidate™
+?"
           ),
           tags$div(
             class = "lead pt-4",
-            p(HTML("<em>Candidate</em> is an online library of revision material created by teachers for their students.")),
+            p(HTML("<em>Candidate™</em>  is an online library of revision material created by teachers for their students.")),
             p("That is worth repeating; the content is created by teachers to aid their own students in mastering what has been taught in class. And because the content is teacher-generated, it is highly focused on the identified needs of students."),
             p("These study guides are carefully created based on teachers' analysis of what their students need to master on both basic and advanced topics."),
             p(HTML("The revision material is intentionally made short (often limited to a page or two). Additionally, we emphasize the use of pictures and illustrations that complement traditional notes, enhancing both the understanding and retention of basic and advanced topics.")),
-            p(HTML("As a final note, <em>Candidate</em> does not focus on exam preparation. We prefer the higher goal of helping students understand lessons at a deep and fundamental level."))
+            p(HTML("As a final note, <em>Candidate™</em> does not focus on exam preparation. We prefer the higher goal of helping students understand lessons at a deep and fundamental level."))
           ),
           fluidRow(
             h5(
@@ -118,7 +126,7 @@ company_website <- div(
           width = 4,
           class = "pb-2",
           div(
-            class = "card shadow h-100",
+            class = "card shadow h-100 info-card ",
             style = "overflow: hidden;",
             fluidRow(
               column(
@@ -159,7 +167,7 @@ company_website <- div(
           width = 4,
           class = "pb-2",
           div(
-            class = "card shadow h-100",
+            class = "card shadow h-100 info-card ",
             style = "overflow: hidden;",
             fluidRow(
               column(
@@ -200,7 +208,7 @@ company_website <- div(
           width = 4,
           class = "pb-2",
           div(
-            class = "card shadow h-100",
+            class = "card shadow h-100 info-card",
             style = "overflow: hidden;",
             fluidRow(
               column(
@@ -279,6 +287,7 @@ company_website <- div(
           div(
             class = "justify-content-end d-flex pt-5 ",
             div(
+              class = "parent_student",
               tags$img(
                 src = "logo/parent_student.png",
                 width = "100%",
@@ -318,7 +327,7 @@ company_website <- div(
               "With limited classroom time and varying
                                 student learning speeds, traditional
                                 methods may not suit everyone.
-                                Candidate offers additional, tailored
+                                Candidate™ offers additional, tailored
                                 learning materials that students can
                                 access anytime, bridging gaps and
                                 reinforcing classroom learning."
@@ -426,7 +435,7 @@ company_website <- div(
               tags$img(
                 src = file.path("logo", "full_logo_white.png"),
                 height = "100%",
-                style = "max-height: 50px;"
+                style = "max-height: 40px;"
               )
             )
           )
@@ -474,5 +483,25 @@ company_website <- div(
         )
       )
     )
+  ),
+  tags$head(
+    tags$style(HTML("
+     @media screen and (max-width: 768px) {
+      .teacher-image-column,
+      .parent_student,
+      .student-intro {
+        display: none;
+      }
+      .info-card {
+        margin: 10px;
+      }
+     .h1, h1 {
+       font-size: 2.0rem;
+      }
+     #footer_section {
+     text-align: center !important;
+     }
+    }
+    "))
   )
 )

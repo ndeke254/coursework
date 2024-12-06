@@ -143,5 +143,4 @@
       backToTopButton.classList.remove("active");
     }
   }
-
 })()

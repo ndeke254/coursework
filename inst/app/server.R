@@ -13,6 +13,7 @@ server <- function(input, output, session) {
   ivt <- shinyvalidate::InputValidator$new()
   ivp <- shinyvalidate::InputValidator$new()
   ivr <- shinyvalidate::InputValidator$new()
+  ivf <- shinyvalidate::InputValidator$new()
 
   # Initialize reactive values
   rv <- reactiveValues(
@@ -69,6 +70,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$lets_partner, {
+    session$sendCustomMessage("resetScroll", list())
     updateTabsetPanel(
       inputId = "app_pages",
       selected = "teachers_info"
@@ -131,6 +133,7 @@ server <- function(input, output, session) {
         selected = "teachers_info"
       )
       shinyjs::show("company_copyright")
+      session$sendCustomMessage("resetScroll", list())
     },
     ignoreInit = TRUE
   )
@@ -1263,7 +1266,10 @@ server <- function(input, output, session) {
 
           output$char_count <- renderUI({
             # Use tags$span to create a small class text
-            tags$span(paste("Character count:", nchar(input$request_description), "/ 100 characters"), class = "small text-gray")
+            tags$span(
+              paste("Character count:", nchar(input$request_description), "/ 100 characters"),
+              class = "small text-gray"
+            )
           })
           output$teacher_requests <- reactable::renderReactable({
             # Filter and dplyr::arrange the data as needed
@@ -3043,55 +3049,15 @@ server <- function(input, output, session) {
   output$school_teachers_details <- reactable::renderReactable({
     details <- input$school_menu_details$info
 
-    schools_data <- rvs$schools_data |>
-      dplyr::filter(school_name == details$Name)
-    term_fees <- as.numeric(schools_data$price)
+    teacher_data_with_content <- create_school_payments(
+      school_id = details$ID
+    )
 
-    teachers_data <- rvs$teachers_data |>
-      dplyr::filter(school_name == details$Name) |>
-      tidyr::separate_rows(grade, sep = ", ")
-
-    pdf_data <- rvs$pdf_data |>
-      dplyr::filter(teacher %in% teachers_data$user_name)
-
-    student_data <- rvs$students_data |>
-      dplyr::filter(school_name == details$Name)
-
-    total_pdfs_per_grade <- pdf_data |>
-      dplyr::group_by(grade) |>
-      dplyr::summarise(total_pdfs_in_grade = dplyr::n(), .groups = "drop")
-
-    pdf_counts <- pdf_data |>
-      dplyr::group_by(teacher, grade) |>
-      dplyr::summarise(pdf_count = dplyr::n(), .groups = "drop")
-
-    teacher_data_with_content <- teachers_data |>
-      dplyr::left_join(
-        pdf_counts,
-        by = c("user_name" = "teacher", "grade" = "grade")
-      ) |>
-      dplyr::left_join(total_pdfs_per_grade, by = "grade") |>
-      dplyr::mutate(
-        per_cent = pdf_count / total_pdfs_in_grade
-      ) |>
-      tidyr::replace_na(list(per_cent = 0))
-
-    teacher_data_with_content <- teacher_data_with_content |>
-      dplyr::select(user_name, grade, views, per_cent)
-
-    students_paid <- student_data |>
-      dplyr::group_by(grade) |>
-      dplyr::summarise(paid_students = sum(paid), .groups = "drop")
-
-    teacher_data_with_content <- teacher_data_with_content |>
-      dplyr::left_join(students_paid, by = "grade") |>
-      tidyr::replace_na(list(paid_students = 0)) |>
-      dplyr::mutate(
-        revenue = term_fees * paid_students * 0.5 * per_cent
-      )
-
-    colnames(teacher_data_with_content) <- c(
-      "Name", "Grade", "Views", "% Content", "Paid students", "Revenue"
+    # output data table:
+    output_payments_data <- teacher_data_with_content |>
+      select(user_name, grade, per_share, paid_students, earnings)
+    colnames(output_payments_data) <- c(
+      "Name", "Grade", "% Share", "Paid students", "Earnings"
     )
 
     output$download_school_payments <- downloadHandler(
@@ -3103,7 +3069,7 @@ server <- function(input, output, session) {
       }
     )
     reactable::reactable(
-      data = teacher_data_with_content,
+      data = output_payments_data,
       defaultPageSize = 10,
       outlined = TRUE,
       searchable = TRUE,
@@ -3119,7 +3085,7 @@ server <- function(input, output, session) {
       onClick = "expand",
       columns = list(
         Grade = reactable::colDef(footer = "Total"),
-        `% Content` = reactable::colDef(
+        `% Share` = reactable::colDef(
           na = "–",
           format = reactable::colFormat(percent = TRUE, digits = 2)
         ),
@@ -3144,7 +3110,7 @@ server <- function(input, output, session) {
             border_top = "2px solid black"
           )
         ),
-        Revenue = reactable::colDef(
+        Earnings = reactable::colDef(
           aggregate = "sum",
           footer = reactable::JS("function(column, state) {
           let total = 0
@@ -4207,6 +4173,8 @@ server <- function(input, output, session) {
       input$privacy_link
     ),
     {
+      session$sendCustomMessage("resetScroll", list())
+
       updateTabsetPanel(
         session = session,
         inputId = "app_pages",
@@ -4224,6 +4192,7 @@ server <- function(input, output, session) {
       input$tos
     ),
     {
+      session$sendCustomMessage("resetScroll", list())
       updateTabsetPanel(
         session = session,
         inputId = "app_pages",
@@ -4245,86 +4214,6 @@ server <- function(input, output, session) {
     },
     ignoreInit = TRUE
   )
-
-  # show emails sent:
-  output$emails_data <- renderUI({
-    # get the payments data
-    emails_data <- rvs$emails_data |>
-      dplyr::arrange(desc(time)) |>
-      dplyr::mutate(details = NA)
-
-    colnames(emails_data) <- c(
-      "Sender", "Receipient", "Template", "Status", "Time", "details"
-    )
-
-    if (nrow(emails_data) > 0) {
-      output$table7 <- reactable::renderReactable({
-        reactable::reactable(
-          data = emails_data,
-          searchable = TRUE,
-          sortable = TRUE,
-          defaultPageSize = 10,
-          resizable = TRUE,
-          wrap = FALSE,
-          highlight = TRUE,
-          columns = list(
-            Time = reactable::colDef(
-              minWidth = 150
-            ),
-            Status = reactable::colDef(
-              cell = function(value) {
-                if (value == "Failed") {
-                  "\u274c"
-                } else if (value == "Pending") {
-                  "\u23f3"
-                } else {
-                  "\u2714\ufe0f"
-                }
-              }
-            ),
-            details = reactable::colDef(
-              name = "",
-              sortable = FALSE,
-              align = "center",
-              cell = function(value, rowInfo) {
-                if (rowInfo$Status == "Sent") {
-                  htmltools::tags$button(
-                    id = "",
-                    class = "bi bi-arrow-repeat border-0 bg-transparent mt-3",
-                    `aria-hidden` = "true",
-                    title = "Resend",
-                    disabled = "disabled"
-                  )
-                } else {
-                  htmltools::tags$button(
-                    id = "",
-                    class = "bi bi-arrow-repeat border-0 bg-transparent mt-3",
-                    `aria-hidden` = "true",
-                    title = "Resend"
-                  )
-                }
-              }
-            )
-          ),
-          theme = reactable::reactableTheme(
-            borderColor = "#ddd",
-            cellPadding = "8px",
-            borderWidth = "1px",
-            highlightColor = "#f0f0f0"
-          ),
-          onClick = reactable::JS("function(rowInfo, column) {
-                     if (column.id !== 'details') {
-                     return
-                         }
-                      Shiny.setInputValue('resend_email', { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' })
-                      }")
-        )
-      })
-    } else {
-      # show empty status div
-      show_empty_state_ui
-    }
-  })
 
   observeEvent(input$receipient_group, {
     group <- input$receipient_group
@@ -4353,7 +4242,7 @@ server <- function(input, output, session) {
       group_templates <- list(
         Students = c("Payment reminders"),
         Teachers = c("Earnings Report"),
-        Administrators = c("Database report"),
+        Administrators = c("Financial statement"),
         Schools = NULL
       )
       template <- group_templates[[group]]
@@ -4367,6 +4256,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$push_emails, {
+    req(input$select_receipient)
     template <- input$email_template
 
     receipient_emails <- input$select_receipient
@@ -4388,56 +4278,291 @@ server <- function(input, output, session) {
       }
 
       first_name <- strsplit(receipient_name, " ")[[1]][1]
-      email_salutation <- paste0("<p>Hello ", first_name, ",</p>")
+      email_salutation <- email_salutation(first_name)
     }
 
-    if (input$email_template == "Database report") {
-      current_time <- Sys.time()
-      hour_now <- as.numeric(format(current_time, "%H"))
-      minute_now <- as.numeric(format(current_time, "%M"))
+    if (input$email_template == "Financial statement") {
+      financial_data <- data.table::as.data.table(iris)
+      dt <- rmarkdown::render(
+        input = "www/payments_report.md",
+        params = list(data = financial_data, comment = "Alpha Delta"),
+        output_file = "financial_statement.html",
+        output_dir = "www"
+      )
 
-      temp_file <- tempfile(fileext = ".xlsx")
-
-      writexl::write_xlsx(
-        list(
-          Schools = rvs$schools_data,
-          Teachers = rvs$teachers_data,
-          Students = rvs$students_data,
-          Content = rvs$pdf_data,
-          Views = rvs$views_data,
-          Payments = rvs$payments_data,
-          Requests = rvs$requests_data
+      send_email_notification(
+        receipients = receipient_emails,
+        subject = paste(
+          "Financial Statement as at",
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S")
         ),
-        temp_file
+        body = email_body_template(
+          heading = "Financial Statement",
+          salutation = email_salutation,
+          body = paste(readLines(dt), collapse = "\n"),
+          footer = internal_email_footer
+        )
       )
-
-      email_body <- email_body_template(
-        salutation = email_salutation,
-        email_body = admin_report_body,
-        email_footer = admin_email_footer
-      )
-
-      email <- gmailr::gm_mime() |>
-        gmailr::gm_to(receipient_emails) |>
-        gmailr::gm_from(admin_email) |>
-        gmailr::gm_subject(
-          paste(
-            "Candidate Daily Report",
-            toupper(format(Sys.Date(),
-              format = "%d-%b-%Y"
-            ))
-          )
-        ) |>
-        gmailr::gm_attach_file(temp_file) |>
-        gmailr::gm_html_body(email_body)
-
-      gmailr::gm_auth(token = gmailr::gm_token_read(
-        path = "gmailr-token.rds",
-        key = "GMAILR_KEY"
-      ))
-
-      gmailr::gm_send_message(email)
-      file.remove(temp_file)
     }
+    rvs$emails_data <- refresh_table_data(table_name = "emails")
+  })
+
+  # FEEDBACK
+  active_button <- reactiveVal(0)
+  observeEvent(input$contact_us, {
+    showModal(
+      modalDialog(
+        title = "Contact Us",
+        size = "m",
+        footer = NULL,
+        easyClose = TRUE,
+        div(
+          class = "card-body",
+  div(
+        class = "text-center mb-3",
+        style = "font-size: 16px; font-weight: bold; color: #163142;", 
+        "CALL US ON ",
+        span(
+          "0111672464",
+          style = "font-weight: bold; color: #50BD8C;"
+        ),
+        " or fill the form below:"
+      ),
+          shinyWidgets::pickerInput(
+            inputId = "feedback_user_type",
+            label = label_mandatory("You are a:"),
+            options = list(
+              style = "btn-outline-light",
+              title = "Eg. Student",
+              maxOptions = 3
+            ),
+            choices = c("Student", "Teacher", "School", "Other")
+          ),
+          textInput(
+            inputId = "feedback_email",
+            label = label_mandatory("Contact Address:"),
+            placeholder = "Email address or Phone number"
+          ),
+          radioButtons(
+            inputId = "feedback_type",
+            label = label_mandatory("Type of Feedback:"),
+            choices = c("Suggestion", "Complaint", "Inquiry", "Other"),
+            inline = TRUE
+          ),
+          textAreaInput(
+            inputId = "feedback_text",
+            label = label_mandatory("Your inquiry (200 words max):"),
+            placeholder = "Write your inquiry, complaint or suggestion here",
+            rows = 5
+          ),
+          p("Rate Your Experience"),
+          # Emoji Rating
+          div(
+            style = "text-align: center;",
+            lapply(1:5, function(i) {
+              actionButton(
+                inputId = paste0("rating_", i),
+                label = emoji::emoji(c("cry", "confused", "neutral_face", "smile", "star-struck")[i]),
+                style = "font-size: 30px; background-color: transparent; border: none;",
+                class = "emoji-btn"
+              )
+            })
+          ),
+          br(),
+          hr(),
+          div(
+            class = "d-flex justify-content-center",
+            actionButton(
+              inputId = "feedback_submit_btn",
+              label = "Submit",
+              icon = icon("paper-plane")
+            ) |>
+              basic_primary_btn()
+          )
+        )
+      )
+    )
+  })
+
+  lapply(1:5, function(i) {
+    observeEvent(input[[paste0("rating_", i)]], {
+      active_button(i)
+      shinyjs::runjs(sprintf(
+        "$('.emoji-btn').css('background-color', 'transparent'); // Reset all
+         $('#rating_%d').css('background-color', '#F0F0F0'); // Highlight selected",
+        i
+      ))
+    })
+  })
+
+  ivf$add_rule("feedback_user_type", shinyvalidate::sv_required())
+  ivf$add_rule("feedback_type", shinyvalidate::sv_required())
+  ivf$add_rule("feedback_text", shinyvalidate::sv_required())
+  ivf$add_rule("feedback_email", shinyvalidate::sv_email())
+
+  observeEvent(input$feedback_submit_btn, {
+    ivf$enable()
+    req(ivf$is_valid())
+    shinyjs::disable("feedback_submit_btn")
+
+    # Capture form data
+    feedback_data <- data.frame(
+      user = input$feedback_user_type,
+      email = input$feedback_email,
+      type = input$feedback_type,
+      message = input$feedback_text,
+      timestamp = Sys.time(),
+      rating = active_button(),
+      stringsAsFactors = FALSE
+    )
+
+    # Append the data to Google Sheet
+    tryCatch(
+      {
+        googlesheets4::sheet_append(sheet_url, feedback_data)
+        alert_success_ui(
+          info = "Feedback submitted.",
+          session = session
+        )
+      },
+      error = function(err) {
+        alert_fail_ui(
+          info = "Please try again later.",
+          session = session
+        )
+      }
+    )
+    removeModal()
+    shinyjs::enable("feedback_submit_btn")
+  })
+
+  # show failed emails:
+  output$emails_table <- renderUI({
+    # Get the emails data:
+    emails_data <- rvs$emails_data |>
+      dplyr::arrange(desc(time)) |>
+      dplyr::mutate(actions = NA)
+
+    colnames(emails_data) <- c(
+      "ID", "Sender", "Recipient", "Template", "Subject", "Time", "Actions"
+    )
+
+    if (nrow(emails_data) > 0) {
+      output$table7 <- reactable::renderReactable({
+        reactable::reactable(
+          data = emails_data,
+          searchable = TRUE,
+          sortable = TRUE,
+          defaultPageSize = 10,
+          resizable = TRUE,
+          wrap = FALSE,
+          highlight = TRUE,
+          columns = list(
+            Template = reactable::colDef(show = FALSE),
+            Time = reactable::colDef(
+              minWidth = 150
+            ),
+            Actions = reactable::colDef(
+              name = "Actions",
+              sortable = FALSE,
+              align = "center",
+              cell = function(value, index) {
+                email_id <- emails_data$ID[index]
+                htmltools::tags$div(
+                  htmltools::tags$button(
+                    id = paste0("resend_", email_id),
+                    class = "bi bi-arrow-repeat border-0 bg-transparent",
+                    title = "Resend",
+                    onclick = sprintf("Shiny.setInputValue('resend_email', {id: '%s'}, {priority: 'event'})", email_id)
+                  ),
+                  htmltools::tags$button(
+                    id = paste0("view-", index),
+                    class = "bi bi-eye border-0 bg-transparent",
+                    title = "View"
+                  ),
+                  htmltools::tags$button(
+                    id = paste0("delete_", email_id),
+                    class = "bi bi-trash border-0 bg-transparent",
+                    title = "Delete",
+                    onclick = sprintf("Shiny.setInputValue('delete_email', {id: '%s'}, {priority: 'event'})", email_id)
+                  )
+                )
+              }
+            )
+          ),
+          theme = reactable::reactableTheme(
+            borderColor = "#ddd",
+            cellPadding = "8px",
+            borderWidth = "1px",
+            highlightColor = "#f0f0f0"
+          ),
+          onClick = reactable::JS("
+      function(rowInfo, column) {
+        if (column.id !== 'Actions') {
+          return
+        }
+        const buttonType = event.target.className.includes('arrow-repeat') ? 'resend' : 'view';
+        Shiny.setInputValue(buttonType, { index: rowInfo.index + 1, info: rowInfo.values }, { priority: 'event' });
+      }
+    ")
+        )
+      })
+    } else {
+      # show empty status div
+      show_empty_state_ui
+    }
+  })
+
+  observeEvent(input$resend_email, {
+    email_id <- input$resend_email$id
+    # Resend:
+    resend <- resend_email(email_id)
+
+    if (resend) {
+      alert_success_ui(
+        session = session,
+        info = "Email resent"
+      )
+      rvs$emails_data <- refresh_table_data(table_name = "emails")
+    } else {
+      alert_fail_ui(
+        session = session,
+        info = "Email not resend"
+      )
+    }
+  })
+
+  observeEvent(input$view, {
+    index <- input$view$index
+    email_template <- rvs$emails_data[index, "template"]
+    email_id <- rvs$emails_data[index, "id"]
+    showModal(
+      modalDialog(
+        title = paste("Email", email_id),
+        HTML(email_template),
+        easyClose = TRUE,
+        footer = NULL
+      )
+    )
+  })
+
+  observeEvent(input$delete_email, {
+    email_id <- input$delete_email$id
+
+    # Make SQLite connection
+    db_name <- Sys.getenv("DATABASE_NAME")
+    conn <- DBI::dbConnect(drv = RSQLite::SQLite(), db_name)
+    on.exit(DBI::dbDisconnect(conn), add = TRUE)
+
+    DBI::dbExecute(
+      conn = conn,
+      statement = "DELETE FROM emails WHERE id = :email_id",
+      params = list(email_id = email_id)
+    )
+    alert_success_ui(
+      session = session,
+      info = "Email deleted"
+    )
+    rvs$emails_data <- refresh_table_data(table_name = "emails")
   })
 }

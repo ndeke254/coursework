@@ -42,20 +42,15 @@ learning_areas <- c(
 # Retrieve credentials
 app_name <- Sys.getenv("POLISHED_APP_NAME")
 api_key <- Sys.getenv("POLISHED_API_KEY")
-apiKey <- Sys.getenv("FIREBASE_API_KEY")
-projectId <- Sys.getenv("projectId")
-appId <- Sys.getenv("appId")
-authDomain <- Sys.getenv("authDomain")
-storageBucket <- Sys.getenv("storageBucket")
 app_uid <- Sys.getenv("POLISHED_UID")
-admin_email <- Sys.getenv("admin_email")
+system_email <- Sys.getenv("SYSTEM_EMAIL")
 
 # configure polished auth
-polished::polished_config(
-  app_name = app_name,
-  api_key = api_key,
-  is_invite_required = FALSE
-)
+# polished::polished_config(
+#   app_name = app_name,
+#   api_key = api_key,
+#   is_invite_required = FALSE
+# )
 
 # configure firebase auth
 # firebase::firebase_config(
@@ -93,4 +88,6 @@ modified_switch <- function(switch) {
   return(html_tag_q$allTags())
 }
 
-Sys.setenv(GMAILR_KEY = Sys.getenv("GMAILR_KEY"))
+# connect to feedback sheet:
+googlesheets4::gs4_auth(path = Sys.getenv("GOOGLE_SHEETS_JSON_PATH"))
+sheet_url <- Sys.getenv("SHEET_URL")

@@ -45,10 +45,10 @@ add_term_end <- function(term_end_date) {
       ELSE 0  -- If no approved transaction, reset with 0
     END AS amount,  -- Amount for the reset payment based on the approval status
     CASE
-      WHEN balance < 0 AND status = 'APPROVED' THEN 799 - (-1 * balance)  -- Balance is 799 minus the amount if the transaction is approved
-      WHEN status = 'APPROVED' THEN 799 - balance  -- Balance is 799 minus the amount if the transaction is approved
+      WHEN balance < 0 AND status = 'APPROVED' THEN 1500 - (-1 * balance)  -- Balance is 1500 minus the amount if the transaction is approved
+      WHEN status = 'APPROVED' THEN 1500 - balance  -- Balance is 1500 minus the amount if the transaction is approved
       ELSE 0  -- If no approved transaction, reset with 0
-    END AS balance,  -- Balance is 799 minus the amount
+    END AS balance,  -- Balance is 1500 minus the amount
     CASE
       WHEN balance < 0 AND status = 'APPROVED' THEN -1 * balance  -- Set total equal to the amount for approved transactions
       WHEN status = 'APPROVED' THEN balance  -- Set total equal to the balance for approved transactions
