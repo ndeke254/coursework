@@ -362,3 +362,56 @@ select(input) |>
 
 table
 names(table) <- c("input_col", "value")
+
+
+
+# Students table
+students_data <- data.frame(
+  id = sprintf("STD-%03d", 1:36),
+  school_name = "Alpha",
+  grade = c(rep(7, 31), sample(6:8, 5, replace = TRUE)), 
+  paid = c(rep(1, 31), sample(0:1, 5, replace = TRUE)),
+  time = Sys.time(),
+  status = "Active"
+)
+
+# Define the content details for each teacher
+content_details <- data.frame(
+  teacher = teachers_data$user_name[-5],
+  content_count = c(21, 43, 4, 23),
+  total_views = c(142, 34, 45, 40)
+)
+
+# Generate the content table
+# Define the content details for each teacher
+content_details <- data.frame(
+  teacher = teachers_data$user_name[-5],
+  content_count = c(10, 17, 4, 27),
+  total_views = c(54, 5, 35, 40)
+)
+
+# Generate the content table
+pdf_data <- content_details |>
+  dplyr::rowwise() |>
+  dplyr::mutate(
+    content_data = list(data.frame(
+      id = sprintf("CONT-%03d", seq_len(content_count)),
+      pdf_name = paste0("content_", seq_len(content_count)),
+      teacher = teacher,
+      grade = 7,
+      learning_area = paste("Area", seq_len(content_count)),
+      topic = paste("Topic", seq_len(content_count)),
+      sub_topic = paste("Sub-topic", seq_len(content_count)),
+      time = Sys.time(),
+      status = "Active",
+      views = rep(total_views / content_count, content_count)
+    ))
+  ) |>
+  dplyr::select(content_data) |>
+  tidyr::unnest(content_data)
+
+dbWriteTable(conn, "content", pdf_data, append = TRUE)
+paid <- DBI::dbReadTable(conn, "students")
+paid |> dplyr::filter(
+  paid == 1 & grade == 6
+)
