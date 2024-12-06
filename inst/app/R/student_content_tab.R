@@ -102,7 +102,7 @@ student_content_tab <- div(
               shinyWidgets::autonumericInput(
                 inputId = "amount",
                 label_mandatory("Amount paid:"),
-                value = 799,
+                value = 1500,
                 currencySymbol = "Ksh ",
                 decimalPlaces = 0,
                 minimumValue = 1

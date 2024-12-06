@@ -16,6 +16,13 @@ $(document).ready(function () {
     }
   });
 
+  Shiny.addCustomMessageHandler('resetScroll', function (message) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth' // Optional: Smooth scrolling effect
+    });
+  });
+
   // observe the full screen button
   $(document).on("click", "#full_screen_btn", function () {
     if (!document.fullscreenElement) {

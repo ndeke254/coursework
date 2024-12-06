@@ -253,7 +253,7 @@ admin_registration_tab <- div(
                 shinyWidgets::autonumericInput(
                   inputId = "doc_price",
                   label_mandatory("Price:"),
-                  value = 799,
+                  value = 1500,
                   currencySymbol = "Ksh ",
                   decimalPlaces = 0,
                   minimumValue = 50
@@ -320,6 +320,13 @@ admin_registration_tab <- div(
             tabName = "School",
             active = TRUE,
             p("Existing schools data", class = " text-bold mt-3"),
+            actionButton(
+              inputId = "download_report",
+              label = "download_report",
+              icon = icon("file-pdf"),
+              class = "mb-3"
+            ) |>
+              basic_primary_btn(),
             uiOutput("schools_data")
           ),
           argonR::argonTab(
@@ -440,7 +447,10 @@ admin_registration_tab <- div(
               basic_primary_btn()
           )
         ),
-        uiOutput("emails_data")
+        div(
+          class = "mt-5",
+          uiOutput("emails_table")
+        )
       )
     ),
     argonR::argonTab(

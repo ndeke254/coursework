@@ -5,15 +5,15 @@
 
 **<span style="color:#163142">Introduction</span>**
 
-Welcome to **CANDIDATE**. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains what information we collect, how we use it, and the measures we take to ensure it is secure.
+Welcome to **CANDIDATE™**. We value your privacy and are committed to protecting your personal information. This Privacy Policy explains what information we collect, how we use it, and the measures we take to ensure it is secure.
 
 ❖  **<span style="color:#163142">Definition</span>**
 
-- **<span style="color:#50BD8C">Our/We/Us</span>**: Refers to CANDIDATE, the developers and operators of the application, who are responsible for managing your information and providing services.
+- **<span style="color:#50BD8C">Our/We/Us</span>**: Refers to CANDIDATE™, the developers and operators of the application, who are responsible for managing your information and providing services.
 
-- **<span style="color:#50BD8C">You/Yours</span>**: Refers to the individual user of the application, including anyone who interacts with CANDIDATE and provides personal information.
+- **<span style="color:#50BD8C">You/Yours</span>**: Refers to the individual user of the application, including anyone who interacts with CANDIDATE™ and provides personal information.
 
-- **<span style="color:#50BD8C">Application</span>**: Refers to the CANDIDATE software, website or service that you access to use our educational materials.
+- **<span style="color:#50BD8C">Application</span>**: Refers to the CANDIDATE™ software, website or service that you access to use our educational materials.
 
 - **<span style="color:#50BD8C">Content</span>**: Refers to any materials, information or resources provided within the application for free or at a fee.
 

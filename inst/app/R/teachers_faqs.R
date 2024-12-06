@@ -8,7 +8,7 @@ teachers_faqs <- div(
     tags$span("Dear"),
     tags$span("Teacher, ", class = "text-bold"),
     tags$span(" Welcome to "),
-    tags$span("CANDIDATE", class = "text-bold")
+    tags$span("CANDIDATE™", class = "text-bold")
   ),
 
   # First FAQ Panel: Partnership Info
@@ -45,7 +45,7 @@ teachers_faqs <- div(
       class = "bg-secondary",
       collapsed = TRUE,
       tags$div(
-        "Our graphic designer will retrieve your uploaded content, create a well-formatted digital version that is uploaded into CANDIDATE."
+        "Our graphic designer will retrieve your uploaded content, create a well-formatted digital version that is uploaded into CANDIDATE™."
       )
     ),
 
@@ -65,10 +65,10 @@ teachers_faqs <- div(
       class = "bg-secondary",
       collapsed = TRUE,
       tags$div(
-        tags$p("Students pay a termly fixed fee of Ksh. 799 to access all content for their grade. This is divided on a 50/50 basis between ourselves and you."),
+        tags$p("Students pay a termly fixed fee of Ksh. 1500 to access all content for their grade. This is divided on a 50/50 basis between ourselves and you."),
         tags$ul(
-          tags$li("For Example: Grade 6 has 100 students who’ve paid the Ksh. 799 for the term."),
-          tags$li("Calculation: Ksh. 799 * 100 = Ksh. 79,900."),
+          tags$li("For Example: Grade 6 has 100 students who’ve paid the Ksh. 1500 for the term."),
+          tags$li("Calculation: Ksh. 1500 * 100 = Ksh. 79,900."),
           tags$li("50% of Ksh. 79,900 = Ksh. 39,950."),
           tags$li("Ksh. 39,950 will be shared among all the teachers who have provided content for grade 6."),
           tags$li("The share is based on the percentage of content attributed to the teacher. For instance, if half the content is from Teacher X, they will receive Ksh. 19,975.")
