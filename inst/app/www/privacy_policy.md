@@ -41,7 +41,7 @@ We take reasonable measures to protect your personal information from unauthoriz
 
 ❖  **<span style="color:#163142">Your Rights</span>**
 
-You have the right to access, update, or delete your personal information. You can do this by contacting us at technical.admin@candidate.com.
+You have the right to access, update, or delete your personal information. You can do this by contacting us at technical.admin@quickstudy.co.ke.
 
 ❖  **<span style="color:#163142">Changes to This Policy</span>**
 
@@ -49,4 +49,4 @@ We may update this Privacy Policy from time to time. We will notify you of any c
 
 ❖  **<span style="color:#163142">Contact</span>**
 
-If you have any questions about this Privacy Policy, please contact us at technical.admin@candidate.com.
+If you have any questions about this Privacy Policy, please contact us at technical.admin@quickstudy.co.ke.
