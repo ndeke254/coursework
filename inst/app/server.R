@@ -4156,6 +4156,13 @@ server <- function(input, output, session) {
     initial_data <- load_data(current_page(), page_size)
     initial_ui <- timeline_block(initial_data)
     insertUI(selector = "#end", where = "beforeBegin", ui = initial_ui)
+    shinyjs::runjs('
+        $(document).click(function(event) {
+          if (!$(event.target).closest("#feedback_panel").length) {
+            $("#feedback_panel").hide();
+          }
+        });
+      ')
   })
 
   observeEvent(input$scrollToBottom, {
@@ -4309,80 +4316,97 @@ server <- function(input, output, session) {
 
   # FEEDBACK
   active_button <- reactiveVal(0)
-  observeEvent(input$contact_us, {
-    showModal(
-      modalDialog(
-        title = "Contact Us",
-        size = "m",
-        footer = NULL,
-        easyClose = TRUE,
-        div(
-          class = "card-body",
-  div(
-        class = "text-center mb-3",
-        style = "font-size: 16px; font-weight: bold; color: #163142;", 
-        "CALL US ON ",
-        span(
-          "0111672464",
-          style = "font-weight: bold; color: #50BD8C;"
-        ),
-        " or fill the form below:"
-      ),
-          shinyWidgets::pickerInput(
-            inputId = "feedback_user_type",
-            label = label_mandatory("You are a:"),
-            options = list(
-              style = "btn-outline-light",
-              title = "Eg. Student",
-              maxOptions = 3
+  observeEvent(
+    list(input$contact_us, input$open_chat),
+    {
+      showModal(
+        # The absolutePanel for feedback form
+        absolutePanel(
+          id = "feedback_panel",
+          class = "panel-class",
+          fixed = TRUE,
+          draggable = TRUE,
+          top = "20%",
+          left = "50%",
+          style = "transform: translateX(-50%); padding: 20px; background: white; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); z-index: 1050;",
+
+          # Close button (X)
+          actionButton(
+            inputId = "close_feedback_panel",
+            label = "",
+            icon = icon("times"),
+            style = "position: absolute; top: 0px; right: 10px; background-color: transparent; border: none; font-size: 20px; color: #999;"
+          ),
+
+          # Your feedback form UI elements
+          div(
+            class = "card-body",
+            div(
+              class = "text-center mb-3",
+              style = "font-size: 16px; font-weight: bold; color: #163142;",
+              "CALL US ON ",
+              span(
+                "0111672464",
+                style = "font-weight: bold; color: #50BD8C;"
+              ),
+              " or fill the form below:"
             ),
-            choices = c("Student", "Teacher", "School", "Other")
-          ),
-          textInput(
-            inputId = "feedback_email",
-            label = label_mandatory("Contact Address:"),
-            placeholder = "Email address or Phone number"
-          ),
-          radioButtons(
-            inputId = "feedback_type",
-            label = label_mandatory("Type of Feedback:"),
-            choices = c("Suggestion", "Complaint", "Inquiry", "Other"),
-            inline = TRUE
-          ),
-          textAreaInput(
-            inputId = "feedback_text",
-            label = label_mandatory("Your inquiry (200 words max):"),
-            placeholder = "Write your inquiry, complaint or suggestion here",
-            rows = 5
-          ),
-          p("Rate Your Experience"),
-          # Emoji Rating
-          div(
-            style = "text-align: center;",
-            lapply(1:5, function(i) {
+            shinyWidgets::pickerInput(
+              inputId = "feedback_user_type",
+              label = label_mandatory("You are a:"),
+              options = list(
+                style = "btn-outline-light",
+                title = "Eg. Student",
+                maxOptions = 3
+              ),
+              choices = c("Student", "Teacher", "School", "Other")
+            ),
+            textInput(
+              inputId = "feedback_email",
+              label = label_mandatory("Contact Address:"),
+              placeholder = "Email address or Phone number"
+            ),
+            radioButtons(
+              inputId = "feedback_type",
+              label = label_mandatory("Type of Feedback:"),
+              choices = c("Suggestion", "Complaint", "Inquiry", "Other"),
+              inline = TRUE
+            ),
+            textAreaInput(
+              inputId = "feedback_text",
+              label = label_mandatory("Your inquiry (200 words max):"),
+              placeholder = "Write your inquiry, complaint or suggestion here",
+              rows = 5
+            ),
+            p("Rate Your Experience"),
+            # Emoji Rating
+            div(
+              style = "text-align: center;",
+              lapply(1:5, function(i) {
+                actionButton(
+                  inputId = paste0("rating_", i),
+                  label = emoji::emoji(c("cry", "confused", "neutral_face", "smile", "star-struck")[i]),
+                  style = "font-size: 30px; background-color: transparent; border: none;",
+                  class = "emoji-btn"
+                )
+              })
+            ),
+            hr(),
+            div(
+              class = "d-flex justify-content-center",
               actionButton(
-                inputId = paste0("rating_", i),
-                label = emoji::emoji(c("cry", "confused", "neutral_face", "smile", "star-struck")[i]),
-                style = "font-size: 30px; background-color: transparent; border: none;",
-                class = "emoji-btn"
-              )
-            })
-          ),
-          br(),
-          hr(),
-          div(
-            class = "d-flex justify-content-center",
-            actionButton(
-              inputId = "feedback_submit_btn",
-              label = "Submit",
-              icon = icon("paper-plane")
-            ) |>
-              basic_primary_btn()
+                inputId = "feedback_submit_btn",
+                label = "Submit",
+                icon = icon("paper-plane")
+              ) |>
+                basic_primary_btn()
+            )
           )
         )
       )
-    )
-  })
+    },
+    ignoreInit = TRUE
+  )
 
   lapply(1:5, function(i) {
     observeEvent(input[[paste0("rating_", i)]], {
@@ -4436,6 +4460,9 @@ server <- function(input, output, session) {
     shinyjs::enable("feedback_submit_btn")
   })
 
+  observeEvent(input$close_feedback_panel, {
+    shiny::removeModal()
+  })
   # show failed emails:
   output$emails_table <- renderUI({
     # Get the emails data:

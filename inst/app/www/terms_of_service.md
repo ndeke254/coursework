@@ -49,4 +49,4 @@
 
 ❖ **<span style="color:#163142">Contact Us</span>**
 
- If you have any questions about these Terms of Use, please contact us at technical.admin@candidate.com.
+ If you have any questions about these Terms of Use, please contact us at technical.admin@quickstudy.co.ke.

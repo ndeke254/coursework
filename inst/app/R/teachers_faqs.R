@@ -65,13 +65,13 @@ teachers_faqs <- div(
       class = "bg-secondary",
       collapsed = TRUE,
       tags$div(
-        tags$p("Students pay a termly fixed fee of Ksh. 1500 to access all content for their grade. This is divided on a 50/50 basis between ourselves and you."),
+        tags$p("Students pay a termly fixed fee of Ksh. 1500 to access all the content for their grade. The teachers' share is Ksh. 1000, which is divided proportionally among all the teachers of a specific grade; according to a % of engagement calculated as the intersection between their amount of content and number of views."),
+        tags$p("This means that, higher content with less views or engagement from students will result to lower earnings. The vice versa is also true. Lower content but with greater traffic will have higher earnings. "),
         tags$ul(
-          tags$li("For Example: Grade 6 has 100 students who’ve paid the Ksh. 1500 for the term."),
-          tags$li("Calculation: Ksh. 1500 * 100 = Ksh. 79,900."),
-          tags$li("50% of Ksh. 79,900 = Ksh. 39,950."),
-          tags$li("Ksh. 39,950 will be shared among all the teachers who have provided content for grade 6."),
-          tags$li("The share is based on the percentage of content attributed to the teacher. For instance, if half the content is from Teacher X, they will receive Ksh. 19,975.")
+          tags$li("For Example: Grade 6 has 40 students who’ve paid the Ksh. 1500 for the term. The teachers' share is Ksh. 1000"),
+          tags$li("Calculations: Ksh. 1000 * 40 = Ksh. 40,000."),
+          tags$li("Ksh. 40,000 will be shared among all the teachers who have provided content for grade 6."),
+          tags$li("If Teacher X has a % enagement of 50%, they will receive Ksh. 20, 000.")
         )
       )
     ),
@@ -89,7 +89,7 @@ teachers_faqs <- div(
   br(),
   tags$p(
     "If you have any questions about our terms of engagement, please contact us at ",
-    tags$a(href = "mailto:technical.admin@candidate.com", "operational.admin@candidate.com")
+    tags$a(href = "mailto:operational.admin@quickstudy.co.ke", "operational.admin@quickstudy.co.ke")
   ),
   actionButton(
     inputId = "register_teacher",
