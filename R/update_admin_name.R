@@ -12,7 +12,7 @@ update_admin_name <- \(email, name) {
   if (nrow(existing_names) > 0) {
     return(0)
   }
-  
+
   data <- data.frame(
     input_col = email,
     value = name
