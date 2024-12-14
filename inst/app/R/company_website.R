@@ -499,7 +499,25 @@ company_website <- div(
        font-size: 2.0rem;
       }
      #footer_section {
-     text-align: center !important;
+      text-align: center !important;
+     }
+     #feedback_panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60%;
+      border-radius: 15px 15px 0 0;
+      z-index: 1050;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-in-out;
+    }
+     #feedback_panel.open {
+     transform: translateY(0);
+    }
+    #emoji_panel {
+    zoom:0.8
      }
     }
     "))

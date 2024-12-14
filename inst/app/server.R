@@ -4381,6 +4381,7 @@ server <- function(input, output, session) {
             p("Rate Your Experience"),
             # Emoji Rating
             div(
+              id = "emoji_panel",
               style = "text-align: center;",
               lapply(1:5, function(i) {
                 actionButton(
