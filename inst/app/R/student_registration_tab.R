@@ -117,7 +117,13 @@ student_registration_tab <- div(
             placeholder = "Re-enter your password",
             width = "100%"
           )
-        )
+        ),
+        tags$script(HTML("
+          $(document).on('paste', '#student_confirm_password', function(e) {
+           e.preventDefault();
+          alert('Pasting is disabled in this field.');
+         });
+      "))
       ),
 
       # Show Password toggle
