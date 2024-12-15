@@ -71,6 +71,7 @@ email_salutation <- paste0(
 )
 
 # Helper function to generate HTML tables with custom CSS styling
+#' @export 
 generate_html_table <- function(data, title) {
   if (nrow(data) > 0) {
     # Start the HTML table
