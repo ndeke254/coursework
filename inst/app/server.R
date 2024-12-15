@@ -369,6 +369,18 @@ server <- function(input, output, session) {
               email_address = input$teacher_email,
               session = session
             )
+            first_name <- strsplit(new_user$user_name, " ")[[1]][1]
+            email_salutation <- email_salutation(first_name)
+            send_email_notification(
+              receipients = new_user$email,
+              subject = "Welcome to Candidate",
+              body = email_body_template(
+                heading = "",
+                salutation = email_salutation,
+                body = welcome_body(new_user$id),
+                footer = external_email_footer
+              )
+            )
           } else {
             alert_fail_ui(
               info = "Name or email or phone already exists!",
@@ -617,6 +629,18 @@ server <- function(input, output, session) {
               email_address = input$student_email,
               session = session
             )
+            first_name <- strsplit(new_user$user_name, " ")[[1]][1]
+            email_salutation <- email_salutation(first_name)
+            send_email_notification(
+              receipients = new_user$email,
+              subject = "Welcome to Candidate",
+              body = email_body_template(
+                heading = "",
+                salutation = email_salutation,
+                body = welcome_body(new_user$id),
+                footer = external_email_footer
+              )
+            )
           } else {
             alert_fail_ui(
               info = "Name or email or phone already exists!",
@@ -738,7 +762,18 @@ server <- function(input, output, session) {
                 timer = 0,
                 info = "Name updated...Now log in"
               )
-              Sys.sleep(3)
+              first_name <- strsplit(input$admin_name, " ")[[1]][1]
+              email_salutation <- email_salutation(first_name)
+              send_email_notification(
+                receipients = signed_email,
+                subject = "Welcome to Candidate",
+                body = email_body_template(
+                  heading = "Welcome to Candidate",
+                  salutation = email_salutation,
+                  body = welcome_body(""),
+                  footer = external_email_footer
+                )
+              )
               session$reload()
             } else {
               alert_fail_ui(
@@ -839,21 +874,21 @@ server <- function(input, output, session) {
 
           paid_amount <- rvs$payments_data |>
             dplyr::filter(status == "APPROVED" &
-              user_id == signed_user$id) |>
+              user_id == "STU-001") |>
             dplyr::select(amount) |>
             unlist() |>
             as.numeric() |>
             sum()
 
-          # Check if the user has paid for the year
+          # Check if the user has paid for the term
           user_paid <- signed_user |>
             dplyr::select(paid) |>
             dplyr::pull(paid) |>
-            as.character()
+            as.logical()
 
           balance <- price - paid_amount
           clear <- prettyNum(balance, big.mark = ",")
-          if (user_paid == "0") {
+          if (!user_paid) {
             shinyjs::hide("content_pdfs")
 
             shinyalert::shinyalert(
@@ -1023,24 +1058,22 @@ server <- function(input, output, session) {
             ignoreNULL = FALSE
           )
 
-          # Function to update filtered data based on picker inputs
+          # Apply content filters
           update_filtered_data <- function() {
-            # List of columns to filter
+            filtered_data <- student_content
             columns <- c("teacher", "learning_area", "topic", "sub_topic")
 
             for (col in columns) {
               selected_values <- input[[paste0("filter_", col)]]
 
               if (!is.null(selected_values) && length(selected_values) > 0) {
-                filtered_data <- student_content |>
+                filtered_data <- filtered_data |>
                   dplyr::filter(get(col) %in% selected_values)
-                return(filtered_data)
               }
             }
 
-            student_content
+            return(filtered_data)
           }
-
           # Render available PDFs
           output$published_pdfs <- renderUI({
             filtered_data <- update_filtered_data()
@@ -1072,15 +1105,14 @@ server <- function(input, output, session) {
                   class = "d-flex flex-wrap justify-content-center",
                   lapply(seq_len(nrow(teacher_data)), function(i) {
                     pdf_info <- teacher_data[i, ]
-                    pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name)) |>
-                      tolower()
+                    pdf_name_filtered <- fs::path_ext_remove(basename(pdf_info$pdf_name))
 
                     table_html <- reactable::reactable(
                       data = data.frame(
                         Input = c("Teacher", "Learning Area", "Topic", "Sub Topic"),
                         Value = stringr::str_trunc(
                           c(
-                            stringr::str_to_title(input$pdfFile$name),
+                            input$pdfFile$name,
                             pdf_info$teacher,
                             pdf_info$learning_area,
                             pdf_info$topic,
@@ -1118,7 +1150,7 @@ server <- function(input, output, session) {
 
                     # Create PDF card
                     div(
-                      class = "card shadow w-25 mt-2 mx-2 hover-card",
+                      class = "card w-25 mt-2 hover-card",
                       div(
                         id = paste("card", i),
                         class = "d-flex justify-content-center",
@@ -1177,8 +1209,7 @@ server <- function(input, output, session) {
             shinybusy::show_spinner()
 
             req(input$selected_pdf)
-            pdf <- tolower(input$selected_pdf)
-
+            pdf <- input$selected_pdf
             shinyjs::hide("published_pdfs", anim = TRUE, animType = "fade")
             shinyjs::show("selected_pdf_frame", anim = TRUE, animType = "fade")
             shinyjs::hide("filters", anim = TRUE, animType = "fade")
@@ -1275,7 +1306,7 @@ server <- function(input, output, session) {
             # Filter and dplyr::arrange the data as needed
             data <- rvs$requests_data |>
               dplyr::filter(teacher_id == signed_user$id) |>
-              dplyr::select(-c(teacher_id, request_description)) |>
+              dplyr::select(-c(teacher_id, description)) |>
               dplyr::arrange(desc(time))
 
             # Set the column names
@@ -1424,7 +1455,7 @@ server <- function(input, output, session) {
                 learning_area = input$request_learning_area,
                 topic = input$request_topic,
                 sub_topic = input$request_sub_topic,
-                request_description = input$request_description,
+                description = input$request_description,
                 time = format(Sys.time(), format = "%Y-%m-%d %H:%M:%S"),
                 status = "PENDING"
               )
@@ -2454,6 +2485,30 @@ server <- function(input, output, session) {
           input$edit_request_status
         )
       )
+      teacher_data <- rvs$requests_data |>
+        dplyr::filter(id == details$ID) |>
+        dplyr::left_join(rvs$teachers_data, by = c("teacher_id" = "id"))
+
+      teacher_email <- teacher_data |>
+        dplyr::select(email) |>
+        dplyr::pull()
+      teacher_name <- teacher_data |>
+        dplyr::select(user_name) |>
+        dplyr::pull()
+      first_name <- strsplit(teacher_name, " ")[[1]][1]
+      email_salutation <- email_salutation(first_name)
+      send_email_notification(
+        receipients = teacher_email,
+        subject = "Request Status Update",
+        body = email_body_template(
+          heading = "",
+          salutation = email_salutation,
+          body = updated_request_body(
+            details$ID, input$edit_request_status
+          ),
+          footer = external_email_footer
+        )
+      )
     } else {
       alert_fail_ui(
         info = "An error occured...",
@@ -2539,17 +2594,30 @@ server <- function(input, output, session) {
     if (input$confirm_pdf_details) {
       if (!dir.exists("www/pdf")) dir.create("www/pdf", recursive = TRUE)
       if (!dir.exists("www/images")) dir.create("www/images", recursive = TRUE)
-      pdf_path <- file.path("www/pdf", input$pdfFile$name)
+      pdf_path <- file.path(
+        "www/pdf",
+        input$pdfFile$name
+      )
 
-      teacher_name <- rvs$teachers_data |>
-        dplyr::filter(id == input$doc_teacher_id) |>
+      teacher_details <- rvs$teachers_data |>
+        dplyr::filter(id == input$doc_teacher_id)
+
+      teacher_name <- teacher_details |>
         dplyr::select(user_name) |>
+        unlist() |>
+        as.vector()
+      teacher_email <- teacher_details |>
+        dplyr::select(email) |>
+        unlist() |>
+        as.vector()
+      teacher_school <- teacher_details |>
+        dplyr::select(school_name) |>
         unlist() |>
         as.vector()
 
       data <- data.frame(
         id = next_pdf_id("content"),
-        pdf_name = stringr::str_to_title(input$pdfFile$name),
+        pdf_name = input$pdfFile$name,
         teacher = teacher_name,
         grade = input$doc_grade,
         learning_area = input$doc_learning_area,
@@ -2599,6 +2667,39 @@ server <- function(input, output, session) {
           user = signed_admin_user$value,
           action = "Upload",
           description = paste("Uploaded a new PDF:", data$id)
+        )
+        students_emails <- subset(
+          rvs$students_data,
+          grade == grade & school_name == teacher_school
+        )$email
+
+        for (email in students_emails) {
+          student_name <- subset(rvs$students_data, email == email)$user_name
+          first_name <- strsplit(student_name, " ")[[1]][1]
+          send_email_notification(
+            receipients = email,
+            subject = "New Content Update",
+            body = published_content_body(
+              user = first_name,
+              teacher_name = teacher_name,
+              grade = data$grade,
+              learning_area = data$learning_area,
+              topic = data$topic,
+              sub_topic = data$sub_topic
+            )
+          )
+        }
+        send_email_notification(
+          receipients = teacher_email,
+          subject = "New Content Update",
+          body = published_content_body(
+            user = strsplit(teacher_name, " ")[[1]][1],
+            teacher_name = teacher_name,
+            grade = data$grade,
+            learning_area = data$learning_area,
+            topic = data$topic,
+            sub_topic = data$sub_topic
+          )
         )
       } else {
         alert_fail_ui(info = "PDF Details already exist!", session = session)
@@ -2898,7 +2999,6 @@ server <- function(input, output, session) {
 
       # Run the update function
       updated <- update_school_details(details$ID, new_values)
-      print(updated)
       if (!identical(updated, 0L)) {
         removeModal()
         return(
@@ -3055,7 +3155,7 @@ server <- function(input, output, session) {
 
     # output data table:
     output_payments_data <- teacher_data_with_content |>
-      select(user_name, grade, per_share, paid_students, earnings)
+      dplyr::select(user_name, grade, per_share, paid_students, earnings)
     colnames(output_payments_data) <- c(
       "Name", "Grade", "% Share", "Paid students", "Earnings"
     )
@@ -3898,27 +3998,27 @@ server <- function(input, output, session) {
       student_data <- rvs$students_data |>
         dplyr::filter(id == details$`Student ID`)
 
+      data <- rvs$administrators_data
+      values <- data |>
+        dplyr::select(value) |>
+        as.vector()
+      term_end_date <- values$value[1] |> as.Date()
+
+      price <- rvs$schools_data |>
+        dplyr::filter(school_name == student_data$school_name) |>
+        dplyr::select(price) |>
+        as.numeric()
+
+      paid_amount <- rvs$payments_data |>
+        dplyr::filter(status == "APPROVED" &
+          user_id == details$`Student ID` &
+          term == values$value[2]) |>
+        dplyr::select(amount) |>
+        unlist() |>
+        as.numeric() |>
+        sum()
+
       if (input$edit_payment_status == "APPROVED") {
-        data <- rvs$administrators_data
-        values <- data |>
-          dplyr::select(value) |>
-          as.vector()
-        term_end_date <- values$value[1] |> as.Date()
-
-        price <- rvs$schools_data |>
-          dplyr::filter(school_name == student_data$school_name) |>
-          dplyr::select(price) |>
-          as.numeric()
-
-        paid_amount <- rvs$payments_data |>
-          dplyr::filter(status == "APPROVED" &
-            user_id == details$`Student ID` &
-            term == values$value[2]) |>
-          dplyr::select(amount) |>
-          unlist() |>
-          as.numeric() |>
-          sum()
-
         total_paid <- paid_amount + as.numeric(details$Amount)
 
         balance <- price - total_paid
@@ -3933,11 +4033,13 @@ server <- function(input, output, session) {
 
         update
       } else {
+        balance <- price - paid_amount
+
         update <- update_payments_status(
           ticket_id = details$`Ticket ID`,
           new_status = input$edit_payment_status,
-          balance = 0,
-          total = 0,
+          balance = balance,
+          total = paid_amount,
           student_id = student_data$id
         )
         update
@@ -3956,6 +4058,17 @@ server <- function(input, output, session) {
           action = "Update",
           description = paste(
             "Updated", details$`Ticket ID`, " payment status to", input$edit_payment_status
+          )
+        )
+        first_name <- strsplit(student_data$user_name, " ")[[1]][1]
+        send_email_notification(
+          receipients = student_data$email,
+          subject = "Payment Notification",
+          body = updated_payments_body(
+            user = first_name,
+            ticket_no = details$`Ticket ID`,
+            amount = paid_amount,
+            payment_status = input$edit_payment_status
           )
         )
       } else {
@@ -4289,13 +4402,22 @@ server <- function(input, output, session) {
     }
 
     if (input$email_template == "Financial statement") {
-      financial_data <- data.table::as.data.table(iris)
-      dt <- rmarkdown::render(
-        input = "www/payments_report.md",
-        params = list(data = financial_data, comment = "Alpha Delta"),
-        output_file = "financial_statement.html",
-        output_dir = "www"
-      )
+      financial_data <- rvs$payments_data |>
+        dplyr::filter(status == "APPROVED") |>
+        dplyr::group_by(term) |>
+        dplyr::summarise(total_payments = sum(as.numeric(amount))) |>
+        dplyr::rename(
+          TERM = term,
+          AMOUNT = total_payments
+        ) |>
+        dplyr::mutate(
+          TEACHERS = AMOUNT * (1000 / 1500),
+          MANAGERS = AMOUNT * (500 / 1500)
+        ) |>
+        janitor::adorn_totals() |>
+        janitor::adorn_rounding(digits = 2)
+
+
 
       send_email_notification(
         receipients = receipient_emails,
@@ -4306,7 +4428,8 @@ server <- function(input, output, session) {
         body = email_body_template(
           heading = "Financial Statement",
           salutation = email_salutation,
-          body = paste(readLines(dt), collapse = "\n"),
+          pre_body_text = "Please find attached the financial status:",
+          body = generate_html_table(data = financial_data, title = ""),
           footer = internal_email_footer
         )
       )
