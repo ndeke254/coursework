@@ -60,5 +60,6 @@ update_payments_status <- \(
       )
     )
   }
+  
   DBI::dbClearResult(res)
 }
