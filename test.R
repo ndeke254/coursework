@@ -321,23 +321,23 @@ getwd()
 
 
 
-  record_admin_action(
-    conn = conn,
-    user = "Admin123",
-    action = "Approve",
-    description = "Approved ticket #038F389E"
-  )
+record_admin_action(
+  conn = conn,
+  user = "Admin123",
+  action = "Approve",
+  description = "Approved ticket #038F389E"
+)
 
-  library(data.table)
+library(data.table)
 
 timeline_data <- read.csv("/home/jefferson.ndeke/PersonalR/coursework/inst/app/timeline.csv") |>
-as.data.table()
+  as.data.table()
 
-currentPage = 3
-pageSize = 10
+currentPage <- 3
+pageSize <- 10
 offset <- (currentPage - 1) * pageSize
 
- data <- timeline_data[order(-time)][(offset + 1):(offset + pageSize), ]
+data <- timeline_data[order(-time)][(offset + 1):(offset + pageSize), ]
 
 timeline_data
 
@@ -355,7 +355,7 @@ record_student_view(
 
 library(dplyr)
 admin_emails <- table |>
-select(input) |>
+  select(input) |>
   filter(grepl("@gmail\\.com$", input)) |>
   unlist() |>
   as.vector()
@@ -369,7 +369,7 @@ names(table) <- c("input_col", "value")
 students_data <- data.frame(
   id = sprintf("STD-%03d", 1:36),
   school_name = "Alpha",
-  grade = c(rep(7, 31), sample(6:8, 5, replace = TRUE)), 
+  grade = c(rep(7, 31), sample(6:8, 5, replace = TRUE)),
   paid = c(rep(1, 31), sample(0:1, 5, replace = TRUE)),
   time = Sys.time(),
   status = "Active"
