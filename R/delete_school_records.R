@@ -1,8 +1,10 @@
 #' Delete school records from the database
 #' @param user_id A character string representing the user ID
 #' @examples
+#' \dontrun{
 #' # Example of deleting school records (commented out due to missing file)
 #' # delete_school_records(user_id = "schools")
+#' }
 #' @import DBI
 #' @export
 delete_school_records <- \(user_id) {

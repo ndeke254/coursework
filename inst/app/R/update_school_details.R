@@ -2,7 +2,9 @@
 #' @param school_id A character string representing the school ID
 #' @param new_values A named list of new values to update in the school record
 #' @examples
+#' \dontrun{
 #' # update_school_details(school_id = "SCH-001", new_values = list(name = "New School Name", email = "newemail@example.com"))
+#' }
 #'
 #' @import DBI
 #' @export

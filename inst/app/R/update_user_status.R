@@ -3,8 +3,10 @@
 #' @param user_id A character string representing the user ID
 #' @param new_status A character string to assign status
 #' @examples
+#' \dontrun{
 #' # update_status(table_name = "schools", user_id = "SCH-001", new_status = "Disabled")
-#'
+#'}
+#' 
 #' @import DBI
 #' @export
 update_user_status <- \(table_name, user_id, new_status) {

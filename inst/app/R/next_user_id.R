@@ -2,7 +2,9 @@
 #' @param table_name A character string representing the table name
 #' @param user_type A character string, either `student` or `teacher`
 #' @examples
+#' \dontrun{
 #' # next_user_id("users", "student")
+#' }
 #' @export
 next_user_id <- function(table_name, user_type) {
   # DB name

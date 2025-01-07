@@ -1,8 +1,10 @@
 #' Get the next school ID
 #' @param table_name A character string representing the table name
 #' @examples
+#'  \dontrun{
 #' # Example of getting next school ID (commented out due to missing file)
 #' # next_school_id("schools")
+#' }
 #' @export
 next_school_id <- function(table_name) {
   # DB name

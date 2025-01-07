@@ -1,7 +1,9 @@
 #' Get the next request ID
 #' @param table_name A character string representing the table name
 #' @examples
+#' \dontrun{
 #' # next_request_id("requests")
+#' }
 #' @export
 next_request_id <- function(table_name) {
   # DB name

@@ -1,8 +1,7 @@
 #' Show an alert for failed action
 #'
 #' @param info String. A sentense to show the action done
-#' #' @param position String. Where to place the alert on the window
-
+#' @param position String. Where to place the alert on the window
 #' @examples
 #'
 #' alert_fail_ui("User delete failed!", "top-end", session)
