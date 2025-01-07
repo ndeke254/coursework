@@ -4069,7 +4069,7 @@ server <- function(input, output, session) {
           body = updated_payments_body(
             user = first_name,
             ticket_no = details$`Ticket ID`,
-            amount = paid_amount,
+            amount = details$Amount,
             payment_status = input$edit_payment_status
           )
         )
