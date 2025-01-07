@@ -751,6 +751,7 @@ server <- function(input, output, session) {
           observeEvent(input$admin_name_set, {
             iv_admin$enable()
             req(iv_admin$is_valid())
+            shinyjs::disable("admin_name_set")
             update <- update_admin_name(
               email = signed_email,
               name = input$admin_name
@@ -780,6 +781,7 @@ server <- function(input, output, session) {
                 session = session,
                 info = "Name exists! Try another one."
               )
+              shinyjs::enable("admin_name_set")
             }
           })
           return()
@@ -3919,7 +3921,7 @@ server <- function(input, output, session) {
         data = payment_data
       )
 
-      if (success == 1) {
+      if (identical(success, 1L)) {
         alert_success_ui(
           info = "Payment ticket created successfully!",
           session = session
