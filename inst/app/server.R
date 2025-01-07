@@ -977,7 +977,7 @@ server <- function(input, output, session) {
             selected = "student_content"
           )
           table <- data.frame(
-            ID = signed_user$user_id,
+            ID = signed_user$id,
             SCHOOL = signed_user$school_name,
             GRADE = signed_user$grade,
             EMAIL = signed_user$email,
