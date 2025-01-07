@@ -6,7 +6,7 @@
 send_email_notification <- \(receipients, subject, body) {
   future::plan(future::multisession())
   for (receipient in receipients) {
-    future::future({  
+    future::future({
       tryCatch(
         {
           mailR::send.mail(
