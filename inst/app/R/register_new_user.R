@@ -1,11 +1,12 @@
 #' Register a new user into the DB.
-#' Adds a new row to the `schools` table in coursework database.
+#' Adds a new row to the `teachers` or `students` tables.
 #' Status of the newly created school is "enabled" by default.
 #'
 #' @param table_name Name of the table to add a record to.
-#' @param data A data.frame of the data to be added. Colnames are
-#' id, user_name, type, school_name, grade, phone, email, status
-#' @return double `1` if school was created. `0` otherwise.
+#' @param data A data.frame of the data to be added. Colnames for teachers are
+#' id, user_name, school_name, grade, phone, email, time, status, views. For 
+#' students; id, user_name. school_name, grade, phone, email,time, status, paid.
+#' @return `1` if a user was added. `0` otherwise.
 #'
 #' @export
 register_new_user <- function(table_name, data) {
@@ -22,7 +23,6 @@ register_new_user <- function(table_name, data) {
   # Check if the school name or email already exists
   name_exists <- data$user_name %in% table_data$user_name
   email_exists <- data$email %in% table_data$email
-
   phone_exists <- data$phone %in% table_data$phone
 
   if (!name_exists && !email_exists && !phone_exists) {

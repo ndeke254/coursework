@@ -99,7 +99,6 @@ mod_auth_server <- \(id) {
               stop("Invalid login credentials!", call. = FALSE)
             }
             user_details <- frbs::frbs_get_user_data(user$idToken)
-
             # add `idToken` to 'user_details':
             user_details$idToken <- user$idToken
 
@@ -153,7 +152,7 @@ mod_auth_server <- \(id) {
 
             alert_success_ui(
               session = session,
-              info = "Welcome to Candidate"
+              info = "Logged in!"
             )
           },
           error = \(e) {

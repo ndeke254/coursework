@@ -12,6 +12,7 @@
 #' update_request_status("REQ-007", "PROCESSING")
 #' update_request_status("REQ-008", "CANCELLED")
 #' }
+#' @export 
 update_request_status <- function(request_id, new_status) {
   # DB name
   db_name <- Sys.getenv("DATABASE_NAME")

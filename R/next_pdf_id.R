@@ -1,7 +1,9 @@
 #' Get the next PDF id
 #' @param table_name A character string representing the table name
 #' @examples
+#' \dontrun{
 #' # next_pdf_id("pdfs")
+#' }
 #' @export
 next_pdf_id <- function(table_name) {
   # DB name

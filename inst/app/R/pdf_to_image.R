@@ -3,8 +3,10 @@
 #' @param file_name A character string representing the file name
 #' @param output_dir A character string representing the output directory
 #' @examples
+#' \dontrun {
 #' # Example of converting PDF to image (commented out due to missing file)
 #' # pdf_to_image(pdf_path = "English_Grade6.pdf", file_name = "English.pdf", output_dir = "images")
+#' }
 #' @import magick
 #' @export
 pdf_to_image <- function(pdf_path, file_name, output_dir = "www/images") {

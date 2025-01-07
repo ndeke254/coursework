@@ -38,7 +38,7 @@ welcome_body <- \(user_id) {
     '
 <div style="font-family: Montserrat, sans-serif; font-size: 16px; line-height: 1.6; color: #333;">
     <p style="margin: 0 0 10px;">
-        We are glad for you joining us! If you have any inquiries, complaints, or suggestions, please do not hesitate to reach out to us.
+        We are glad for joining us! If you have any inquiries, complaints, or suggestions, please do not hesitate to reach out to us.
     </p>
     <p style="margin: 0 0 10px;">
         You can call us at <strong>0111672464</strong>, or visit our <a href="https://quickstudy.co.ke/candidate/" target="_blank" style="color: #007BFF; text-decoration: none;">website</a> to create a ticket for assistance. Always reference your <strong>CANDIDATE ID: ', user_id, '</strong> when contacting us.

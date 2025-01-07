@@ -1,8 +1,11 @@
 #' Update school status
 #' @param user_id A character string representing the user ID
 #' @param new_status A character string to asign status
+#'
 #' @examples
+#' \dontrun{
 #' # update_school_status(user_id = "SCH-001", new_status = "Disabled")
+#' }
 #'
 #' @import DBI
 #' @export
