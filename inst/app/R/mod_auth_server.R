@@ -42,6 +42,7 @@ mod_auth_server <- \(id) {
             alert_success_ui(
               session = session,
               position = "bottom",
+              timer = 0,
               info = "Password reset link sent!"
             )
           },
