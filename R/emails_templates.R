@@ -41,7 +41,7 @@ welcome_body <- \(user_id) {
         We are glad for you joining us! If you have any inquiries, complaints, or suggestions, please do not hesitate to reach out to us.
     </p>
     <p style="margin: 0 0 10px;">
-        You can call us at <strong>0111672464</strong>, or visit our <a href="https://quickstudy.co.ke/candidate/" target="_blank" style="color: #007BFF; text-decoration: none;">website</a> to create a ticket for assistance. Always reference your <strong>CANDIDATE ID', user_id, '</strong> when contacting us.
+        You can call us at <strong>0111672464</strong>, or visit our <a href="https://quickstudy.co.ke/candidate/" target="_blank" style="color: #007BFF; text-decoration: none;">website</a> to create a ticket for assistance. Always reference your <strong>CANDIDATE ID: ', user_id, '</strong> when contacting us.
     </p>
     <p style="margin: 0 0 10px;">
         We look forward to a long and rewarding experience together.
