@@ -342,7 +342,7 @@ server <- function(input, output, session) {
 
           # Create data to append
           new_user <- data.frame(
-            id = next_user_id("teachers", "teacher"),
+            id = NA,
             user_name = stringr::str_to_title(input$teacher_username),
             school_name = input$teacher_school,
             grade = grades,
@@ -369,18 +369,6 @@ server <- function(input, output, session) {
               email_address = input$teacher_email,
               session = session
             )
-            first_name <- strsplit(new_user$user_name, " ")[[1]][1]
-            email_salutation <- email_salutation(first_name)
-            send_email_notification(
-              receipients = new_user$email,
-              subject = "Welcome to Candidate",
-              body = email_body_template(
-                heading = "",
-                salutation = email_salutation,
-                body = welcome_body(new_user$id),
-                footer = external_email_footer
-              )
-            )
           } else {
             alert_fail_ui(
               info = "Name or email or phone already exists!",
@@ -391,6 +379,7 @@ server <- function(input, output, session) {
           }
         },
         error = \(e) {
+          frbs::frbs_delete_account(id_token = id_token)
           alert_fail_ui(
             session = session,
             position = "bottom",
@@ -601,7 +590,7 @@ server <- function(input, output, session) {
 
           # Create data to append
           new_user <- data.frame(
-            id = next_user_id("students", "student"),
+            id = NA,
             user_name = stringr::str_to_title(input$student_username),
             school_name = input$student_school,
             grade = grades,
@@ -629,18 +618,6 @@ server <- function(input, output, session) {
               email_address = input$student_email,
               session = session
             )
-            first_name <- strsplit(new_user$user_name, " ")[[1]][1]
-            email_salutation <- email_salutation(first_name)
-            send_email_notification(
-              receipients = new_user$email,
-              subject = "Welcome to Candidate",
-              body = email_body_template(
-                heading = "",
-                salutation = email_salutation,
-                body = welcome_body(new_user$id),
-                footer = external_email_footer
-              )
-            )
           } else {
             alert_fail_ui(
               info = "Name or email or phone already exists!",
@@ -651,6 +628,7 @@ server <- function(input, output, session) {
           }
         },
         error = \(e) {
+          frbs::frbs_delete_account(id_token = id_token)
           alert_fail_ui(
             session = session,
             position = "bottom",
@@ -817,6 +795,7 @@ server <- function(input, output, session) {
         signed_user <- get_signed_user(signed_email, user_role)
         user_status <- signed_user$status
         user_name <- signed_user$user_name
+        user_id <- signed_user$id
       }
 
       # show the user on profile
@@ -859,8 +838,8 @@ server <- function(input, output, session) {
       })
 
       # Show the dashboard page if conditions are met
-      if (nrow(signed_user) == 1 &&
-        user_status == "Enabled" && !is.na(user_role)) {
+      if (identical(nrow(signed_user), 1L) &&
+        identical(user_status, "Enabled") && !is.na(user_role)) {
         # Control access according to roles
         if (is_admin) {
           updateTabsetPanel(
@@ -951,15 +930,54 @@ server <- function(input, output, session) {
               }
             )
           }
-
-
+          if (is.na(user_id)) {
+            user_id <- next_user_id("students", "student")
+            success <- assign_user_id(
+              table_name = "students",
+              email = signed_user$email,
+              new_id = user_id
+            )
+            if (!identical(success, 1L)) {
+              return(
+                shinyalert::shinyalert(
+                  title = "Contact Administrator",
+                  text = paste(
+                    "An error occurred with your account."
+                  ),
+                  html = TRUE,
+                  inputId = "error_alert",
+                  imageUrl = "logo/logo_icon_blue.png",
+                  imageWidth = 80,
+                  imageHeight = 50,
+                  session = session,
+                  confirmButtonText = "OK",
+                  confirmButtonCol = "#163142",
+                  callbackR = function() {
+                    session$reload()
+                  }
+                )
+              )
+            }
+            signed_user$id <- user_id
+            first_name <- strsplit(signed_user$user_name, " ")[[1]][1]
+            email_salutation <- email_salutation(first_name)
+            send_email_notification(
+              receipients = signed_user$email,
+              subject = "Welcome to Candidate",
+              body = email_body_template(
+                heading = "",
+                salutation = email_salutation,
+                body = welcome_body(user_id),
+                footer = external_email_footer
+              )
+            )
+          }
           updateTabsetPanel(
             inputId = "app_pages",
             selected = "student_content"
           )
-
           table <- data.frame(
-            ID = signed_user$id,
+            ID = signed_user$user_id,
             SCHOOL = signed_user$school_name,
             GRADE = signed_user$grade,
             EMAIL = signed_user$email,
@@ -1240,6 +1258,48 @@ server <- function(input, output, session) {
             })
           })
         } else if (user_role == "teacher") {
+          if (is.na(user_id)) {
+            user_id <- next_user_id("teachers", "teacher")
+            success <- assign_user_id(
+              table_name = "teachers",
+              email = signed_user$email,
+              new_id = user_id
+            )
+            if (!identical(success, 1L)) {
+              return(
+                shinyalert::shinyalert(
+                  title = "Contact Administrator",
+                  text = paste(
+                    "An error occurred with your account."
+                  ),
+                  html = TRUE,
+                  inputId = "error_alert",
+                  imageUrl = "logo/logo_icon_blue.png",
+                  imageWidth = 80,
+                  imageHeight = 50,
+                  session = session,
+                  confirmButtonText = "OK",
+                  confirmButtonCol = "#163142",
+                  callbackR = function() {
+                    session$reload()
+                  }
+                )
+              )
+            }
+            signed_user$id <- user_id
+            first_name <- strsplit(signed_user$user_name, " ")[[1]][1]
+            email_salutation <- email_salutation(first_name)
+            send_email_notification(
+              receipients = signed_user$email,
+              subject = "Welcome to Candidate",
+              body = email_body_template(
+                heading = "",
+                salutation = email_salutation,
+                body = welcome_body(user_id),
+                footer = external_email_footer
+              )
+            )
+          }
           updateTabsetPanel(
             inputId = "app_pages",
             selected = "teacher_content"
