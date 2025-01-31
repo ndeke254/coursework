@@ -187,5 +187,8 @@ ui <- shiny::bootstrapPage(
   ),
   tags$script(
     src = file.path("js", "script.js")
+  ),
+  tags$script(
+    src = file.path("js", "google-analytics.js")
   )
 )
