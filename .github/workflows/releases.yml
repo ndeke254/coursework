@@ -1,5 +1,4 @@
 name: Release Management
-
 on:
   push:
     tags:
@@ -15,7 +14,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        fetch-tags: true
 
     - name: Get previous tag
       id: get_previous
@@ -23,20 +21,23 @@ jobs:
         CURRENT_TAG="${{ github.ref_name }}"
         echo "Current tag: $CURRENT_TAG"
 
-        git fetch --tags
-        ALL_TAGS=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$')
+        # Get all local tags (already available from checkout)
+        ALL_TAGS=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || echo "")
+        echo "Available tags: $ALL_TAGS"
 
-        TAGS_ARRAY=($ALL_TAGS)
-        for i in "${!TAGS_ARRAY[@]}"; do
-          if [[ "${TAGS_ARRAY[$i]}" == "$CURRENT_TAG" ]]; then
-            if [[ $i -lt $((${#TAGS_ARRAY[@]} - 1)) ]]; then
-              PREVIOUS_TAG="${TAGS_ARRAY[$((i + 1))]}"
-              echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
-              echo "Found previous tag: $PREVIOUS_TAG"
-              exit 0
+        if [ -n "$ALL_TAGS" ]; then
+          TAGS_ARRAY=($ALL_TAGS)
+          for i in "${!TAGS_ARRAY[@]}"; do
+            if [[ "${TAGS_ARRAY[$i]}" == "$CURRENT_TAG" ]]; then
+              if [[ $i -lt $((${#TAGS_ARRAY[@]} - 1)) ]]; then
+                PREVIOUS_TAG="${TAGS_ARRAY[$((i + 1))]}"
+                echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+                echo "Found previous tag: $PREVIOUS_TAG"
+                exit 0
+              fi
             fi
-          fi
-        done
+          done
+        fi
 
         echo "No previous tag found"
         echo "previous_tag=" >> $GITHUB_OUTPUT
@@ -47,12 +48,19 @@ jobs:
         CURRENT_TAG="${{ github.ref_name }}"
         PREVIOUS_TAG="${{ steps.get_previous.outputs.previous_tag }}"
 
+        echo "Generating notes for tag: $CURRENT_TAG"
+        echo "Previous tag: $PREVIOUS_TAG"
+
+        # Get commits between tags
         if [ -n "$PREVIOUS_TAG" ]; then
+          echo "Getting commits from $PREVIOUS_TAG to $CURRENT_TAG"
           COMMITS=$(git log --pretty=format:"%s" "$PREVIOUS_TAG..$CURRENT_TAG")
         else
+          echo "No previous tag found, getting recent commits"
           COMMITS=$(git log --pretty=format:"%s" -20)
         fi
 
+        # Initialize categories
         declare -A categories=(
           ["FEATURES"]=""
           ["BUGFIXES"]=""
@@ -62,19 +70,37 @@ jobs:
           ["OTHER"]=""
         )
 
+        # Process commits
         while IFS= read -r commit; do
+          [ -z "$commit" ] && continue
+
+          # Clean the commit message
           CLEAN_MSG=$(echo "$commit" | sed -E 's/^(ft|feat|fix|ch|docs|breaking|refactor)[: ]*//i')
 
-          case "${commit,,}" in
-            ft:*|feat:*) categories["FEATURES"]+="- ${CLEAN_MSG}\n" ;;
-            fix:*) categories["BUGFIXES"]+="- ${CLEAN_MSG}\n" ;;
-            ch:*|refactor:*|chore:*) categories["MAINTENANCE"]+="- ${CLEAN_MSG}\n" ;;
-            docs:*) categories["DOCS"]+="- ${CLEAN_MSG}\n" ;;
-            breaking:*) categories["BREAKING"]+="- ${CLEAN_MSG}\n" ;;
-            *) categories["OTHER"]+="- ${CLEAN_MSG}\n" ;;
+          # Categorize based on prefix
+          case $(echo "$commit" | tr '[:upper:]' '[:lower:]') in
+            ft:*|feat:*)
+              categories["FEATURES"]+="- ${CLEAN_MSG}\n"
+              ;;
+            fix:*)
+              categories["BUGFIXES"]+="- ${CLEAN_MSG}\n"
+              ;;
+            ch:*|refactor:*|chore:*)
+              categories["MAINTENANCE"]+="- ${CLEAN_MSG}\n"
+              ;;
+            docs:*)
+              categories["DOCS"]+="- ${CLEAN_MSG}\n"
+              ;;
+            breaking:*)
+              categories["BREAKING"]+="- ${CLEAN_MSG}\n"
+              ;;
+            *)
+              categories["OTHER"]+="- ${CLEAN_MSG}\n"
+              ;;
           esac
         done <<< "$COMMITS"
 
+        # Build the markdown content
         CONTENT="# Release $CURRENT_TAG\n\n"
 
         SECTIONS=(
@@ -101,6 +127,7 @@ jobs:
 
         CONTENT+="---\n*Automatically generated - please edit before publishing*"
 
+        # Write to file
         echo -e "$CONTENT" > formatted_notes.md
         echo "✅ Formatted release notes generated"
 
