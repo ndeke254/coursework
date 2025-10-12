@@ -1,0 +1,212 @@
+# Create the automated release workflow
+name: Automated Release on Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  analyze-and-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Analyze commits and determine version
+        id: analyze
+        run: |
+          echo "🔍 Analyzing commits for version bump..."
+
+          # Get the latest tag or start from v0.0.0
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+
+          # Get commits since last tag
+          COMMITS=$(git log --pretty=format:"%s" "$LATEST_TAG..HEAD" 2>/dev/null || git log --pretty=format:"%s" -10)
+          echo "Commits since last release:"
+          echo "$COMMITS"
+
+          # Initialize version bump flags
+          HAS_BREAKING=false
+          HAS_FEATURE=false
+          HAS_FIX=false
+
+          # Initialize categorized lists
+          FEATURES=""
+          BUGFIXES=""
+          MAINTENANCE=""
+          DOCS=""
+          BREAKING=""
+          ALL_COMMITS=""
+
+          # Analyze each commit
+          while IFS= read -r commit; do
+            [ -z "$commit" ] && continue
+
+            # Add to full commit history
+            ALL_COMMITS="${ALL_COMMITS}- ${commit}\n"
+
+            # Clean message for display (remove prefixes)
+            CLEAN_MSG=$(echo "$commit" | sed -E 's/^(ft|feat|fix|ch|docs|breaking|refactor)[: ]*//i')
+
+            # Categorize commits
+            case $(echo "$commit" | tr '[:upper:]' '[:lower:]') in
+              breaking:*)
+                HAS_BREAKING=true
+                BREAKING="${BREAKING}- ${CLEAN_MSG}\n"
+                ;;
+              ft:*|feat:*)
+                HAS_FEATURE=true
+                FEATURES="${FEATURES}- ${CLEAN_MSG}\n"
+                ;;
+              fix:*)
+                HAS_FIX=true
+                BUGFIXES="${BUGFIXES}- ${CLEAN_MSG}\n"
+                ;;
+              ch:*|chore:*|refactor:*)
+                MAINTENANCE="${MAINTENANCE}- ${CLEAN_MSG}\n"
+                ;;
+              docs:*)
+                DOCS="${DOCS}- ${CLEAN_MSG}\n"
+                ;;
+              *)
+                # Default to maintenance for uncategorized
+                MAINTENANCE="${MAINTENANCE}- ${CLEAN_MSG}\n"
+                ;;
+            esac
+          done <<< "$COMMITS"
+
+          # Determine version bump type
+          if [ "$HAS_BREAKING" = true ]; then
+            BUMP_TYPE="major"
+            echo "🚨 MAJOR version bump: Breaking changes detected"
+          elif [ "$HAS_FEATURE" = true ]; then
+            BUMP_TYPE="minor"
+            echo "🚀 MINOR version bump: New features detected"
+          elif [ "$HAS_FIX" = true ]; then
+            BUMP_TYPE="patch"
+            echo "🐛 PATCH version bump: Bug fixes detected"
+          else
+            BUMP_TYPE="none"
+            echo "📝 No version bump: Only maintenance/documentation changes"
+          fi
+
+          # Calculate new version
+          CURRENT_VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          case $BUMP_TYPE in
+            major)
+              NEW_MAJOR=$((MAJOR + 1))
+              NEW_MINOR=0
+              NEW_PATCH=0
+              ;;
+            minor)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$((MINOR + 1))
+              NEW_PATCH=0
+              ;;
+            patch)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$((PATCH + 1))
+              ;;
+            none)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$PATCH
+              ;;
+          esac
+
+          NEW_TAG="v${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+          echo "New tag: $NEW_TAG"
+
+          # Set outputs for next steps
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "has_breaking=$HAS_BREAKING" >> $GITHUB_OUTPUT
+          echo "has_feature=$HAS_FEATURE" >> $GITHUB_OUTPUT
+          echo "has_fix=$HAS_FIX" >> $GITHUB_OUTPUT
+
+          # Store categorized content
+          echo "features<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FEATURES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "bugfixes<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$BUGFIXES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "maintenance<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$MAINTENANCE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "docs<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$DOCS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "breaking<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$BREAKING" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "all_commits<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$ALL_COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create new version tag
+        if: steps.analyze.outputs.bump_type != 'none'
+        run: |
+          NEW_TAG="${{ steps.analyze.outputs.new_tag }}"
+          echo "🏷️ Creating new tag: $NEW_TAG"
+
+          # Create annotated tag
+          git tag -a "$NEW_TAG" -m "Auto-release: ${{ steps.analyze.outputs.bump_type }} version bump"
+          git push origin "$NEW_TAG"
+          echo "✅ Tag $NEW_TAG created and pushed"
+
+      - name: Create pre-release with your template
+        if: steps.analyze.outputs.bump_type != 'none'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.analyze.outputs.new_tag }}
+          name: ${{ steps.analyze.outputs.new_tag }} Pre-Release
+          body: |
+            ## 🚀 What's New
+            ${{ steps.analyze.outputs.features }}
+
+            ## 🐛 Bug Fixes
+            ${{ steps.analyze.outputs.bugfixes }}
+
+            ## 🔧 Maintenance & Improvements
+            ${{ steps.analyze.outputs.maintenance }}
+
+            ## 📚 Documentation
+            ${{ steps.analyze.outputs.docs }}
+
+            ## ⚠️ Breaking Changes
+            ${{ steps.analyze.outputs.breaking }}
+
+            ## 🔄 Full Commit History
+            ${{ steps.analyze.outputs.all_commits }}
+          draft: true
+          generate_release_notes: false
+
+      - name: Skip release when no version bump
+        if: steps.analyze.outputs.bump_type == 'none'
+        run: |
+          echo "📝 No version bump needed"
+          echo "Only maintenance/documentation changes detected"
+          echo "Skipping release creation"
